@@ -1,1 +1,183 @@
-<p>home works!</p>
+<section class="portal-hero">
+  <div class="container">
+    <div class="portal-hero__content">
+      <div class="portal-hero__main">
+        <div class="portal-hero__tag">
+          <span class="portal-hero__tag-dot"></span>
+          Repuestos para climatización industrial
+        </div>
+
+        <h1 class="portal-hero__title">
+          Repuestos para tus equipos,
+          <br />
+          cotización en minutos.
+        </h1>
+
+        <p class="portal-hero__description">
+          Encuentra piezas para sistemas de climatización en data centers, centros
+          de datos e instalaciones tecnológicas. Navega el catálogo, selecciona lo
+          que necesitas y solicita tu cotización al instante.
+        </p>
+
+        <div class="portal-hero__pills">
+          <span class="badge badge-hero" *ngFor="let pill of heroPills">
+            <span class="badge-hero__icon"></span>
+            {{ pill }}
+          </span>
+        </div>
+
+        <div class="portal-hero__actions">
+          <a routerLink="/catalogo" class="btn btn-light">Ver catálogo</a>
+          <a href="#como-funciona" class="btn btn-hero-outline">¿Cómo funciona?</a>
+        </div>
+      </div>
+
+      <div class="portal-hero__aside">
+        <div class="app-card card">
+          <div class="app-card__title">IA móvil VAYO</div>
+          <div class="app-card__subtitle">
+            Identifica repuestos y acelera la cotización desde tu celular.
+          </div>
+
+          <div class="app-card__features">
+            <span class="app-chip">Reconocimiento de imagen</span>
+            <span class="app-chip">Cotización en segundos</span>
+            <span class="app-chip">Gratis</span>
+          </div>
+        </div>
+
+        <div class="store-links">
+          <div class="store-card">
+            <div class="store-card__meta">Disponible en</div>
+            <div class="store-card__name">App Store</div>
+          </div>
+
+          <div class="store-card">
+            <div class="store-card__meta">Disponible en</div>
+            <div class="store-card__name">Google Play</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section portal-catalog">
+  <div class="container">
+    <div class="portal-section-header">
+      <div>
+        <h2 class="portal-section-title">Catálogo de repuestos</h2>
+        <p class="portal-section-subtitle">
+          {{ filteredProductsCount }}
+          {{ filteredProductsCount === 1 ? 'producto disponible' : 'productos disponibles' }}
+          <span *ngIf="selectedCategory !== 'Todos'"> en {{ selectedCategory }}</span>
+        </p>
+      </div>
+
+      <a routerLink="/catalogo" class="portal-section-link">Ver todos →</a>
+    </div>
+
+    <div class="portal-filters">
+      <button type="button" class="portal-filter" [class.is-active]="category.active"
+        *ngFor="let category of categories; trackBy: trackByLabel" (click)="selectCategory(category.label)">
+        {{ category.label }}
+      </button>
+    </div>
+
+    <ng-container *ngIf="filteredProducts.length > 0; else emptyProducts">
+      <div class="portal-products">
+        <article class="portal-product card" *ngFor="let product of filteredProducts; trackBy: trackByProduct">
+          <div class="portal-product__media">
+            <ng-container [ngSwitch]="product.icon">
+              <svg *ngSwitchCase="'compressor'" width="42" height="42" viewBox="0 0 42 42" fill="none"
+                aria-hidden="true">
+                <circle cx="21" cy="21" r="13" stroke="#378ADD" stroke-width="2" />
+                <circle cx="21" cy="21" r="7" stroke="#85B7EB" stroke-width="1.6" />
+                <path d="M21 7v4M21 31v4M7 21h4M31 21h4" stroke="#378ADD" stroke-width="1.6" stroke-linecap="round" />
+              </svg>
+
+              <svg *ngSwitchCase="'fan'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                <circle cx="21" cy="21" r="14" stroke="#85B7EB" stroke-width="1.6" stroke-dasharray="3 2" />
+                <circle cx="21" cy="21" r="5" fill="#B5D4F4" />
+                <path d="M21 7l2 8-2-2-2 2zM21 35l-2-8 2 2 2-2zM7 21l8-2-2 2 2 2zM35 21l-8 2 2-2-2-2z" fill="#378ADD" />
+              </svg>
+
+              <svg *ngSwitchCase="'valve'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                <path d="M10 21h22M16 15l5 6-5 6M26 15l-5 6 5 6" stroke="#378ADD" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+
+              <svg *ngSwitchCase="'sensor'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                <rect x="15" y="8" width="12" height="20" rx="6" stroke="#378ADD" stroke-width="2" />
+                <circle cx="21" cy="30" r="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5" />
+              </svg>
+
+              <svg *ngSwitchCase="'filter'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                <path d="M10 11h22l-8 10v8l-6 2v-10L10 11z" stroke="#378ADD" stroke-width="2" stroke-linejoin="round" />
+              </svg>
+
+              <svg *ngSwitchDefault width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                <rect x="10" y="10" width="22" height="22" rx="6" stroke="#378ADD" stroke-width="2" />
+              </svg>
+            </ng-container>
+          </div>
+
+          <div class="portal-product__body">
+            <span class="badge badge-brand">{{ product.category }}</span>
+
+            <h3 class="portal-product__title">{{ product.name }}</h3>
+            <p class="portal-product__reference">Ref: {{ product.sku }}</p>
+
+            <div class="portal-product__footer">
+              <span class="portal-product__price">{{ product.price }}</span>
+              <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
+                Ver ficha
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </ng-container>
+
+    <ng-template #emptyProducts>
+      <div class="portal-empty-state card">
+        <h3>No hay productos en esta categoría</h3>
+        <p>
+          Prueba seleccionando otra categoría o revisa el catálogo completo.
+        </p>
+        <button type="button" class="btn btn-primary" (click)="selectCategory('Todos')">
+          Ver todos
+        </button>
+      </div>
+    </ng-template>
+  </div>
+</section>
+
+<section class="section portal-how" id="como-funciona">
+  <div class="container">
+    <h2 class="portal-section-title">¿Cómo solicitar una cotización?</h2>
+
+    <div class="portal-steps">
+      <article class="portal-step card" *ngFor="let step of steps; trackBy: trackByStep">
+        <div class="portal-step__number">{{ step.number }}</div>
+        <h3 class="portal-step__title">{{ step.title }}</h3>
+        <p class="portal-step__description">{{ step.description }}</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="portal-cta">
+  <div class="container">
+    <div class="portal-cta__inner">
+      <div>
+        <h2 class="portal-cta__title">¿Necesitas una cotización rápida?</h2>
+        <p class="portal-cta__text">
+          Revisa el catálogo y solicita tus repuestos para climatización industrial en pocos pasos.
+        </p>
+      </div>
+
+      <a routerLink="/cotizacion" class="btn btn-light">Comenzar cotización</a>
+    </div>
+  </div>
+</section>

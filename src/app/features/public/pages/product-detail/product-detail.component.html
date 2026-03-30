@@ -1,1 +1,379 @@
-<p>product-detail works!</p>
+<section class="product-detail-page section" *ngIf="product as currentProduct; else productNotFound">
+  <div class="container">
+    <nav class="product-breadcrumb" aria-label="Breadcrumb">
+      <a routerLink="/">Inicio</a>
+      <span>›</span>
+      <a routerLink="/catalogo">Catálogo</a>
+      <span>›</span>
+      <a routerLink="/catalogo">{{ currentProduct.category }}</a>
+      <span>›</span>
+      <span class="is-current">{{ currentProduct.name }}</span>
+    </nav>
+
+    <div class="product-layout">
+      <div class="product-main">
+        <section class="product-hero card">
+          <div class="product-hero__grid">
+            <div class="product-gallery">
+              <div class="product-gallery__main">
+                <span class="badge" [class.badge-success]="currentProduct.inStock"
+                  [class.badge-muted]="!currentProduct.inStock">
+                  {{ currentProduct.shortStatus }}
+                </span>
+
+                <span class="product-gallery__sku">{{ currentProduct.sku }}</span>
+
+                <div class="product-gallery__icon">
+                  <ng-container [ngSwitch]="currentProduct.icon">
+                    <svg *ngSwitchCase="'compressor'" width="140" height="140" viewBox="0 0 140 140" fill="none"
+                      aria-hidden="true">
+                      <circle cx="70" cy="70" r="48" stroke="#B5D4F4" stroke-width="2.5" />
+                      <circle cx="70" cy="70" r="36" stroke="#378ADD" stroke-width="2" />
+                      <circle cx="70" cy="70" r="22" stroke="#85B7EB" stroke-width="1.5" />
+                      <circle cx="70" cy="70" r="10" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5" />
+                      <path d="M70 22v10M70 108v10M22 70h10M108 70h10M36 36l7 7M97 97l7 7M104 36l-7 7M43 97l-7 7"
+                        stroke="#378ADD" stroke-width="2" stroke-linecap="round" />
+                      <circle cx="70" cy="70" r="4" fill="#0C447C" />
+                    </svg>
+
+                    <svg *ngSwitchCase="'fan'" width="140" height="140" viewBox="0 0 140 140" fill="none"
+                      aria-hidden="true">
+                      <circle cx="70" cy="70" r="46" stroke="#85B7EB" stroke-width="2.5" stroke-dasharray="4 3" />
+                      <circle cx="70" cy="70" r="16" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.6" />
+                      <path d="M70 24l8 26-8-6-8 6zM70 116l-8-26 8 6 8-6zM24 70l26-8-6 8 6 8zM116 70l-26 8 6-8-6-8z"
+                        fill="#378ADD" />
+                    </svg>
+
+                    <svg *ngSwitchCase="'valve'" width="140" height="140" viewBox="0 0 140 140" fill="none"
+                      aria-hidden="true">
+                      <path d="M28 70h84M50 44l20 26-20 26M90 44L70 70l20 26" stroke="#378ADD" stroke-width="6"
+                        stroke-linecap="round" stroke-linejoin="round" />
+                    </svg>
+
+                    <svg *ngSwitchCase="'sensor'" width="140" height="140" viewBox="0 0 140 140" fill="none"
+                      aria-hidden="true">
+                      <rect x="50" y="24" width="40" height="64" rx="20" stroke="#378ADD" stroke-width="6" />
+                      <circle cx="70" cy="100" r="14" fill="#B5D4F4" stroke="#378ADD" stroke-width="4" />
+                    </svg>
+
+                    <svg *ngSwitchCase="'filter'" width="140" height="140" viewBox="0 0 140 140" fill="none"
+                      aria-hidden="true">
+                      <path d="M34 34h72l-26 32v26l-20 8V66L34 34z" stroke="#378ADD" stroke-width="6"
+                        stroke-linejoin="round" />
+                    </svg>
+
+                    <svg *ngSwitchDefault width="140" height="140" viewBox="0 0 140 140" fill="none" aria-hidden="true">
+                      <rect x="34" y="34" width="72" height="72" rx="16" stroke="#378ADD" stroke-width="6" />
+                    </svg>
+                  </ng-container>
+                </div>
+              </div>
+
+              <div class="product-gallery__thumbs">
+                <button type="button" class="thumb is-active" aria-label="Vista principal"></button>
+                <button type="button" class="thumb" aria-label="Vista secundaria"></button>
+                <button type="button" class="thumb" aria-label="Ficha técnica"></button>
+                <button type="button" class="thumb" aria-label="Compatibilidad"></button>
+              </div>
+            </div>
+
+            <div class="product-summary">
+              <div class="product-summary__meta">
+                <span class="badge badge-brand">{{ currentProduct.category }}</span>
+
+                <span class="badge badge-stock-dot" [class.badge-success]="currentProduct.inStock"
+                  [class.badge-muted]="!currentProduct.inStock">
+                  {{ currentProduct.stockLabel }}
+                </span>
+              </div>
+
+              <h1 class="product-title">{{ currentProduct.name }}</h1>
+
+              <p class="product-subtitle">
+                Ref: {{ currentProduct.sku }} · Marca: {{ currentProduct.brand }} · Modelo:
+                {{ currentProduct.model }}
+              </p>
+
+              <div class="product-rating">
+                <div class="rating-stars">
+                  <span class="rating-star" *ngFor="let filled of getStars(currentProduct.rating)"
+                    [class.is-filled]="filled">
+                    ★
+                  </span>
+                </div>
+
+                <span class="rating-text">
+                  {{ currentProduct.rating }} · {{ currentProduct.reviewCount }} reseñas
+                </span>
+              </div>
+
+              <p class="product-description">
+                {{ currentProduct.description }}
+              </p>
+
+              <div class="product-tags">
+                <span class="badge badge-soft" *ngFor="let tag of currentProduct.tags">
+                  {{ tag }}
+                </span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="product-tabs card">
+          <div class="product-tabs__nav">
+            <button type="button" class="product-tab" *ngFor="let tab of tabList; trackBy: trackByTab"
+              [class.is-active]="activeTab === tab.key" (click)="setTab(tab.key)">
+              {{ tab.label }}
+            </button>
+          </div>
+
+          <div class="product-tabs__content" *ngIf="activeTab === 'specs'">
+            <div class="spec-grid">
+              <div class="spec-row" *ngFor="let spec of specs; trackBy: trackBySpec">
+                <span class="spec-label">{{ spec.label }}</span>
+                <span class="spec-value">{{ spec.value }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-tabs__content" *ngIf="activeTab === 'dimensions'">
+            <div class="dimension-card">
+              <div class="dimension-item">
+                <span>Alto</span>
+                <strong>{{ currentProduct.dimensions.height }}</strong>
+              </div>
+              <div class="dimension-item">
+                <span>Diámetro</span>
+                <strong>{{ currentProduct.dimensions.diameter }}</strong>
+              </div>
+              <div class="dimension-item">
+                <span>Peso neto</span>
+                <strong>{{ currentProduct.dimensions.netWeight }}</strong>
+              </div>
+              <div class="dimension-item">
+                <span>Peso bruto</span>
+                <strong>{{ currentProduct.dimensions.grossWeight }}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="product-tabs__content" *ngIf="activeTab === 'compatibility'">
+            <div class="compatibility-list">
+              <div class="compatibility-item" *ngFor="let item of compatibility">
+                {{ item }}
+              </div>
+            </div>
+          </div>
+
+          <div class="product-tabs__content" *ngIf="activeTab === 'documents'">
+            <div class="document-list">
+              <div class="document-item" *ngFor="let doc of documents; trackBy: trackByDoc">
+                <div>
+                  <h4>{{ doc.title }}</h4>
+                  <p>{{ doc.meta }}</p>
+                </div>
+
+                <button type="button" class="btn btn-secondary btn-sm">
+                  Descargar
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="product-reviews card">
+          <div class="section-heading">
+            <h2 class="section-title">Reseñas de clientes</h2>
+          </div>
+
+          <div class="reviews-summary">
+            <div class="reviews-summary__score">
+              <strong>{{ currentProduct.rating }}</strong>
+              <span>{{ currentProduct.reviewCount }} reseñas</span>
+            </div>
+          </div>
+
+          <div class="review-list">
+            <article class="review-item" *ngFor="let review of reviews; trackBy: trackByReview">
+              <div class="review-item__header">
+                <div>
+                  <h3>
+                    {{ review.author }}
+                    <span *ngIf="review.company">· {{ review.company }}</span>
+                  </h3>
+                  <p>{{ review.date }}</p>
+                </div>
+
+                <span class="badge badge-success" *ngIf="review.verified">
+                  Compra verificada
+                </span>
+              </div>
+
+              <div class="rating-stars review-stars">
+                <span class="rating-star" *ngFor="let filled of getStars(review.rating)" [class.is-filled]="filled">
+                  ★
+                </span>
+              </div>
+
+              <p class="review-body">{{ review.body }}</p>
+
+              <div class="review-tags" *ngIf="review.tags?.length">
+                <span class="badge badge-muted" *ngFor="let tag of review.tags">
+                  {{ tag }}
+                </span>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="related-products card">
+          <div class="section-heading">
+            <h2 class="section-title">Artículos relacionados</h2>
+          </div>
+
+          <div class="related-grid">
+            <article class="related-card" *ngFor="let item of relatedProducts; trackBy: trackByRelated">
+              <div class="related-card__icon">
+                <ng-container [ngSwitch]="item.icon">
+                  <svg *ngSwitchCase="'compressor'" width="34" height="34" viewBox="0 0 42 42" fill="none"
+                    aria-hidden="true">
+                    <circle cx="21" cy="21" r="13" stroke="#378ADD" stroke-width="2" />
+                    <circle cx="21" cy="21" r="7" stroke="#85B7EB" stroke-width="1.6" />
+                    <path d="M21 7v4M21 31v4M7 21h4M31 21h4" stroke="#378ADD" stroke-width="1.6"
+                      stroke-linecap="round" />
+                  </svg>
+
+                  <svg *ngSwitchCase="'fan'" width="34" height="34" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                    <circle cx="21" cy="21" r="14" stroke="#85B7EB" stroke-width="1.6" stroke-dasharray="3 2" />
+                    <circle cx="21" cy="21" r="5" fill="#B5D4F4" />
+                    <path d="M21 7l2 8-2-2-2 2zM21 35l-2-8 2 2 2-2zM7 21l8-2-2 2 2 2zM35 21l-8 2 2-2-2-2z"
+                      fill="#378ADD" />
+                  </svg>
+
+                  <svg *ngSwitchCase="'valve'" width="34" height="34" viewBox="0 0 42 42" fill="none"
+                    aria-hidden="true">
+                    <path d="M10 21h22M16 15l5 6-5 6M26 15l-5 6 5 6" stroke="#378ADD" stroke-width="2"
+                      stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+
+                  <svg *ngSwitchCase="'sensor'" width="34" height="34" viewBox="0 0 42 42" fill="none"
+                    aria-hidden="true">
+                    <rect x="15" y="8" width="12" height="20" rx="6" stroke="#378ADD" stroke-width="2" />
+                    <circle cx="21" cy="30" r="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5" />
+                  </svg>
+
+                  <svg *ngSwitchCase="'filter'" width="34" height="34" viewBox="0 0 42 42" fill="none"
+                    aria-hidden="true">
+                    <path d="M10 11h22l-8 10v8l-6 2v-10L10 11z" stroke="#378ADD" stroke-width="2"
+                      stroke-linejoin="round" />
+                  </svg>
+
+                  <svg *ngSwitchDefault width="34" height="34" viewBox="0 0 42 42" fill="none" aria-hidden="true">
+                    <rect x="10" y="10" width="22" height="22" rx="6" stroke="#378ADD" stroke-width="2" />
+                  </svg>
+                </ng-container>
+              </div>
+
+              <div class="related-card__body">
+                <h3>{{ item.name }}</h3>
+                <p>{{ item.sku }}</p>
+              </div>
+
+              <a class="btn btn-secondary btn-sm" [routerLink]="['/catalogo', item.id]">
+                Ver ficha
+              </a>
+            </article>
+          </div>
+        </section>
+      </div>
+
+      <aside class="product-sidebar">
+        <section class="price-panel card">
+          <div>
+            <p class="price-label">Precio unitario</p>
+            <h2 class="price-value">{{ formatCurrency(unitPrice) }}</h2>
+            <p class="price-note">+ IVA · Precio referencial</p>
+          </div>
+
+          <div class="qty-row">
+            <span>Cantidad</span>
+
+            <div class="qty-control">
+              <button type="button" class="qty-btn" (click)="decreaseQuantity()">−</button>
+              <span class="qty-number">{{ quantity }}</span>
+              <button type="button" class="qty-btn" (click)="increaseQuantity()">+</button>
+            </div>
+          </div>
+
+          <div class="totals">
+            <div class="totals-row">
+              <span>Subtotal neto</span>
+              <strong>{{ formatCurrency(subtotal) }}</strong>
+            </div>
+
+            <div class="totals-row">
+              <span>IVA (19%)</span>
+              <strong>{{ formatCurrency(iva) }}</strong>
+            </div>
+
+            <div class="totals-row totals-row--final">
+              <span>Total estimado</span>
+              <strong>{{ formatCurrency(total) }}</strong>
+            </div>
+          </div>
+
+          <div class="price-actions">
+            <a routerLink="/cotizacion" class="btn btn-primary">Solicitar cotización</a>
+            <button type="button" class="btn btn-secondary">Agregar a lista</button>
+          </div>
+        </section>
+
+        <section class="providers-panel card">
+          <div class="section-heading">
+            <h2 class="section-title">Proveedores disponibles</h2>
+          </div>
+
+          <div class="provider-list">
+            <article class="provider-item" *ngFor="let provider of providers; trackBy: trackByProvider">
+              <div>
+                <h3>{{ provider.name }}</h3>
+                <p>{{ provider.location }}</p>
+              </div>
+
+              <span class="provider-time" [class.is-fast]="provider.speed === 'fast'">
+                {{ provider.deliveryTime }}
+              </span>
+            </article>
+          </div>
+        </section>
+
+        <section class="support-panel card">
+          <div class="section-heading">
+            <h2 class="section-title">¿Dudas técnicas?</h2>
+          </div>
+
+          <p class="support-text">
+            Nuestro equipo técnico puede verificar compatibilidad antes de cotizar.
+          </p>
+
+          <button type="button" class="btn btn-secondary">
+            Consultar al equipo técnico
+          </button>
+        </section>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<ng-template #productNotFound>
+  <section class="section">
+    <div class="container">
+      <div class="card product-not-found">
+        <h2>Producto no encontrado</h2>
+        <p>No encontramos un repuesto asociado a esta ruta.</p>
+        <a routerLink="/catalogo" class="btn btn-primary">Volver al catálogo</a>
+      </div>
+    </div>
+  </section>
+</ng-template>
