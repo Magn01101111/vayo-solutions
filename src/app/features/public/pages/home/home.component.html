@@ -78,7 +78,7 @@
     </div>
 
     <div class="portal-filters">
-      <button type="button" class="portal-filter" [class.is-active]="category.active"
+      <button type="button" class="portal-filter" [class.is-active]="isCategoryActive(category)"
         *ngFor="let category of categories; trackBy: trackByLabel" (click)="selectCategory(category.label)">
         {{ category.label }}
       </button>

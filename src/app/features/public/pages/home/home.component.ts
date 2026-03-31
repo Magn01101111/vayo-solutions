@@ -2,8 +2,12 @@ import { CommonModule } from '@angular/common';
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { MOCK_PRODUCTS } from '../../../../core/data/mock.products';
-import { Product } from '../../../../core/models/app.models';
-import { CatalogCategory, StepItem } from '../../../../core/models/ui.models';
+import { mapApiProductToCardData } from '../../../public/mapper';
+import {
+  CatalogCategory,
+  ProductCardData,
+  StepItem,
+} from '../../../../core/models/ui.models';
 
 @Component({
   selector: 'app-home',
@@ -13,26 +17,11 @@ import { CatalogCategory, StepItem } from '../../../../core/models/ui.models';
   styleUrl: './home.component.scss',
 })
 export class HomeComponent {
-  categories: CatalogCategory[] = [
-    { label: 'Todos', active: true },
-    { label: 'Compresores', active: false },
-    { label: 'Ventiladores', active: false },
-    { label: 'Válvulas', active: false },
-    { label: 'Sensores', active: false },
-    { label: 'Filtros', active: false },
-  ];
+  readonly categories: CatalogCategory[] = this.buildCategories();
 
-  readonly products: Product[] = MOCK_PRODUCTS.map((product) => ({
-    id: product.id,
-    category: product.category,
-    name: product.name,
-    sku: product.sku,
-    description: product.description,
-    price: 'Consultar',
-    imageUrl: product.imageUrl,
-    inStock: product.inStock,
-    icon: product.icon,
-  }));
+  readonly products: ProductCardData[] = MOCK_PRODUCTS.map((product) =>
+    mapApiProductToCardData(product, product.category)
+  );
 
   readonly steps: StepItem[] = [
     {
@@ -64,7 +53,7 @@ export class HomeComponent {
 
   selectedCategory = 'Todos';
 
-  get filteredProducts(): Product[] {
+  get filteredProducts(): ProductCardData[] {
     if (this.selectedCategory === 'Todos') {
       return this.products;
     }
@@ -80,22 +69,46 @@ export class HomeComponent {
 
   selectCategory(categoryLabel: string): void {
     this.selectedCategory = categoryLabel;
+  }
 
-    this.categories = this.categories.map((category) => ({
-      ...category,
-      active: category.label === categoryLabel,
-    }));
+  isCategoryActive(category: CatalogCategory): boolean {
+    return category.label === this.selectedCategory;
   }
 
   trackByLabel(_: number, item: CatalogCategory): string {
-    return item.label;
+    return item.id;
   }
 
-  trackByProduct(_: number, item: Product): string {
+  trackByProduct(_: number, item: ProductCardData): string {
     return item.id;
   }
 
   trackByStep(_: number, item: StepItem): number {
     return item.number;
+  }
+
+  private buildCategories(): CatalogCategory[] {
+    const baseCategory: CatalogCategory = {
+      id: 'all',
+      label: 'Todos',
+      slug: 'all',
+      active: true,
+    };
+
+    const derivedCategories = Array.from(
+      new Map(
+        MOCK_PRODUCTS.map((product) => [
+          product.category.id,
+          {
+            id: product.category.id,
+            label: product.category.name,
+            slug: product.category.slug,
+            active: false,
+          } satisfies CatalogCategory,
+        ])
+      ).values()
+    );
+
+    return [baseCategory, ...derivedCategories];
   }
 }

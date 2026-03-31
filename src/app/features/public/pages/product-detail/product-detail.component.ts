@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { MOCK_PRODUCTS } from '../../../../core/data/mock.products';
+import { mapApiProductDetailToProductDetailData } from '../../mapper';
 import {
   ProductDetailData,
   ProductProvider,
@@ -99,7 +100,11 @@ export class ProductDetailComponent implements OnInit {
   }
 
   get unitPrice(): number {
-    return typeof this.product?.price === 'number' ? this.product.price : 0;
+    if (!this.product?.price || this.product.price === 'Consultar') {
+      return 0;
+    }
+
+    return Number(this.product.price.replace(/[^\d]/g, '')) || 0;
   }
 
   get subtotal(): number {
@@ -130,17 +135,23 @@ export class ProductDetailComponent implements OnInit {
     return MOCK_PRODUCTS
       .filter((item) => item.id !== this.currentProductId)
       .slice(0, 3)
-      .map((item) => ({
-        id: item.id,
-        name: item.name,
-        sku: item.sku,
-        icon: item.icon,
-      }));
+      .map((item) => {
+        const mapped = mapApiProductDetailToProductDetailData(item);
+
+        return {
+          id: mapped.id,
+          name: mapped.name,
+          sku: mapped.sku,
+          icon: mapped.icon,
+        };
+      });
   }
 
   loadProduct(id: string): void {
     const foundProduct = MOCK_PRODUCTS.find((item) => item.id === id);
-    this.product = foundProduct ?? null;
+    this.product = foundProduct
+      ? mapApiProductDetailToProductDetailData(foundProduct)
+      : null;
   }
 
   setTab(tab: ProductTab): void {
@@ -161,6 +172,10 @@ export class ProductDetailComponent implements OnInit {
 
   formatCurrency(value: number): string {
     return `$${value.toLocaleString('es-CL')}`;
+  }
+
+  isAvailableStatus(status: string): boolean {
+    return status === 'En stock';
   }
 
   getStars(rating: number): boolean[] {

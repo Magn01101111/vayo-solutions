@@ -18,18 +18,76 @@ export interface Category {
   id: string;
   name: string;
   slug: string;
+  description?: string;
+  isActive: boolean;
+}
+
+export type ProductAvailabilityStatus =
+  | 'in_stock'
+  | 'out_of_stock'
+  | 'on_request'
+  | 'discontinued';
+
+export type ProductIcon =
+  | 'compressor'
+  | 'fan'
+  | 'valve'
+  | 'sensor'
+  | 'filter'
+  | 'generic';
+
+export interface ProductSpec {
+  key?: string;
+  label: string;
+  value: string;
+}
+
+export interface ProductDimensions {
+  heightMm?: number;
+  widthMm?: number;
+  lengthMm?: number;
+  diameterMm?: number;
+  netWeightKg?: number;
+  grossWeightKg?: number;
+}
+
+export interface ProductDocument {
+  title: string;
+  type: 'pdf' | 'doc' | 'image' | 'other';
+  sizeMb?: number;
+  provider?: string;
+  url?: string;
+}
+
+export interface ProductCategoryRef {
+  id: string;
+  name: string;
+  slug: string;
 }
 
 export interface Product {
   id: string;
-  category: string;
+  categoryId: string;
   name: string;
   sku: string;
   description?: string;
-  price?: string | number | null;
+  brand: string;
+  model?: string;
+  price: number | null;
+  currency: 'CLP';
+  stock: number;
+  availabilityStatus: ProductAvailabilityStatus;
   imageUrl?: string;
-  inStock?: boolean;
-  icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
+  isActive: boolean;
+  tags: string[];
+}
+
+export interface ProductDetail extends Product {
+  category: ProductCategoryRef;
+  specs: ProductSpec[];
+  dimensions?: ProductDimensions;
+  compatibility: string[];
+  documents: ProductDocument[];
 }
 
 export interface QuoteItem {

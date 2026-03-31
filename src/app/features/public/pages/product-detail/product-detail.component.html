@@ -16,8 +16,8 @@
           <div class="product-hero__grid">
             <div class="product-gallery">
               <div class="product-gallery__main">
-                <span class="badge" [class.badge-success]="currentProduct.inStock"
-                  [class.badge-muted]="!currentProduct.inStock">
+                <span class="badge" [class.badge-success]="isAvailableStatus(currentProduct.shortStatus)"
+                  [class.badge-muted]="!isAvailableStatus(currentProduct.shortStatus)">
                   {{ currentProduct.shortStatus }}
                 </span>
 
@@ -81,8 +81,9 @@
               <div class="product-summary__meta">
                 <span class="badge badge-brand">{{ currentProduct.category }}</span>
 
-                <span class="badge badge-stock-dot" [class.badge-success]="currentProduct.inStock"
-                  [class.badge-muted]="!currentProduct.inStock">
+                <span class="badge badge-stock-dot"
+                  [class.badge-success]="isAvailableStatus(currentProduct.shortStatus)"
+                  [class.badge-muted]="!isAvailableStatus(currentProduct.shortStatus)">
                   {{ currentProduct.stockLabel }}
                 </span>
               </div>
