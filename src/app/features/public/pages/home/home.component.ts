@@ -1,13 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { MOCK_PRODUCTS } from '../../../../core/data/mock.products';
-import { mapApiProductToCardData } from '../../../public/mapper';
+import { forkJoin } from 'rxjs';
+import { mapApiCategoryToCatalogCategory, mapApiProductToCardData } from '../../../public/mapper';
 import {
   CatalogCategory,
   ProductCardData,
   StepItem,
 } from '../../../../core/models/ui.models';
+import { CatalogService } from '../../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-home',
@@ -16,12 +17,16 @@ import {
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent {
-  readonly categories: CatalogCategory[] = this.buildCategories();
+export class HomeComponent implements OnInit {
+  private readonly catalogService = inject(CatalogService);
 
-  readonly products: ProductCardData[] = MOCK_PRODUCTS.map((product) =>
-    mapApiProductToCardData(product, product.category)
-  );
+  categories: CatalogCategory[] = [
+    { id: 'all', label: 'Todos', slug: 'all', active: true },
+  ];
+
+  products: ProductCardData[] = [];
+  isLoading = false;
+  errorMessage = '';
 
   readonly steps: StepItem[] = [
     {
@@ -52,6 +57,10 @@ export class HomeComponent {
   ];
 
   selectedCategory = 'Todos';
+
+  ngOnInit(): void {
+    this.loadCatalogData();
+  }
 
   get filteredProducts(): ProductCardData[] {
     if (this.selectedCategory === 'Todos') {
@@ -87,28 +96,43 @@ export class HomeComponent {
     return item.number;
   }
 
-  private buildCategories(): CatalogCategory[] {
-    const baseCategory: CatalogCategory = {
-      id: 'all',
-      label: 'Todos',
-      slug: 'all',
-      active: true,
-    };
+  private loadCatalogData(): void {
+    this.isLoading = true;
+    this.errorMessage = '';
 
-    const derivedCategories = Array.from(
-      new Map(
-        MOCK_PRODUCTS.map((product) => [
-          product.category.id,
-          {
-            id: product.category.id,
-            label: product.category.name,
-            slug: product.category.slug,
-            active: false,
-          } satisfies CatalogCategory,
-        ])
-      ).values()
-    );
+    forkJoin({
+      categoriesResponse: this.catalogService.getCategories(),
+      productsResponse: this.catalogService.getProducts(),
+    }).subscribe({
+      next: ({ categoriesResponse, productsResponse }) => {
+        const mappedCategories = categoriesResponse.data.map(
+          mapApiCategoryToCatalogCategory
+        );
 
-    return [baseCategory, ...derivedCategories];
+        this.categories = [
+          { id: 'all', label: 'Todos', slug: 'all', active: true },
+          ...mappedCategories,
+        ];
+
+        this.products = productsResponse.data.map((product) => {
+          const category = this.categories.find(
+            (item) => item.id === product.categoryId
+          );
+
+          return mapApiProductToCardData(
+            product,
+            category
+              ? { name: category.label, slug: category.slug }
+              : undefined
+          );
+        });
+
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'No fue posible cargar el catálogo.';
+        this.isLoading = false;
+      },
+    });
   }
 }

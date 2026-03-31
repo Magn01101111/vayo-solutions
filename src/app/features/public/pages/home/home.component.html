@@ -84,7 +84,17 @@
       </button>
     </div>
 
-    <ng-container *ngIf="filteredProducts.length > 0; else emptyProducts">
+    <div class="portal-empty-state card" *ngIf="isLoading">
+      <h3>Cargando catálogo...</h3>
+      <p>Estamos obteniendo los productos disponibles.</p>
+    </div>
+
+    <div class="portal-empty-state card" *ngIf="!isLoading && errorMessage">
+      <h3>Error al cargar</h3>
+      <p>{{ errorMessage }}</p>
+    </div>
+
+    <ng-container *ngIf="!isLoading && !errorMessage && filteredProducts.length > 0; else emptyProducts">
       <div class="portal-products">
         <article class="portal-product card" *ngFor="let product of filteredProducts; trackBy: trackByProduct">
           <div class="portal-product__media">
@@ -140,7 +150,7 @@
     </ng-container>
 
     <ng-template #emptyProducts>
-      <div class="portal-empty-state card">
+      <div class="portal-empty-state card" *ngIf="!isLoading && !errorMessage">
         <h3>No hay productos en esta categoría</h3>
         <p>
           Prueba seleccionando otra categoría o revisa el catálogo completo.

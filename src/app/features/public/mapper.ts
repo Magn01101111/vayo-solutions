@@ -2,7 +2,6 @@ import {
   ApiCategory,
   ApiProductDetail,
   ApiProductListItem,
-
 } from '../../core/models/api.models';
 import {
   CatalogCategory,
@@ -10,6 +9,7 @@ import {
   ProductDetailData,
   ProductDocument,
   ProductSpec,
+  RelatedProduct,
 } from '../../core/models/ui.models';
 
 type ProductIcon =
@@ -33,7 +33,7 @@ function formatCurrency(value: number | null, currency: 'CLP'): string {
 }
 
 function mapAvailabilityToShortStatus(
-  status: 'in_stock' | 'out_of_stock' | 'on_request' | 'discontinued'
+  status: 'in_stock' | 'out_of_stock' | 'on_request' | 'discontinued',
 ): string {
   switch (status) {
     case 'in_stock':
@@ -50,7 +50,7 @@ function mapAvailabilityToShortStatus(
 
 function mapAvailabilityToStockLabel(
   status: 'in_stock' | 'out_of_stock' | 'on_request' | 'discontinued',
-  stock: number
+  stock: number,
 ): string {
   switch (status) {
     case 'in_stock':
@@ -105,7 +105,7 @@ function buildDocumentMeta(doc: {
 }
 
 function mapProductSpecs(
-  specs: { label: string; value: string }[] = []
+  specs: { label: string; value: string }[] = [],
 ): ProductSpec[] {
   return specs.map((spec) => ({
     label: spec.label,
@@ -120,7 +120,7 @@ function mapProductDocuments(
     sizeMb?: number;
     provider?: string;
     url?: string;
-  }[] = []
+  }[] = [],
 ): ProductDocument[] {
   return documents.map((doc) => ({
     title: doc.title,
@@ -130,7 +130,7 @@ function mapProductDocuments(
 }
 
 export function mapApiCategoryToCatalogCategory(
-  category: ApiCategory
+  category: ApiCategory,
 ): CatalogCategory {
   return {
     id: category.id,
@@ -167,7 +167,7 @@ export function mapApiCategoryToCatalogCategory(
 } */
 export function mapApiProductToCardData(
   product: ApiProductListItem | ApiProductDetail,
-  category?: { name: string; slug: string }
+  category?: { name: string; slug: string },
 ): ProductCardData {
   const resolvedCategory =
     category ??
@@ -193,14 +193,14 @@ export function mapApiProductToCardData(
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),
     stockLabel: mapAvailabilityToStockLabel(
       product.availabilityStatus,
-      product.stock
+      product.stock,
     ),
     icon: mapCategorySlugToIcon(categorySlug),
     tags: product.tags ?? [],
   };
 }
 export function mapApiProductDetailToProductDetailData(
-  product: ApiProductDetail
+  product: ApiProductDetail,
 ): ProductDetailData {
   return {
     id: product.id,
@@ -214,7 +214,7 @@ export function mapApiProductDetailToProductDetailData(
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),
     stockLabel: mapAvailabilityToStockLabel(
       product.availabilityStatus,
-      product.stock
+      product.stock,
     ),
     icon: mapCategorySlugToIcon(product.category.slug),
     brand: product.brand,
@@ -233,5 +233,18 @@ export function mapApiProductDetailToProductDetailData(
     },
     compatibility: product.compatibility ?? [],
     documents: mapProductDocuments(product.documents),
+  };
+}
+export function mapApiProductToRelatedProduct(
+  product: ApiProductListItem,
+  category?: { name: string; slug: string },
+): RelatedProduct {
+  const mapped = mapApiProductToCardData(product, category);
+
+  return {
+    id: mapped.id,
+    name: mapped.name,
+    sku: mapped.sku,
+    icon: mapped.icon,
   };
 }

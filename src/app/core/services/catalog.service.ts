@@ -18,35 +18,35 @@ export class CatalogService {
 
   getCategories(): Observable<ApiResponse<ApiCategory[]>> {
     return this.api.get<ApiResponse<ApiCategory[]>>(
-      API_CONFIG.endpoints.categories,
+      API_CONFIG.endpoints.categories
     );
   }
 
   getProducts(
     category?: string,
-    q?: string,
+    q?: string
   ): Observable<ApiResponse<ApiProductListItem[]>> {
     return this.api.get<ApiResponse<ApiProductListItem[]>>(
       API_CONFIG.endpoints.products,
       {
         category,
         q,
-      },
+      }
     );
   }
 
   getProductById(id: string): Observable<ApiResponse<ApiProductDetail>> {
     return this.api.get<ApiResponse<ApiProductDetail>>(
-      `${API_CONFIG.endpoints.products}/${id}`,
+      `${API_CONFIG.endpoints.products}/${id}`
     );
   }
 
   createProduct(
-    payload: CreateProductPayload,
+    payload: CreateProductPayload
   ): Observable<ApiResponse<ApiProductDetail>> {
     return this.api.post<ApiResponse<ApiProductDetail>, CreateProductPayload>(
       API_CONFIG.endpoints.adminProducts,
-      payload,
+      payload
     );
   }
 }

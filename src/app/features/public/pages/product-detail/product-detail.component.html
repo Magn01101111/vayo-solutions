@@ -1,3 +1,22 @@
+<section class="section" *ngIf="isLoading">
+  <div class="container">
+    <div class="card product-not-found">
+      <h2>Cargando producto...</h2>
+      <p>Estamos obteniendo la información del repuesto.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" *ngIf="!isLoading && errorMessage">
+  <div class="container">
+    <div class="card product-not-found">
+      <h2>Error al cargar</h2>
+      <p>{{ errorMessage }}</p>
+      <a routerLink="/catalogo" class="btn btn-primary">Volver al catálogo</a>
+    </div>
+  </div>
+</section>
+
 <section class="product-detail-page section" *ngIf="product as currentProduct; else productNotFound">
   <div class="container">
     <nav class="product-breadcrumb" aria-label="Breadcrumb">

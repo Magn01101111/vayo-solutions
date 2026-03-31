@@ -1,8 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { MOCK_PRODUCTS } from '../../../../core/data/mock.products';
-import { mapApiProductDetailToProductDetailData } from '../../mapper';
+import { mapApiProductDetailToProductDetailData, mapApiProductToRelatedProduct } from '../../mapper';
 import {
   ProductDetailData,
   ProductProvider,
@@ -11,6 +10,7 @@ import {
   ProductTabItem,
   RelatedProduct,
 } from '../../../../core/models/ui.models';
+import { CatalogService } from '../../../../core/services/catalog.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -20,19 +20,25 @@ import {
   styleUrl: './product-detail.component.scss',
 })
 export class ProductDetailComponent implements OnInit {
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
+  private readonly catalogService = inject(CatalogService);
+
   activeTab: ProductTab = 'specs';
   quantity = 1;
   currentProductId = '';
 
   product: ProductDetailData | null = null;
+  relatedProducts: RelatedProduct[] = [];
+  isLoading = false;
+  errorMessage = '';
 
   readonly reviews: ProductReview[] = [
     {
       author: 'DataCenter Pro',
       date: '12 mar 2025',
       rating: 5,
-      body:
-        'Excelente repuesto, llegó en perfectas condiciones y en el plazo prometido. Instalamos en nuestro equipo y funcionó a la primera.',
+      body: 'Excelente repuesto, llegó en perfectas condiciones y en el plazo prometido. Instalamos en nuestro equipo y funcionó a la primera.',
       tags: ['Envío rápido', 'Calidad original', 'Fácil instalación'],
       verified: true,
       initials: 'DC',
@@ -42,8 +48,7 @@ export class ProductDetailComponent implements OnInit {
       company: 'TechCorp S.A.',
       date: '28 ene 2025',
       rating: 4,
-      body:
-        'Buen producto, cumple con las especificaciones. El equipo quedó funcionando correctamente.',
+      body: 'Buen producto, cumple con las especificaciones. El equipo quedó funcionando correctamente.',
       tags: ['Buen producto', 'Precio justo'],
       verified: true,
       initials: 'MG',
@@ -78,11 +83,6 @@ export class ProductDetailComponent implements OnInit {
     { key: 'documents', label: 'Documentos' },
   ];
 
-  constructor(
-    private readonly route: ActivatedRoute,
-    private readonly router: Router
-  ) {}
-
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
       const id = params.get('id');
@@ -93,9 +93,11 @@ export class ProductDetailComponent implements OnInit {
       }
 
       this.currentProductId = id;
-      this.loadProduct(id);
       this.quantity = 1;
       this.activeTab = 'specs';
+
+      this.loadProduct(id);
+      this.loadRelatedProducts(id);
     });
   }
 
@@ -129,29 +131,6 @@ export class ProductDetailComponent implements OnInit {
 
   get documents() {
     return this.product?.documents ?? [];
-  }
-
-  get relatedProducts(): RelatedProduct[] {
-    return MOCK_PRODUCTS
-      .filter((item) => item.id !== this.currentProductId)
-      .slice(0, 3)
-      .map((item) => {
-        const mapped = mapApiProductDetailToProductDetailData(item);
-
-        return {
-          id: mapped.id,
-          name: mapped.name,
-          sku: mapped.sku,
-          icon: mapped.icon,
-        };
-      });
-  }
-
-  loadProduct(id: string): void {
-    const foundProduct = MOCK_PRODUCTS.find((item) => item.id === id);
-    this.product = foundProduct
-      ? mapApiProductDetailToProductDetailData(foundProduct)
-      : null;
   }
 
   setTab(tab: ProductTab): void {
@@ -205,5 +184,36 @@ export class ProductDetailComponent implements OnInit {
 
   trackByDoc(_: number, item: { title: string }): string {
     return item.title;
+  }
+
+  private loadProduct(id: string): void {
+    this.isLoading = true;
+    this.errorMessage = '';
+    this.product = null;
+
+    this.catalogService.getProductById(id).subscribe({
+      next: (response) => {
+        this.product = mapApiProductDetailToProductDetailData(response.data);
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'No fue posible cargar el detalle del producto.';
+        this.isLoading = false;
+      },
+    });
+  }
+
+  private loadRelatedProducts(currentId: string): void {
+    this.catalogService.getProducts().subscribe({
+      next: (response) => {
+        this.relatedProducts = response.data
+          .filter((item) => item.id !== currentId)
+          .slice(0, 3)
+          .map((item) => mapApiProductToRelatedProduct(item));
+      },
+      error: () => {
+        this.relatedProducts = [];
+      },
+    });
   }
 }
