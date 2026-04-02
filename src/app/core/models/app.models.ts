@@ -1,3 +1,5 @@
+import { ProductCardData } from "./ui.models";
+
 export interface User {
   id: string;
   name: string;
@@ -114,4 +116,15 @@ export interface Sale {
   quoteId?: string;
   total: number;
   createdAt: string;
+}
+export interface QuotationItem extends ProductCardData {
+  qty: number;
+}
+
+export interface QuotationClient {
+  name: string;
+  email: string;
+  phone?: string;
+  company?: string;
+  notes?: string;
 }

@@ -11,9 +11,16 @@ export interface FilterOption {
 }
 
 export interface StepItem {
+  step?: number;
   number: number;
   title: string;
   description: string;
+  label?: string;
+}
+
+export interface StepFlowItem {
+  step: number;
+  label: string;
 }
 
 export interface MetricItem {

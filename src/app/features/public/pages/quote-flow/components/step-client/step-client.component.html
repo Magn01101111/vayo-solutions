@@ -1,0 +1,97 @@
+<div class="card">
+
+  <div class="card-header">
+    <div class="card-title">Datos del cliente</div>
+    <div class="card-subtitle">
+      Completa la información para generar la cotización
+    </div>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()">
+
+    <div class="form-row">
+
+      <!-- Nombre -->
+      <div class="form-group">
+        <label class="form-label">Nombre *</label>
+        <input
+          class="input"
+          formControlName="name"
+          placeholder="Juan Pérez"
+        />
+        @if (isInvalid('name')) {
+          <small class="text-danger">Nombre requerido (mín. 3 caracteres)</small>
+        }
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input
+          class="input"
+          formControlName="email"
+          placeholder="correo@empresa.cl"
+        />
+        @if (isInvalid('email')) {
+          <small class="text-danger">Email válido requerido</small>
+        }
+      </div>
+
+    </div>
+
+    <div class="form-row">
+
+      <!-- Teléfono -->
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input
+          class="input"
+          formControlName="phone"
+          placeholder="+56 9 1234 5678"
+        />
+      </div>
+
+      <!-- Empresa -->
+      <div class="form-group">
+        <label class="form-label">Empresa</label>
+        <input
+          class="input"
+          formControlName="company"
+          placeholder="Empresa Ltda."
+        />
+      </div>
+
+    </div>
+
+    <!-- Notas -->
+    <div class="form-group mt-3">
+      <label class="form-label">Notas adicionales</label>
+      <textarea
+        class="textarea"
+        formControlName="notes"
+        placeholder="Requerimientos especiales, urgencia, etc."
+      ></textarea>
+    </div>
+
+    <!-- acciones -->
+    <div class="d-flex justify-between mt-4">
+
+      <button
+        type="button"
+        class="btn btn-outline"
+        (click)="back()">
+        Volver
+      </button>
+
+      <button
+        type="submit"
+        class="btn btn-primary"
+        [disabled]="form.invalid">
+        Continuar
+      </button>
+
+    </div>
+
+  </form>
+
+</div>

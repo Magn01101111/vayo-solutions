@@ -1,0 +1,102 @@
+@use '../../../../../mixins' as *;
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.step-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.step-circle {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--color-bg-soft);
+  color: var(--color-text-secondary);
+
+  &.active {
+    background: var(--color-brand-900);
+    color: var(--color-text-inverse);
+  }
+
+  &.done {
+    background: var(--color-success-bg);
+    color: var(--color-success);
+  }
+}
+
+.step-label {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+
+  &.active {
+    color: var(--color-text-primary);
+    font-weight: 500;
+  }
+}
+
+.step-separator {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+.quote-layout {
+  display: grid;
+  gap: var(--space-4);
+
+  @include lg {
+    grid-template-columns: 1fr 300px;
+  }
+}
+
+.product-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+}
+
+.product-right {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.cart-item {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: var(--space-2);
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.cart-actions button {
+  border: none;
+  background: var(--color-bg-soft);
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius-sm);
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.875rem;
+}
+
+.total-final {
+  display: flex;
+  justify-content: space-between;
+  margin-top: var(--space-2);
+  font-weight: 600;
+}
