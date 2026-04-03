@@ -100,3 +100,7 @@
   margin-top: var(--space-2);
   font-weight: 600;
 }
+.step.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}

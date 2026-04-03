@@ -1,7 +1,10 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { mapApiProductDetailToProductDetailData, mapApiProductToRelatedProduct } from '../../mapper';
+import {
+  mapApiProductDetailToProductDetailData,
+  mapApiProductToRelatedProduct,
+} from '../../mapper';
 import {
   ProductDetailData,
   ProductProvider,

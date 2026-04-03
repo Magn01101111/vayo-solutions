@@ -4,16 +4,10 @@
   <div class="stepper mb-4">
 
     @for (s of steps; track s.step) {
-    <div class="step-item">
+    <div class="step-item" [class.active]="qs.step() === s.step" [class.done]="qs.step() > s.step"
+      [class.disabled]="!qs.canGoToStep(s.step)" (click)="qs.setStep(s.step)">
 
-      <div class="step-circle" [class.active]="qs.step() === s.step" [class.done]="qs.step() > s.step">
-
-        {{ qs.step() > s.step ? '✓' : s.step }}
-      </div>
-
-      <span class="step-label" [class.active]="qs.step() === s.step">
-        {{ s.label }}
-      </span>
+      {{ s.label }}
 
     </div>
 
