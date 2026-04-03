@@ -14,6 +14,7 @@ import {
   RelatedProduct,
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
+import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
   selector: 'app-product-detail',
@@ -26,7 +27,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly catalogService = inject(CatalogService);
-
+  private qs = inject(QuotationService);
   activeTab: ProductTab = 'specs';
   quantity = 1;
   currentProductId = '';
@@ -103,7 +104,23 @@ export class ProductDetailComponent implements OnInit {
       this.loadRelatedProducts(id);
     });
   }
+  addToQuote() {
+    if (!this.product) return;
 
+    this.qs.addItem({
+      id: this.product.id,
+      name: this.product.name,
+      sku: this.product.sku,
+      price: this.product.price,
+      category: this.product.category,
+      categorySlug: this.product.categorySlug,
+      imageUrl: this.product.imageUrl,
+      shortStatus: this.product.shortStatus,
+      stockLabel: this.product.stockLabel,
+      icon: this.product.icon,
+      tags: this.product.tags,
+    });
+  }
   get unitPrice(): number {
     if (!this.product?.price || this.product.price === 'Consultar') {
       return 0;

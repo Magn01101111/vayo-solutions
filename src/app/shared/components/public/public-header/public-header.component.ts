@@ -1,5 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
   selector: 'app-public-header',
@@ -8,4 +9,7 @@ import { RouterLink } from '@angular/router';
   templateUrl: './public-header.component.html',
   styleUrl: './public-header.component.scss',
 })
-export class PublicHeaderComponent {}
+
+export class PublicHeaderComponent {
+  qs = inject(QuotationService);
+}

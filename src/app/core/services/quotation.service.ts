@@ -1,11 +1,46 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, effect, signal } from '@angular/core';
 import { ProductCardData } from '../../core/models/ui.models';
 import { QuotationItem, QuotationClient } from '../../core/models/app.models';
-
+const STORAGE_KEY = 'vayo_quote';
 @Injectable({
   providedIn: 'root',
 })
 export class QuotationService {
+  constructor() {
+    this.loadFromStorage();
+
+    effect(() => {
+      const data = {
+        items: this._items(),
+        client: this._client(),
+      };
+
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    });
+  }
+  private loadFromStorage() {
+    const raw = localStorage.getItem(STORAGE_KEY);
+
+    if (!raw) return;
+
+    try {
+      const parsed = JSON.parse(raw);
+
+      this._items.set(parsed.items ?? []);
+      this._client.set(parsed.client ?? null);
+    } catch {
+      this.clearCart();
+    }
+  }
+
+  clearAll() {
+    this._items.set([]);
+    this._client.set(null);
+    this._step.set(1);
+
+    localStorage.removeItem(STORAGE_KEY);
+  }
+
   // 🔹 STATE
   private _items = signal<QuotationItem[]>([]);
   private _client = signal<QuotationClient | null>(null);
@@ -70,12 +105,12 @@ export class QuotationService {
   }
 
   nextStep() {
-  const next = this._step() + 1;
+    const next = this._step() + 1;
 
-  if (this.canGoToStep(next)) {
-    this._step.set(next);
+    if (this.canGoToStep(next)) {
+      this._step.set(next);
+    }
   }
-}
 
   prevStep() {
     this._step.update((s) => Math.max(s - 1, 1));

@@ -37,40 +37,15 @@ export class QuoteFlowComponent implements OnInit {
     { step: 3, label: 'Vista previa' },
     { step: 4, label: 'Confirmación' },
   ];
-
   products = signal<ProductCardData[]>([]);
-
   search = signal('');
 
   ngOnInit(): void {
-    this.loadProducts();
+    const items = this.qs.items();
+    this.products = signal(items);
+    console.log('Items en cotización:', items);
   }
 
-  private loadProducts() {
-    this.catalogService.getProducts().subscribe({
-      next: (res) => {
-        const mapped = res.data.map((p) => mapApiProductToCardData(p));
-        this.products.set(mapped);
-      },
-    });
-  }
-
-  // 🔹 filtro
-  filteredProducts = computed(() => {
-    const term = this.search().toLowerCase();
-
-    return this.products().filter(
-      (p) =>
-        p.name.toLowerCase().includes(term) ||
-        p.sku.toLowerCase().includes(term),
-    );
-  });
-
-  // 🔹 utils (igual que ProductDetail)
-  parsePrice(price: string): number {
-    if (!price || price === 'Consultar') return 0;
-    return Number(price.replace(/[^\d]/g, '')) || 0;
-  }
 
   goToStep(step: number) {
     this.qs.setStep(step);

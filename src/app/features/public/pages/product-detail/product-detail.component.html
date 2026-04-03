@@ -345,7 +345,9 @@
 
           <div class="price-actions">
             <a routerLink="/cotizacion" class="btn btn-primary">Solicitar cotización</a>
-            <button type="button" class="btn btn-secondary">Agregar a lista</button>
+            <button class="btn btn-primary" (click)="addToQuote()">
+              Agregar a cotización
+            </button>
           </div>
         </section>
 

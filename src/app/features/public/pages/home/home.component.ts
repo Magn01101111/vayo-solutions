@@ -9,6 +9,7 @@ import {
   StepItem,
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
+import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
   selector: 'app-home',
@@ -19,7 +20,7 @@ import { CatalogService } from '../../../../core/services/catalog.service';
 })
 export class HomeComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);
-
+  qs = inject(QuotationService);
   categories: CatalogCategory[] = [
     { id: 'all', label: 'Todos', slug: 'all', active: true },
   ];
