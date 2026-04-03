@@ -1,3 +1,4 @@
+<!-- public-header.component.html -->
 <header class="public-header">
   <div class="container public-header__inner">
     <a routerLink="/" class="public-header__brand">VAYO Solutions</a>
@@ -7,9 +8,7 @@
       <a routerLink="/cotizacion">Cotización</a>
       <a routerLink="/portal-cliente">Portal cliente</a>
       <a routerLink="/login">Ingresar</a>
-      <span class="badge">
-  {{ qs.totalItems() }}
-</span>
+      <app-cart-dropdown />
     </nav>
   </div>
 </header>
