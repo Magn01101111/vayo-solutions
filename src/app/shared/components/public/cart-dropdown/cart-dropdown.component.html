@@ -1,0 +1,88 @@
+<div class="cart-dropdown" [class.cart-dropdown--open]="isOpen">
+  <button class="cart-dropdown__trigger" (click)="toggleDropdown()" [class.cart-dropdown__trigger--active]="hasItems()">
+    <svg class="cart-dropdown__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+
+    @if (totalItems() > 0) {
+    <span class="cart-dropdown__badge">{{ totalItems() }}</span>
+    }
+  </button>
+
+  @if (isOpen) {
+  <div class="cart-dropdown__panel">
+    <div class="cart-dropdown__header">
+      <h4 class="cart-dropdown__title">Mi carrito</h4>
+      @if (totalItems() > 0) {
+      <button class="cart-dropdown__clear" (click)="clearCart()">
+        Vaciar
+      </button>
+      }
+    </div>
+
+    @if (totalItems() === 0) {
+    <div class="cart-dropdown__empty">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+        <line x1="3" y1="6" x2="21" y2="6" />
+        <path d="M16 10a4 4 0 0 1-8 0" />
+      </svg>
+      <p>Tu carrito está vacío</p>
+      <a routerLink="/catalogo" class="btn btn-outline btn-sm" (click)="closeDropdown()">
+        Explorar productos
+      </a>
+    </div>
+    } @else {
+    <div class="cart-dropdown__items">
+      @for (item of items(); track item.id) {
+      <div class="cart-item">
+        <div class="cart-item__info">
+          <h5 class="cart-item__title">{{ item.name }}</h5>
+          <div class="cart-item__price">
+            {{ formatPrice(parsePrice(item.price) * item.qty) }}
+          </div>
+        </div>
+
+        <div class="cart-item__controls">
+          <div class="quantity-selector">
+            <button class="quantity-selector__btn" (click)="decreaseQty(item.id)" [disabled]="item.qty === 1">-</button>
+            <span class="quantity-selector__value">{{ item.qty }}</span>
+            <button class="quantity-selector__btn" (click)="increaseQty(item.id)">+</button>
+          </div>
+
+          <button class="cart-item__remove" (click)="removeItem(item.id)">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+      </div>
+      }
+    </div>
+
+    <div class="cart-dropdown__footer">
+      <div class="cart-dropdown__summary">
+        <div class="summary-line">
+          <span>Subtotal</span>
+          <span>{{ formatPrice(subtotal()) }}</span>
+        </div>
+        <div class="summary-line summary-line--total">
+          <span>Total</span>
+          <span>{{ formatPrice(total()) }}</span>
+        </div>
+      </div>
+
+      <div class="cart-dropdown__actions">
+        <a routerLink="/cotizacion" class="btn btn-primary btn-block" (click)="closeDropdown()">
+          Ir a cotización
+        </a>
+      </div>
+    </div>
+    }
+  </div>
+  }
+</div>
