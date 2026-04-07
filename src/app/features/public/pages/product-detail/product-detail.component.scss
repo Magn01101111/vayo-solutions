@@ -100,8 +100,16 @@
 .review-tags,
 .price-actions {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+
+  .btn {
+    flex: 1;
+  }
+
+  @media (max-width: 640px) {
+    flex-direction: column;
+  }
 }
 
 .product-title {
@@ -306,22 +314,43 @@
 .qty-control {
   display: inline-flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem;
+  background: var(--color-bg-soft);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
 }
 
 .qty-btn {
   width: 2rem;
   height: 2rem;
-  border-radius: 0.6rem;
-  border: 1px solid rgba(15, 23, 42, 0.12);
-  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-brand-900);
   cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--color-brand-100);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .qty-number {
-  min-width: 1.5rem;
+  min-width: 2rem;
   text-align: center;
   font-weight: 600;
+  font-size: 1rem;
+  color: var(--color-text-primary);
 }
 
 .totals {
@@ -388,7 +417,7 @@
 }
 
 .badge-stock-dot::before {
-  content: '';
+  content: "";
   width: 0.45rem;
   height: 0.45rem;
   border-radius: 50%;
@@ -433,5 +462,84 @@
   p {
     margin: 0 0 1.25rem;
     color: rgba(15, 23, 42, 0.7);
+  }
+}
+.toast-notification {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 9999;
+  transform: translateX(120%);
+  transition: transform var(--transition-base);
+
+  &--show {
+    transform: translateX(0);
+  }
+
+  &__content {
+    background: var(--color-brand-900);
+    color: white;
+    padding: var(--space-3) var(--space-4);
+    border-radius: var(--radius-md);
+    font-size: 0.875rem;
+    font-weight: 500;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  }
+}
+
+// Cart status section
+.cart-status {
+  padding: var(--space-3);
+  background: var(--color-brand-100);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+
+  &__info {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: var(--space-3);
+  }
+
+  &__qty {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-brand-900);
+  }
+}
+
+.cart-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+
+  .qty-control {
+    flex: 1;
+  }
+}
+
+// Mejoras responsive
+@media (max-width: 768px) {
+  .toast-notification {
+    top: auto;
+    bottom: 1rem;
+    right: 1rem;
+    left: 1rem;
+
+    &__content {
+      text-align: center;
+    }
+  }
+
+  .cart-actions {
+    flex-direction: column;
+
+    .qty-control {
+      width: 100%;
+    }
+
+    .btn {
+      width: 100%;
+    }
   }
 }

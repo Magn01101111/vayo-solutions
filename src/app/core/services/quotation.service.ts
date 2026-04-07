@@ -1,12 +1,13 @@
 import { Injectable, computed, effect, signal } from '@angular/core';
 import { ProductCardData } from '../../core/models/ui.models';
 import { QuotationItem, QuotationClient } from '../../core/models/app.models';
+import { StorageService } from './storage.service';
 const STORAGE_KEY = 'vayo_quote';
 @Injectable({
   providedIn: 'root',
 })
 export class QuotationService {
-  constructor() {
+  constructor(private storageService: StorageService) {
     this.loadFromStorage();
 
     effect(() => {
@@ -14,18 +15,15 @@ export class QuotationService {
         items: this._items(),
         client: this._client(),
       };
-
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+      this.storageService.setItem(STORAGE_KEY, JSON.stringify(data));
     });
   }
   private loadFromStorage() {
-    const raw = localStorage.getItem(STORAGE_KEY);
-
+    const raw = this.storageService.getItem(STORAGE_KEY);
     if (!raw) return;
 
     try {
       const parsed = JSON.parse(raw);
-
       this._items.set(parsed.items ?? []);
       this._client.set(parsed.client ?? null);
     } catch {
@@ -37,8 +35,7 @@ export class QuotationService {
     this._items.set([]);
     this._client.set(null);
     this._step.set(1);
-
-    localStorage.removeItem(STORAGE_KEY);
+    this.storageService.removeItem(STORAGE_KEY);
   }
 
   // 🔹 STATE
@@ -131,19 +128,29 @@ export class QuotationService {
 
   // 🔹 BACKEND READY (clave)
   buildPayload() {
-    return {
-      client: this._client(),
-      items: this._items().map((i) => ({
-        productId: i.id,
-        quantity: i.qty,
-      })),
-      totals: {
-        subtotal: this.subtotal(),
-        iva: this.iva(),
-        total: this.total(),
-      },
-    };
-  }
+  return {
+    client: this._client(),
+
+    items: this._items().map((i) => ({
+      productId: i.id,
+      name: i.name,
+      price: this.parsePrice(i.price),
+      quantity: i.qty,
+      total: this.parsePrice(i.price) * i.qty,
+    })),
+
+    totals: {
+      subtotal: this.subtotal(),
+      iva: this.iva(),
+      total: this.total(),
+    },
+
+    metadata: {
+      createdAt: new Date().toISOString(),
+      status: 'sent',
+    },
+  };
+}
 
   canGoToStep = (step: number): boolean => {
     switch (step) {

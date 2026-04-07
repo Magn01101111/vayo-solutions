@@ -12,7 +12,7 @@ import {
 
 import { QuotationService } from '../../../../core/services/quotation.service';
 import { StepClientComponent } from './components/step-client/step-client.component';
-import { StepPreviewComponent } from './components/step-preview/step-preview.component';
+import { StepDocumentComponent } from './components/step-document/step-document.component';
 import { StepConfirmationComponent } from './components/step-confirmation/step-confirmation.component';
 @Component({
   selector: 'app-quote-flow',
@@ -21,7 +21,7 @@ import { StepConfirmationComponent } from './components/step-confirmation/step-c
     CommonModule,
     FormsModule,
     StepClientComponent,
-    StepPreviewComponent,
+    StepDocumentComponent,
     StepConfirmationComponent,
   ],
   templateUrl: './quote-flow.component.html',

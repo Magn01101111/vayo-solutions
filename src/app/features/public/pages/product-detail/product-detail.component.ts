@@ -1,5 +1,6 @@
+// product-detail.component.ts
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   mapApiProductDetailToProductDetailData,
@@ -28,14 +29,47 @@ export class ProductDetailComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly catalogService = inject(CatalogService);
   private qs = inject(QuotationService);
-  activeTab: ProductTab = 'specs';
-  quantity = 1;
-  currentProductId = '';
 
-  product: ProductDetailData | null = null;
-  relatedProducts: RelatedProduct[] = [];
-  isLoading = false;
-  errorMessage = '';
+  activeTab: ProductTab = 'specs';
+  quantity = signal(1);
+  currentProductId = '';
+  showAddToCartFeedback = signal(false);
+  feedbackMessage = signal('');
+
+  product = signal<ProductDetailData | null>(null);
+  relatedProducts = signal<RelatedProduct[]>([]);
+  isLoading = signal(false);
+  errorMessage = signal('');
+
+  // Computed signals para precios
+  unitPrice = computed(() => {
+    const currentProduct = this.product();
+    if (!currentProduct?.price || currentProduct.price === 'Consultar') {
+      return 0;
+    }
+    return Number(currentProduct.price.replace(/[^\d]/g, '')) || 0;
+  });
+
+  subtotal = computed(() => this.unitPrice() * this.quantity());
+  iva = computed(() => Math.round(this.subtotal() * 0.19));
+  total = computed(() => this.subtotal() + this.iva());
+
+  // Verificar si el producto ya está en el carrito
+  isInCart = computed(() => {
+    const currentProduct = this.product();
+    if (!currentProduct) return false;
+    return this.qs.items().some((item) => item.id === currentProduct.id);
+  });
+
+  // Obtener cantidad actual en carrito
+  currentCartQty = computed(() => {
+    const currentProduct = this.product();
+    if (!currentProduct) return 0;
+    const cartItem = this.qs
+      .items()
+      .find((item) => item.id === currentProduct.id);
+    return cartItem?.qty || 0;
+  });
 
   readonly reviews: ProductReview[] = [
     {
@@ -97,60 +131,127 @@ export class ProductDetailComponent implements OnInit {
       }
 
       this.currentProductId = id;
-      this.quantity = 1;
+      this.quantity.set(1);
       this.activeTab = 'specs';
+      this.showAddToCartFeedback.set(false);
 
       this.loadProduct(id);
       this.loadRelatedProducts(id);
     });
   }
-  addToQuote() {
-    if (!this.product) return;
 
-    this.qs.addItem({
-      id: this.product.id,
-      name: this.product.name,
-      sku: this.product.sku,
-      price: this.product.price,
-      category: this.product.category,
-      categorySlug: this.product.categorySlug,
-      imageUrl: this.product.imageUrl,
-      shortStatus: this.product.shortStatus,
-      stockLabel: this.product.stockLabel,
-      icon: this.product.icon,
-      tags: this.product.tags,
-    });
-  }
-  get unitPrice(): number {
-    if (!this.product?.price || this.product.price === 'Consultar') {
-      return 0;
+  addToQuote(): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
+
+    // Agregar la cantidad seleccionada
+    for (let i = 0; i < this.quantity(); i++) {
+      this.qs.addItem({
+        id: currentProduct.id,
+        name: currentProduct.name,
+        sku: currentProduct.sku,
+        price: currentProduct.price,
+        category: currentProduct.category,
+        categorySlug: currentProduct.categorySlug,
+        imageUrl: currentProduct.imageUrl,
+        shortStatus: currentProduct.shortStatus,
+        stockLabel: currentProduct.stockLabel,
+        icon: currentProduct.icon,
+        tags: currentProduct.tags,
+      });
     }
 
-    return Number(this.product.price.replace(/[^\d]/g, '')) || 0;
+    // Mostrar feedback
+    this.showFeedback(
+      `✓ ${this.quantity()} x ${currentProduct.name} agregado${this.quantity() > 1 ? 's' : ''} al carrito`,
+      'success',
+    );
+
+    // Resetear cantidad después de agregar
+    this.quantity.set(1);
   }
 
-  get subtotal(): number {
-    return this.unitPrice * this.quantity;
+  addSingleToCart(): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
+
+    this.qs.addItem({
+      id: currentProduct.id,
+      name: currentProduct.name,
+      sku: currentProduct.sku,
+      price: currentProduct.price,
+      category: currentProduct.category,
+      categorySlug: currentProduct.categorySlug,
+      imageUrl: currentProduct.imageUrl,
+      shortStatus: currentProduct.shortStatus,
+      stockLabel: currentProduct.stockLabel,
+      icon: currentProduct.icon,
+      tags: currentProduct.tags,
+    });
+
+    this.showFeedback(
+      `✓ ${currentProduct.name} agregado al carrito`,
+      'success',
+    );
   }
 
-  get iva(): number {
-    return Math.round(this.subtotal * 0.19);
+  updateCartQuantity(newQty: number): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
+
+    const currentQty = this.currentCartQty();
+
+    if (newQty > currentQty) {
+      // Agregar items
+      const diff = newQty - currentQty;
+      for (let i = 0; i < diff; i++) {
+        this.qs.addItem({
+          id: currentProduct.id,
+          name: currentProduct.name,
+          sku: currentProduct.sku,
+          price: currentProduct.price,
+          category: currentProduct.category,
+          categorySlug: currentProduct.categorySlug,
+          imageUrl: currentProduct.imageUrl,
+          shortStatus: currentProduct.shortStatus,
+          stockLabel: currentProduct.stockLabel,
+          icon: currentProduct.icon,
+          tags: currentProduct.tags,
+        });
+      }
+      this.showFeedback(
+        `✓ Cantidad actualizada a ${newQty} unidades`,
+        'success',
+      );
+    } else if (newQty < currentQty) {
+      // Remover items
+      const diff = currentQty - newQty;
+      for (let i = 0; i < diff; i++) {
+        this.qs.removeItem(currentProduct.id);
+      }
+      this.showFeedback(`✓ Cantidad actualizada a ${newQty} unidades`, 'info');
+    }
   }
 
-  get total(): number {
-    return this.subtotal + this.iva;
+  removeFromCart(): void {
+    const currentProduct = this.product();
+    if (!currentProduct) return;
+
+    this.qs.removeItem(currentProduct.id);
+    this.showFeedback(`✗ ${currentProduct.name} eliminado del carrito`, 'info');
   }
 
-  get specs() {
-    return this.product?.specs ?? [];
-  }
+  private showFeedback(
+    message: string,
+    type: 'success' | 'info' | 'error' = 'success',
+  ): void {
+    this.feedbackMessage.set(message);
+    this.showAddToCartFeedback.set(true);
 
-  get compatibility() {
-    return this.product?.compatibility ?? [];
-  }
-
-  get documents() {
-    return this.product?.documents ?? [];
+    // Auto-ocultar después de 3 segundos
+    setTimeout(() => {
+      this.showAddToCartFeedback.set(false);
+    }, 3000);
   }
 
   setTab(tab: ProductTab): void {
@@ -158,14 +259,14 @@ export class ProductDetailComponent implements OnInit {
   }
 
   decreaseQuantity(): void {
-    if (this.quantity > 1) {
-      this.quantity--;
+    if (this.quantity() > 1) {
+      this.quantity.update((q) => q - 1);
     }
   }
 
   increaseQuantity(): void {
-    if (this.quantity < 99) {
-      this.quantity++;
+    if (this.quantity() < 99) {
+      this.quantity.update((q) => q + 1);
     }
   }
 
@@ -207,18 +308,18 @@ export class ProductDetailComponent implements OnInit {
   }
 
   private loadProduct(id: string): void {
-    this.isLoading = true;
-    this.errorMessage = '';
-    this.product = null;
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+    this.product.set(null);
 
     this.catalogService.getProductById(id).subscribe({
       next: (response) => {
-        this.product = mapApiProductDetailToProductDetailData(response.data);
-        this.isLoading = false;
+        this.product.set(mapApiProductDetailToProductDetailData(response.data));
+        this.isLoading.set(false);
       },
       error: () => {
-        this.errorMessage = 'No fue posible cargar el detalle del producto.';
-        this.isLoading = false;
+        this.errorMessage.set('No fue posible cargar el detalle del producto.');
+        this.isLoading.set(false);
       },
     });
   }
@@ -226,13 +327,15 @@ export class ProductDetailComponent implements OnInit {
   private loadRelatedProducts(currentId: string): void {
     this.catalogService.getProducts().subscribe({
       next: (response) => {
-        this.relatedProducts = response.data
-          .filter((item) => item.id !== currentId)
-          .slice(0, 3)
-          .map((item) => mapApiProductToRelatedProduct(item));
+        this.relatedProducts.set(
+          response.data
+            .filter((item) => item.id !== currentId)
+            .slice(0, 3)
+            .map((item) => mapApiProductToRelatedProduct(item)),
+        );
       },
       error: () => {
-        this.relatedProducts = [];
+        this.relatedProducts.set([]);
       },
     });
   }

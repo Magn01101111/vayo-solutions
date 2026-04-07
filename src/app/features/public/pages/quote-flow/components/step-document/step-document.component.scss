@@ -1,0 +1,49 @@
+
+.small {
+  font-size: 0.75rem;
+}
+
+.quote-document {
+  max-width: 900px;
+  margin: auto;
+  padding: 2rem;
+}
+
+.quote-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.quote-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.quote-table th,
+.quote-table td {
+  padding: 0.75rem;
+  border-bottom: 1px solid #eee;
+}
+
+.quote-table th {
+  text-align: left;
+}
+
+.quote-totals {
+  max-width: 300px;
+  margin-left: auto;
+}
+
+.total-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.total-final {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.2rem;
+  margin-top: 1rem;
+}

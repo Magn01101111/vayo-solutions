@@ -1,4 +1,14 @@
-<section class="section" *ngIf="isLoading">
+<!-- product-detail.component.html -->
+<!-- Feedback toast -->
+@if (showAddToCartFeedback()) {
+<div class="toast-notification toast-notification--show">
+  <div class="toast-notification__content">
+    <span>{{ feedbackMessage() }}</span>
+  </div>
+</div>
+}
+
+<section class="section" *ngIf="isLoading()">
   <div class="container">
     <div class="card product-not-found">
       <h2>Cargando producto...</h2>
@@ -7,17 +17,17 @@
   </div>
 </section>
 
-<section class="section" *ngIf="!isLoading && errorMessage">
+<section class="section" *ngIf="!isLoading() && errorMessage()">
   <div class="container">
     <div class="card product-not-found">
       <h2>Error al cargar</h2>
-      <p>{{ errorMessage }}</p>
+      <p>{{ errorMessage() }}</p>
       <a routerLink="/catalogo" class="btn btn-primary">Volver al catálogo</a>
     </div>
   </div>
 </section>
 
-<section class="product-detail-page section" *ngIf="product as currentProduct; else productNotFound">
+<section class="product-detail-page section" *ngIf="product() as currentProduct; else productNotFound">
   <div class="container">
     <nav class="product-breadcrumb" aria-label="Breadcrumb">
       <a routerLink="/">Inicio</a>
@@ -150,7 +160,7 @@
 
           <div class="product-tabs__content" *ngIf="activeTab === 'specs'">
             <div class="spec-grid">
-              <div class="spec-row" *ngFor="let spec of specs; trackBy: trackBySpec">
+              <div class="spec-row" *ngFor="let spec of currentProduct.specs; trackBy: trackBySpec">
                 <span class="spec-label">{{ spec.label }}</span>
                 <span class="spec-value">{{ spec.value }}</span>
               </div>
@@ -180,7 +190,7 @@
 
           <div class="product-tabs__content" *ngIf="activeTab === 'compatibility'">
             <div class="compatibility-list">
-              <div class="compatibility-item" *ngFor="let item of compatibility">
+              <div class="compatibility-item" *ngFor="let item of currentProduct.compatibility">
                 {{ item }}
               </div>
             </div>
@@ -188,7 +198,7 @@
 
           <div class="product-tabs__content" *ngIf="activeTab === 'documents'">
             <div class="document-list">
-              <div class="document-item" *ngFor="let doc of documents; trackBy: trackByDoc">
+              <div class="document-item" *ngFor="let doc of currentProduct.documents; trackBy: trackByDoc">
                 <div>
                   <h4>{{ doc.title }}</h4>
                   <p>{{ doc.meta }}</p>
@@ -253,7 +263,7 @@
           </div>
 
           <div class="related-grid">
-            <article class="related-card" *ngFor="let item of relatedProducts; trackBy: trackByRelated">
+            <article class="related-card" *ngFor="let item of relatedProducts(); trackBy: trackByRelated">
               <div class="related-card__icon">
                 <ng-container [ngSwitch]="item.icon">
                   <svg *ngSwitchCase="'compressor'" width="34" height="34" viewBox="0 0 42 42" fill="none"
@@ -312,41 +322,68 @@
         <section class="price-panel card">
           <div>
             <p class="price-label">Precio unitario</p>
-            <h2 class="price-value">{{ formatCurrency(unitPrice) }}</h2>
+            <h2 class="price-value">{{ formatCurrency(unitPrice()) }}</h2>
             <p class="price-note">+ IVA · Precio referencial</p>
           </div>
 
+          <!-- Si el producto está en el carrito, mostrar controles de edición -->
+          @if (isInCart()) {
+          <div class="cart-status">
+            <div class="cart-status__info">
+              <span class="badge badge-success">✓ En tu carrito</span>
+              <span class="cart-status__qty">{{ currentCartQty() }} unidades</span>
+            </div>
+
+            <div class="cart-actions">
+              <div class="qty-control">
+                <button type="button" class="qty-btn" (click)="updateCartQuantity(currentCartQty() - 1)">−</button>
+                <span class="qty-number">{{ currentCartQty() }}</span>
+                <button type="button" class="qty-btn" (click)="updateCartQuantity(currentCartQty() + 1)">+</button>
+              </div>
+              <button class="btn btn-outline btn-sm" (click)="removeFromCart()">
+                Eliminar
+              </button>
+            </div>
+          </div>
+          } @else {
+          <!-- Selector de cantidad para agregar al carrito -->
           <div class="qty-row">
             <span>Cantidad</span>
-
             <div class="qty-control">
               <button type="button" class="qty-btn" (click)="decreaseQuantity()">−</button>
-              <span class="qty-number">{{ quantity }}</span>
+              <span class="qty-number">{{ quantity() }}</span>
               <button type="button" class="qty-btn" (click)="increaseQuantity()">+</button>
             </div>
           </div>
+          }
 
           <div class="totals">
             <div class="totals-row">
               <span>Subtotal neto</span>
-              <strong>{{ formatCurrency(subtotal) }}</strong>
+              <strong>{{ formatCurrency(subtotal()) }}</strong>
             </div>
 
             <div class="totals-row">
               <span>IVA (19%)</span>
-              <strong>{{ formatCurrency(iva) }}</strong>
+              <strong>{{ formatCurrency(iva()) }}</strong>
             </div>
 
             <div class="totals-row totals-row--final">
               <span>Total estimado</span>
-              <strong>{{ formatCurrency(total) }}</strong>
+              <strong>{{ formatCurrency(total()) }}</strong>
             </div>
           </div>
 
           <div class="price-actions">
-            <a routerLink="/cotizacion" class="btn btn-primary">Solicitar cotización</a>
+            @if (isInCart()) {
+            <a routerLink="/cotizacion" class="btn btn-primary">Ir a cotización</a>
+            } @else {
             <button class="btn btn-primary" (click)="addToQuote()">
-              Agregar a cotización
+              Agregar {{ quantity() > 1 ? quantity() + ' unidades' : 'a cotización' }}
+            </button>
+            }
+            <button class="btn btn-outline" (click)="addSingleToCart()">
+              +1 rápido
             </button>
           </div>
         </section>

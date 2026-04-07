@@ -1,13 +1,34 @@
 <div class="card text-center">
 
-  <h2 class="mb-3">¡Cotización enviada!</h2>
+  @if (loading()) {
+    <p>Enviando cotización...</p>
+  }
 
-  <p class="text-muted mb-4">
-    Nos pondremos en contacto contigo a la brevedad.
-  </p>
+  @if (error()) {
+    <p class="text-danger">{{ error() }}</p>
 
-  <button class="btn btn-primary" (click)="finish()">
-    Volver al catálogo
-  </button>
+    <button class="btn btn-primary mt-3" (click)="sendQuote()">
+      Reintentar
+    </button>
+  }
+
+  @if (success()) {
+    <h2 class="mb-3">¡Cotización enviada!</h2>
+
+    <p class="text-muted mb-4">
+      Tu cotización fue generada correctamente.
+    </p>
+
+    <!-- 🔥 NUEVO -->
+    <button class="btn btn-secondary mb-3" (click)="downloadPDF()">
+      Descargar PDF
+    </button>
+
+    <br>
+
+    <button class="btn btn-primary" (click)="finish()">
+      Volver al catálogo
+    </button>
+  }
 
 </div>

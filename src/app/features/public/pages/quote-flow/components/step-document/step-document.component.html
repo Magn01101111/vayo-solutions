@@ -1,0 +1,86 @@
+<div class="container">
+
+  <div class="card quote-document">
+
+    <!-- HEADER -->
+    <div class="quote-header">
+      <div>
+        <h2>VAYO Solutions</h2>
+        <small>Cotización</small>
+      </div>
+
+      <div class="text-right">
+        <div><strong>Fecha:</strong> {{ today | date:'dd/MM/yyyy' }}</div>
+      </div>
+    </div>
+
+    <hr>
+
+    <!-- CLIENTE -->
+    <div class="quote-client mb-4">
+      <h4>Cliente</h4>
+
+      @if (qs.client()) {
+      <div>{{ qs.client()?.name }}</div>
+      <div>{{ qs.client()?.email }}</div>
+      <div>{{ qs.client()?.phone }}</div>
+      }
+    </div>
+
+    <!-- TABLA -->
+    <table class="quote-table">
+      <thead>
+        <tr>
+          <th>Producto</th>
+          <th>Precio</th>
+          <th>Cantidad</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        @for (item of qs.items(); track item.id) {
+        <tr>
+          <td>{{ item.name }}</td>
+          <td>{{ qs['parsePrice'](item.price) | currency:'CLP' }}</td>
+          <td>{{ item.qty }}</td>
+          <td>{{ getItemTotal(item) | currency:'CLP' }}</td>
+        </tr>
+        }
+      </tbody>
+    </table>
+
+    <!-- TOTALES -->
+    <div class="quote-totals mt-4">
+
+      <div class="total-row">
+        <span>Subtotal</span>
+        <span>{{ qs.subtotal() | currency:'CLP' }}</span>
+      </div>
+
+      <div class="total-row">
+        <span>IVA (19%)</span>
+        <span>{{ qs.iva() | currency:'CLP' }}</span>
+      </div>
+
+      <div class="total-final">
+        <strong>Total</strong>
+        <strong>{{ qs.total() | currency:'CLP' }}</strong>
+      </div>
+
+    </div>
+
+    <!-- ACCIONES -->
+    <div class="mt-4 text-right">
+      <button class="btn btn-secondary mr-2" (click)="back()">
+        Volver
+      </button>
+
+      <button class="btn btn-primary" (click)="confirm()">
+        Confirmar y enviar
+      </button>
+    </div>
+
+  </div>
+
+</div>
