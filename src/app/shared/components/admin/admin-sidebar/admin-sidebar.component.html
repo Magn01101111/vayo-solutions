@@ -6,8 +6,12 @@
       Dashboard
     </a>
     <a routerLink="/admin/productos" routerLinkActive="active">Productos</a>
+    <a routerLink="/admin/categorias" routerLinkActive="active">Categorías</a>
     <a routerLink="/admin/cotizaciones" routerLinkActive="active">Cotizaciones</a>
     <a routerLink="/admin/clientes" routerLinkActive="active">Clientes</a>
+    @if (isAdmin) {
+      <a routerLink="/admin/usuarios" routerLinkActive="active">Usuarios</a>
+    }
     <a routerLink="/admin/ventas" routerLinkActive="active">Ventas</a>
     <a routerLink="/admin/reportes" routerLinkActive="active">Reportes</a>
   </nav>

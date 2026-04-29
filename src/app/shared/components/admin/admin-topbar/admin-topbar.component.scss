@@ -1,17 +1,55 @@
 .admin-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
   padding: 1rem 1.5rem;
   background: var(--color-white);
   border-bottom: 1px solid var(--color-border-primary);
+}
+
+.admin-topbar__left {
+  min-width: 0;
 }
 
 .admin-topbar__title {
   font-size: 1.125rem;
   font-weight: 600;
   color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .admin-topbar__subtitle {
   margin-top: 0.25rem;
   font-size: 0.875rem;
   color: var(--color-text-secondary);
+}
+
+.admin-topbar__user {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-shrink: 0;
+}
+
+.admin-topbar__user-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.125rem;
+}
+
+.admin-topbar__user-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.admin-topbar__user-role {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
 }

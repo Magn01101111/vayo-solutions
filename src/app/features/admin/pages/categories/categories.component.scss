@@ -1,10 +1,8 @@
-.page-products {
+.page-categories {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
-
-// ── Page header ───────────────────────────────────────────────────────────────
 
 .page-header {
   display: flex;
@@ -26,25 +24,6 @@
   color: var(--color-text-secondary);
 }
 
-// ── Filters ───────────────────────────────────────────────────────────────────
-
-.filters {
-  display: flex;
-  gap: 0.75rem;
-  flex-wrap: wrap;
-}
-
-.filters__search {
-  flex: 1;
-  min-width: 12rem;
-}
-
-.filters__cat {
-  min-width: 12rem;
-}
-
-// ── States ────────────────────────────────────────────────────────────────────
-
 .state-msg {
   font-size: 0.875rem;
   color: var(--color-text-secondary);
@@ -54,8 +33,6 @@
 .state-msg--error {
   color: var(--color-danger);
 }
-
-// ── Table ─────────────────────────────────────────────────────────────────────
 
 .table-wrap {
   overflow-x: auto;
@@ -87,78 +64,41 @@
     vertical-align: middle;
   }
 
-  tbody tr:last-child td {
-    border-bottom: none;
-  }
-
-  tbody tr:hover td {
-    background: var(--color-bg-soft);
-  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover td { background: var(--color-bg-soft); }
 }
 
-.td--sku {
+.td--name { font-weight: 500; }
+.td--slug {
   font-family: var(--font-mono);
   font-size: 0.8125rem;
   color: var(--color-text-secondary);
 }
-
-.td--name {
-  font-weight: 500;
-  max-width: 16rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.td--price {
-  white-space: nowrap;
-  font-weight: 500;
-}
-
-.td--stock {
-  text-align: right;
-}
-
 .td--actions {
   white-space: nowrap;
   display: flex;
   gap: 0.5rem;
   align-items: center;
 }
-
-.row--inactive td {
-  opacity: 0.55;
-}
-
-.confirm-inline {
-  display: flex;
-  gap: 0.375rem;
-}
-
-// ── Danger buttons ────────────────────────────────────────────────────────────
+.row--inactive td { opacity: 0.55; }
+.confirm-inline { display: flex; gap: 0.375rem; }
 
 .btn-danger {
   background: var(--color-danger);
   color: #fff;
   border-color: var(--color-danger);
-
-  &:hover:not(:disabled) {
-    background: #7a2f16;
-  }
+  &:hover:not(:disabled) { background: #7a2f16; }
 }
 
 .btn-ghost-danger {
   background: transparent;
   color: var(--color-danger);
   border-color: transparent;
-
   &:hover:not(:disabled) {
     background: var(--color-danger-bg);
     border-color: var(--color-danger);
   }
 }
-
-// ── Modal ─────────────────────────────────────────────────────────────────────
 
 .modal-backdrop {
   position: fixed;
@@ -172,7 +112,7 @@
 }
 
 .modal {
-  width: min(100%, 44rem);
+  width: min(100%, 36rem);
   background: var(--color-white);
   border-radius: var(--radius-lg);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -204,10 +144,7 @@
   cursor: pointer;
   padding: 0.25rem;
   line-height: 1;
-
-  &:hover {
-    color: var(--color-text-primary);
-  }
+  &:hover { color: var(--color-text-primary); }
 }
 
 .modal__body {
@@ -227,9 +164,7 @@
   border-top: 1px solid var(--color-border-primary);
 }
 
-.required {
-  color: var(--color-danger);
-}
+.required { color: var(--color-danger); }
 
 .form-error {
   font-size: 0.875rem;

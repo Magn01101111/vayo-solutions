@@ -1,8 +1,18 @@
 import { Routes } from '@angular/router';
 import { PublicShellComponent } from './layouts/public-shell/public-shell.component';
-import { AdminShellComponent } from './layouts/admin-shell/admin-shell.component';
+import { AdminShellComponent }  from './layouts/admin-shell/admin-shell.component';
+import { authGuard }            from './core/guards/auth.guard';
 
 export const routes: Routes = [
+  // ── Autenticación ─────────────────────────────────────────────────────────
+  {
+    path: 'login',
+    loadComponent: () =>
+      import('./features/auth/login/login.component').then((m) => m.LoginComponent),
+    title: 'Iniciar sesión — VAYO',
+  },
+
+  // ── Portal público ────────────────────────────────────────────────────────
   {
     path: '',
     component: PublicShellComponent,
@@ -14,9 +24,12 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // ── Panel de administración (protegido) ───────────────────────────────────
   {
     path: 'admin',
     component: AdminShellComponent,
+    canActivate: [authGuard],
     children: [
       {
         path: '',
@@ -25,6 +38,8 @@ export const routes: Routes = [
       },
     ],
   },
+
+  // ── Wildcard ──────────────────────────────────────────────────────────────
   {
     path: '**',
     redirectTo: '',

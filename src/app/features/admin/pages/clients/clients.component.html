@@ -1,1 +1,170 @@
-<p>clients works!</p>
+<div class="page-clients">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Clientes</h2>
+      <p class="page-subtitle">Gestión del directorio de clientes</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreate()">
+      + Nuevo cliente
+    </button>
+  </div>
+
+  <!-- Search bar -->
+  <div class="search-bar">
+    <input
+      class="input search-bar__input"
+      type="search"
+      placeholder="Buscar por nombre, empresa, RUT o correo…"
+      [(ngModel)]="searchQ"
+      (keyup.enter)="onSearch()"
+      (search)="clearSearch()"
+    />
+    <button class="btn btn-secondary" type="button" (click)="onSearch()">
+      Buscar
+    </button>
+  </div>
+
+  <!-- Table -->
+  @if (loading) {
+    <p class="state-msg">Cargando clientes…</p>
+  } @else if (loadError) {
+    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  } @else if (clients.length === 0) {
+    <p class="state-msg">No se encontraron clientes.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Empresa</th>
+            <th>RUT</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (client of clients; track client.id) {
+            <tr [class.row--inactive]="!client.isActive">
+              <td class="td--name">{{ client.name }}</td>
+              <td>{{ client.company || '—' }}</td>
+              <td>{{ client.rut || '—' }}</td>
+              <td>{{ client.email || '—' }}</td>
+              <td>{{ client.phone || '—' }}</td>
+              <td>
+                <span class="badge" [class.badge-success]="client.isActive" [class.badge-danger]="!client.isActive">
+                  {{ client.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="td--actions">
+                <button
+                  class="btn btn-sm btn-outline"
+                  type="button"
+                  (click)="openEdit(client)"
+                >
+                  Editar
+                </button>
+                @if (client.isActive) {
+                  @if (confirmingId === client.id) {
+                    <span class="confirm-inline">
+                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(client.id)">
+                        Confirmar
+                      </button>
+                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">
+                        Cancelar
+                      </button>
+                    </span>
+                  } @else {
+                    <button
+                      class="btn btn-sm btn-ghost-danger"
+                      type="button"
+                      (click)="confirmDeactivate(client.id)"
+                    >
+                      Desactivar
+                    </button>
+                  }
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
+
+<!-- ── Modal crear/editar ──────────────────────────────────────────────────── -->
+@if (showModal) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">
+          {{ formMode === 'create' ? 'Nuevo cliente' : 'Editar cliente' }}
+        </h3>
+        <button class="modal__close" type="button" (click)="closeModal()">✕</button>
+      </div>
+
+      <form (ngSubmit)="save()" novalidate>
+        <div class="modal__body">
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="c-name">Nombre <span class="required">*</span></label>
+              <input id="c-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-company">Empresa</label>
+              <input id="c-company" class="input" type="text" [(ngModel)]="form.company" name="company" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="c-rut">RUT</label>
+              <input id="c-rut" class="input" type="text" [(ngModel)]="form.rut" name="rut" placeholder="76.000.000-0" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-email">Correo</label>
+              <input id="c-email" class="input" type="email" [(ngModel)]="form.email" name="email" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="c-phone">Teléfono</label>
+              <input id="c-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="c-address">Dirección</label>
+              <input id="c-address" class="input" type="text" [(ngModel)]="form.address" name="address" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="c-notes">Notas internas</label>
+            <textarea id="c-notes" class="textarea" [(ngModel)]="form.notes" name="notes" rows="3"></textarea>
+          </div>
+
+          @if (formError) {
+            <p class="form-error">{{ formError }}</p>
+          }
+
+        </div>
+
+        <div class="modal__footer">
+          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="saving">
+            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear cliente' : 'Guardar cambios') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

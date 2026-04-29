@@ -1,1 +1,210 @@
-<p>products works!</p>
+<div class="page-products">
+
+  <!-- Header -->
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Productos</h2>
+      <p class="page-subtitle">Catálogo completo de repuestos HVAC</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreate()">
+      + Nuevo producto
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <input
+      class="input filters__search"
+      type="search"
+      placeholder="Buscar por nombre, SKU, marca…"
+      [(ngModel)]="searchQ"
+      (keyup.enter)="onSearch()"
+      (search)="clearSearch()"
+    />
+    <select class="select filters__cat" [(ngModel)]="filterCat" (change)="onSearch()">
+      <option value="">Todas las categorías</option>
+      @for (cat of categories; track cat.id) {
+        <option [value]="cat.slug">{{ cat.name }}</option>
+      }
+    </select>
+    <button class="btn btn-secondary" type="button" (click)="onSearch()">
+      Buscar
+    </button>
+  </div>
+
+  <!-- Table -->
+  @if (loading) {
+    <p class="state-msg">Cargando productos…</p>
+  } @else if (loadError) {
+    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  } @else if (products.length === 0) {
+    <p class="state-msg">No se encontraron productos.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>SKU</th>
+            <th>Nombre</th>
+            <th>Categoría</th>
+            <th>Marca</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>Disponibilidad</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (product of products; track product.id) {
+            <tr [class.row--inactive]="!product.isActive">
+              <td class="td--sku">{{ product.sku }}</td>
+              <td class="td--name">{{ product.name }}</td>
+              <td>{{ product.categoryName || categoryName(product.categoryId) }}</td>
+              <td>{{ product.brand }}</td>
+              <td class="td--price">{{ formatPrice(product.price) }}</td>
+              <td class="td--stock">{{ product.stock }}</td>
+              <td>
+                <span class="badge" [class]="statusBadge(product.availabilityStatus)">
+                  {{ statusLabel(product.availabilityStatus) }}
+                </span>
+              </td>
+              <td class="td--actions">
+                <button
+                  class="btn btn-sm btn-outline"
+                  type="button"
+                  (click)="openEdit(product)"
+                >
+                  Editar
+                </button>
+                @if (product.isActive) {
+                  @if (confirmingId === product.id) {
+                    <span class="confirm-inline">
+                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(product.id)">
+                        Confirmar
+                      </button>
+                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">
+                        Cancelar
+                      </button>
+                    </span>
+                  } @else {
+                    <button
+                      class="btn btn-sm btn-ghost-danger"
+                      type="button"
+                      (click)="confirmDeactivate(product.id)"
+                    >
+                      Desactivar
+                    </button>
+                  }
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
+
+<!-- ── Modal crear/editar ──────────────────────────────────────────────────── -->
+@if (showModal) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">
+          {{ formMode === 'create' ? 'Nuevo producto' : 'Editar producto' }}
+        </h3>
+        <button class="modal__close" type="button" (click)="closeModal()">✕</button>
+      </div>
+
+      <form (ngSubmit)="save()" novalidate>
+        <div class="modal__body">
+
+          <div class="form-group">
+            <label class="form-label" for="p-category">Categoría <span class="required">*</span></label>
+            <select id="p-category" class="select" [(ngModel)]="form.categoryId" name="categoryId" required>
+              <option value="">Seleccionar categoría</option>
+              @for (cat of categories; track cat.id) {
+                <option [value]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-name">Nombre <span class="required">*</span></label>
+              <input id="p-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-sku">SKU <span class="required">*</span></label>
+              <input
+                id="p-sku"
+                class="input"
+                type="text"
+                [(ngModel)]="form.sku"
+                name="sku"
+                [disabled]="formMode === 'edit'"
+                required
+              />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-brand">Marca <span class="required">*</span></label>
+              <input id="p-brand" class="input" type="text" [(ngModel)]="form.brand" name="brand" required />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-model">Modelo</label>
+              <input id="p-model" class="input" type="text" [(ngModel)]="form.model" name="model" />
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="p-price">Precio (CLP)</label>
+              <input id="p-price" class="input" type="number" min="0" [(ngModel)]="form.price" name="price" placeholder="Sin precio = Consultar" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="p-stock">Stock</label>
+              <input id="p-stock" class="input" type="number" min="0" [(ngModel)]="form.stock" name="stock" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="p-status">Disponibilidad</label>
+            <select id="p-status" class="select" [(ngModel)]="form.availabilityStatus" name="availabilityStatus">
+              @for (opt of statusOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="p-desc">Descripción</label>
+            <textarea id="p-desc" class="textarea" [(ngModel)]="form.description" name="description" rows="3"></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="p-tags">Etiquetas (separadas por coma)</label>
+            <input id="p-tags" class="input" type="text" [(ngModel)]="form.tags" name="tags" placeholder="compresor, scroll, 5ton" />
+          </div>
+
+          @if (formError) {
+            <p class="form-error">{{ formError }}</p>
+          }
+
+        </div>
+
+        <div class="modal__footer">
+          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="saving">
+            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear producto' : 'Guardar cambios') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
