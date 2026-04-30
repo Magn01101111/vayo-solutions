@@ -34,7 +34,9 @@ export class ApiService {
     endpoint: string,
     body: TBody,
   ): Observable<TResponse> {
-    return this.http.post<TResponse>(this.buildUrl(endpoint), body);
+    const url = this.buildUrl(endpoint);
+    console.log('[ApiService] POST', url, body);
+    return this.http.post<TResponse>(url, body);
   }
 
   put<TResponse, TBody = unknown>(

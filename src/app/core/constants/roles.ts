@@ -26,7 +26,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 /** Ruta de redirección post-login por rol */
 export const ROLE_REDIRECTS: Record<UserRole, string> = {
   ADMIN:     '/admin',
-  COTIZADOR: '/admin',   // Sprint 3 lo moverá a /cotizador
-  PROVEEDOR: '/admin',   // Sprint 3 lo moverá a /proveedor
-  CLIENTE:   '/admin',   // Sprint 3 lo moverá a /portal
+  COTIZADOR: '/admin',      // Sprint 3: mover a /cotizador
+  PROVEEDOR: '/admin',      // Sprint 3: mover a /proveedor
+  CLIENTE:   '/catalogo',   // Portal público — navega el catálogo con cuenta
 };

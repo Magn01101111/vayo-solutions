@@ -42,6 +42,7 @@ export class RegisterComponent {
     }
 
     this.loading = true;
+    console.log('[Register] Enviando registro...');
 
     this.auth
       .register({
@@ -52,6 +53,7 @@ export class RegisterComponent {
       })
       .subscribe({
         next: (res) => {
+          console.log('[Register] Respuesta OK:', res);
           this.loading = false;
           if (res.ok) {
             const target = ROLE_REDIRECTS[res.data.user.role] ?? '/';
@@ -59,6 +61,7 @@ export class RegisterComponent {
           }
         },
         error: (err) => {
+          console.error('[Register] Error:', err.status, err.error);
           this.loading = false;
           const body = err?.error;
           this.error = body?.error ?? 'No se pudo completar el registro. Intenta más tarde.';

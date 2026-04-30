@@ -54,16 +54,23 @@ export class AuthService {
   // ── Autenticación ─────────────────────────────────────────────────────────
 
   register(payload: RegisterRequest): Observable<ApiResponse<LoginResponse>> {
+    console.log('[AuthService] register → endpoint:', API_CONFIG.endpoints.register, '| payload:', payload);
     return this.api
       .post<ApiResponse<LoginResponse>, RegisterRequest>(
         API_CONFIG.endpoints.register,
         payload,
       )
       .pipe(
-        tap((res) => {
-          if (res.ok) {
-            this.persist(res.data.token, res.data.user);
-          }
+        tap({
+          next: (res) => {
+            console.log('[AuthService] register ← respuesta:', res);
+            if (res.ok) {
+              this.persist(res.data.token, res.data.user);
+            }
+          },
+          error: (err) => {
+            console.error('[AuthService] register ← error HTTP:', err.status, err.error);
+          },
         }),
       );
   }
