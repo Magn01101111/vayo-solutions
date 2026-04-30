@@ -1,11 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 
-import { ApiService } from './api.service';
-import { API_CONFIG } from '../config/api.config';
+import { ApiService }   from './api.service';
+import { API_CONFIG }   from '../config/api.config';
+import type { UserRole } from '../constants/roles';
 import {
   ApiUser,
-  ApiUserRole,
   ApiResponse,
   CreateUserPayload,
   UpdateUserPayload,
@@ -15,7 +15,7 @@ import {
 export class UserService {
   private readonly api = inject(ApiService);
 
-  getUsers(role?: ApiUserRole): Observable<ApiResponse<ApiUser[]>> {
+  getUsers(role?: UserRole): Observable<ApiResponse<ApiUser[]>> {
     return this.api.get<ApiResponse<ApiUser[]>>(
       API_CONFIG.endpoints.users,
       role ? { role } : undefined,

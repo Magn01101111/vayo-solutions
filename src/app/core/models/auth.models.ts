@@ -1,4 +1,7 @@
-export type UserRole = 'ADMIN' | 'COTIZADOR' | 'PROVEEDOR' | 'CLIENTE';
+import type { UserRole } from '../constants/roles';
+
+// Re-export so consumers that imported UserRole from here keep working.
+export type { UserRole };
 
 export interface AuthUser {
   id: string;
@@ -8,6 +11,13 @@ export interface AuthUser {
   phone?: string;
   position?: string;
   profileImage?: string;
+}
+
+export interface RegisterRequest {
+  name: string;
+  email: string;
+  password: string;
+  phone?: string;
 }
 
 export interface LoginRequest {

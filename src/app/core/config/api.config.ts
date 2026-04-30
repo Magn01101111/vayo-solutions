@@ -4,8 +4,9 @@ export const API_CONFIG = {
   baseUrl: environment.apiUrl,
   endpoints: {
     // Auth
-    auth: 'auth',
-    login: 'auth/login',
+    auth:     'auth',
+    register: 'auth/register',
+    login:    'auth/login',
     logout: 'auth/logout',
     me: 'auth/me',
     changePassword: 'auth/me/password',

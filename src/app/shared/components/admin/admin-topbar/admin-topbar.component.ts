@@ -1,6 +1,8 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule }   from '@angular/common';
-import { AuthService }    from '../../../../core/services/auth.service';
+import { CommonModule }  from '@angular/common';
+
+import { AuthService }   from '../../../../core/services/auth.service';
+import { ROLE_LABELS }   from '../../../../core/constants/roles';
 
 @Component({
   selector: 'app-admin-topbar',
@@ -17,13 +19,8 @@ export class AdminTopbarComponent {
   }
 
   get roleLabel(): string {
-    const labels: Record<string, string> = {
-      ADMIN:      'Administrador',
-      COTIZADOR:  'Cotizador',
-      PROVEEDOR:  'Proveedor',
-      CLIENTE:    'Cliente',
-    };
-    return labels[this.user?.role ?? ''] ?? '';
+    const role = this.user?.role;
+    return role ? (ROLE_LABELS[role] ?? '') : '';
   }
 
   logout(): void {

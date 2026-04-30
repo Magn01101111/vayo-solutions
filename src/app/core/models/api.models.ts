@@ -1,3 +1,5 @@
+import type { UserRole } from '../constants/roles';
+
 // ── Products ─────────────────────────────────────────────────────────────────
 
 export type ApiProductAvailabilityStatus =
@@ -122,7 +124,11 @@ export type UpdateClientPayload = Partial<CreateClientPayload>;
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 
-export type ApiUserRole = 'ADMIN' | 'COTIZADOR' | 'PROVEEDOR' | 'CLIENTE';
+/**
+ * @deprecated Usar UserRole importado desde core/constants/roles.ts
+ * Mantenido como alias para no romper imports existentes.
+ */
+export type ApiUserRole = UserRole;
 
 export interface ApiUser {
   id: string;
@@ -130,7 +136,7 @@ export interface ApiUser {
   email: string;
   phone?: string;
   position?: string;
-  role: ApiUserRole;
+  role: UserRole;
   isActive: boolean;
   profileImage?: string;
   createdAt?: string;

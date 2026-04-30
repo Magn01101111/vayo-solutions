@@ -1,14 +1,78 @@
 <!-- public-header.component.html -->
 <header class="public-header">
   <div class="container public-header__inner">
+
+    <!-- Brand -->
     <a routerLink="/" class="public-header__brand">VAYO Solutions</a>
 
+    <!-- Nav links -->
     <nav class="public-header__nav">
       <a routerLink="/catalogo">Catálogo</a>
       <a routerLink="/cotizacion">Cotización</a>
-      <a routerLink="/portal-cliente">Portal cliente</a>
-      <a routerLink="/login">Ingresar</a>
+
+      <!-- Carrito -->
       <app-cart-dropdown />
+
+      <!-- ── Usuario NO autenticado ───────────────────────────────────── -->
+      @if (!auth.isAuthenticated) {
+        <a routerLink="/login" class="ph-btn ph-btn--ghost">Ingresar</a>
+        <a routerLink="/registro" class="ph-btn ph-btn--primary">Crear cuenta</a>
+      }
+
+      <!-- ── Usuario autenticado ─────────────────────────────────────── -->
+      @if (auth.isAuthenticated && user) {
+        <div class="ph-user-menu">
+          <button
+            class="ph-user-menu__trigger"
+            (click)="toggleUserMenu()"
+            [attr.aria-expanded]="userMenuOpen"
+            aria-haspopup="true"
+          >
+            <!-- Avatar con iniciales -->
+            <span class="ph-user-menu__avatar">{{ initials }}</span>
+            <!-- Nombre (oculto en móvil) -->
+            <span class="ph-user-menu__name">{{ user.name }}</span>
+            <!-- Chevron -->
+            <svg
+              class="ph-user-menu__chevron"
+              [class.ph-user-menu__chevron--open]="userMenuOpen"
+              width="12" height="12" viewBox="0 0 12 12"
+              fill="none" aria-hidden="true"
+            >
+              <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5"
+                    stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+
+          <!-- Dropdown -->
+          @if (userMenuOpen) {
+            <div class="ph-user-menu__dropdown" role="menu">
+              <div class="ph-user-menu__header">
+                <span class="ph-user-menu__header-name">{{ user.name }}</span>
+                <span class="ph-user-menu__header-email">{{ user.email }}</span>
+              </div>
+              <div class="ph-user-menu__divider"></div>
+              <a
+                routerLink="/portal-cliente"
+                class="ph-user-menu__item"
+                role="menuitem"
+                (click)="closeUserMenu()"
+              >
+                Mi cuenta
+              </a>
+              <div class="ph-user-menu__divider"></div>
+              <button
+                class="ph-user-menu__item ph-user-menu__item--danger"
+                role="menuitem"
+                (click)="logout()"
+              >
+                Cerrar sesión
+              </button>
+            </div>
+          }
+        </div>
+      }
     </nav>
+
   </div>
 </header>

@@ -4,7 +4,7 @@
     <!-- Brand -->
     <div class="login-card__brand">
       <span class="login-card__logo">VAYO</span>
-      <p class="login-card__tagline">Panel de gestión interno</p>
+      <p class="login-card__tagline">Inicia sesión en tu cuenta</p>
     </div>
 
     <!-- Form -->
@@ -18,7 +18,7 @@
           type="email"
           [(ngModel)]="email"
           name="email"
-          placeholder="admin@vayo.cl"
+          placeholder="tu@correo.cl"
           autocomplete="username"
           [disabled]="loading"
           required
@@ -26,7 +26,12 @@
       </div>
 
       <div class="form-group">
-        <label class="form-label" for="password">Contraseña</label>
+        <div class="login-form__label-row">
+          <label class="form-label" for="password">Contraseña</label>
+          <a routerLink="/recuperar-contrasena" class="login-form__forgot">
+            ¿Olvidaste tu contraseña?
+          </a>
+        </div>
         <div class="login-form__pass-wrap">
           <input
             id="password"
@@ -69,6 +74,12 @@
       </button>
 
     </form>
+
+    <!-- Footer: crear cuenta -->
+    <p class="login-card__footer">
+      ¿No tienes cuenta?
+      <a routerLink="/registro" class="login-link">Crear cuenta gratis</a>
+    </p>
 
   </div>
 </div>

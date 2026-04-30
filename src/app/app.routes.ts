@@ -11,6 +11,28 @@ export const routes: Routes = [
       import('./features/auth/login/login.component').then((m) => m.LoginComponent),
     title: 'Iniciar sesión — VAYO',
   },
+  {
+    path: 'registro',
+    loadComponent: () =>
+      import('./features/auth/register/register.component').then((m) => m.RegisterComponent),
+    title: 'Crear cuenta — VAYO',
+  },
+  {
+    path: 'recuperar-contrasena',
+    loadComponent: () =>
+      import('./features/auth/forgot-password/forgot-password.component').then(
+        (m) => m.ForgotPasswordComponent,
+      ),
+    title: 'Recuperar contraseña — VAYO',
+  },
+  {
+    path: 'reset-password',
+    loadComponent: () =>
+      import('./features/auth/reset-password/reset-password.component').then(
+        (m) => m.ResetPasswordComponent,
+      ),
+    title: 'Nueva contraseña — VAYO',
+  },
 
   // ── Portal público ────────────────────────────────────────────────────────
   {
