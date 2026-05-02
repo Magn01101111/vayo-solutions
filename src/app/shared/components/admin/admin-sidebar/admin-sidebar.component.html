@@ -14,5 +14,8 @@
     }
     <a routerLink="/admin/ventas" routerLinkActive="active">Ventas</a>
     <a routerLink="/admin/reportes" routerLinkActive="active">Reportes</a>
+    @if (isAdmin) {
+      <a routerLink="/admin/configuracion" routerLinkActive="active">Configuración</a>
+    }
   </nav>
 </aside>

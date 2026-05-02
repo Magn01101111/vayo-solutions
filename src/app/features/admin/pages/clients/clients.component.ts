@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule }  from '@angular/common';
 import { FormsModule }   from '@angular/forms';
+import { Router }        from '@angular/router';
 
 import { ClientService }                   from '../../../../core/services/client.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
@@ -36,6 +37,12 @@ function emptyForm(): ClientForm {
 })
 export class ClientsComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
+  private readonly router    = inject(Router);
+
+  /** Navega a /admin/cotizaciones?clientId=... para ver el historial */
+  viewQuoteHistory(clientId: string): void {
+    this.router.navigate(['/admin/cotizaciones'], { queryParams: { clientId } });
+  }
 
   // ── List state ────────────────────────────────────────────────────────────
   clients: ApiClient[] = [];

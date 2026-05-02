@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
 import { mapApiCategoryToCatalogCategory, mapApiProductToCardData } from '../../../public/mapper';
@@ -14,7 +15,7 @@ import { QuotationService } from '../../../../core/services/quotation.service';
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -58,19 +59,39 @@ export class HomeComponent implements OnInit {
   ];
 
   selectedCategory = 'Todos';
+  searchQuery      = '';
 
   ngOnInit(): void {
     this.loadCatalogData();
   }
 
   get filteredProducts(): ProductCardData[] {
-    if (this.selectedCategory === 'Todos') {
-      return this.products;
-    }
+    const query = this.searchQuery.trim().toLowerCase();
 
-    return this.products.filter(
-      (product) => product.category === this.selectedCategory
-    );
+    return this.products.filter((product) => {
+      // Filtro por categoría
+      const categoryMatch =
+        this.selectedCategory === 'Todos' ||
+        product.category === this.selectedCategory;
+
+      if (!categoryMatch) return false;
+
+      // Filtro por búsqueda (nombre, SKU, marca, descripción)
+      if (!query) return true;
+
+      const haystack = [
+        product.name,
+        product.sku,
+        product.description ?? '',
+        product.category,
+      ].join(' ').toLowerCase();
+
+      return haystack.includes(query);
+    });
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
   }
 
   get filteredProductsCount(): number {

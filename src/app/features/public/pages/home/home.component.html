@@ -77,6 +77,27 @@
       <a routerLink="/catalogo" class="portal-section-link">Ver todos →</a>
     </div>
 
+    <!-- ── Barra de búsqueda ─────────────────────────────────────────────── -->
+    <div class="portal-search">
+      <input
+        type="search"
+        class="input portal-search__input"
+        [(ngModel)]="searchQuery"
+        placeholder="Buscar por nombre, código (SKU) o marca…"
+        autocomplete="off"
+      />
+      <button
+        type="button"
+        class="portal-search__clear"
+        *ngIf="searchQuery"
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda"
+      >✕</button>
+      <a routerLink="/catalogo" class="btn btn-primary btn-sm portal-search__catalog">
+        Ver catálogo completo
+      </a>
+    </div>
+
     <div class="portal-filters">
       <button type="button" class="portal-filter" [class.is-active]="isCategoryActive(category)"
         *ngFor="let category of categories; trackBy: trackByLabel" (click)="selectCategory(category.label)">

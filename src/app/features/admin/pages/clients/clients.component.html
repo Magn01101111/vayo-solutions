@@ -81,6 +81,16 @@
                   Editar
                 </button>
 
+                <!-- Ver historial de cotizaciones del cliente -->
+                <button
+                  class="btn btn-sm btn-outline"
+                  type="button"
+                  (click)="viewQuoteHistory(client.id)"
+                  title="Ver cotizaciones de este cliente"
+                >
+                  Historial
+                </button>
+
                 <!-- Botón invitar al portal (solo si NO tiene cuenta y tiene email) -->
                 @if (canInvite(client)) {
                   <button

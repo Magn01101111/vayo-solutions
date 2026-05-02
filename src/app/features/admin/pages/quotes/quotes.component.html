@@ -1,1 +1,76 @@
-<p>quotes works!</p>
+<div class="page-quotes">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Cotizaciones</h2>
+      <p class="page-subtitle">
+        Listado de cotizaciones generadas
+        @if (filterClient) {
+          <span> · filtradas por <strong>{{ filterClient.name }}</strong></span>
+        }
+      </p>
+    </div>
+  </div>
+
+  <!-- ── Filtros ─────────────────────────────────────────────────────────── -->
+  <div class="filters">
+    <input
+      class="input filters__folio"
+      type="search"
+      placeholder="Buscar por folio (ej. Q-2026-0001)…"
+      [(ngModel)]="folioQ"
+      (keyup.enter)="searchByFolio()"
+    />
+    <button class="btn btn-secondary" type="button" (click)="searchByFolio()">
+      Buscar
+    </button>
+    @if (folioQ || clientIdQ) {
+      <button class="btn btn-outline" type="button" (click)="clearFilters()">
+        Limpiar filtros
+      </button>
+    }
+  </div>
+
+  <!-- ── Lista ────────────────────────────────────────────────────────────── -->
+  @if (loading) {
+    <p class="state-msg">Cargando cotizaciones…</p>
+  } @else if (loadError) {
+    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  } @else if (quotes.length === 0) {
+    <p class="state-msg">No se encontraron cotizaciones.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Folio</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Email</th>
+            <th>Items</th>
+            <th>Total</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (q of quotes; track q._id) {
+            <tr>
+              <td class="td--folio">{{ q.folio || '—' }}</td>
+              <td>{{ formatDate(q.createdAt) }}</td>
+              <td class="td--name">{{ q.client?.name || '—' }}</td>
+              <td>{{ q.client?.email || '—' }}</td>
+              <td class="td--center">{{ q.items?.length || 0 }}</td>
+              <td class="td--price">{{ formatCLP(q.totals?.total) }}</td>
+              <td>
+                <span class="badge" [class]="statusBadge(q.metadata?.status)">
+                  {{ statusLabel(q.metadata?.status) }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>
