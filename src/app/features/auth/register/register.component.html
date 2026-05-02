@@ -28,6 +28,26 @@
       </div>
 
       <div class="form-group">
+        <label class="form-label" for="rut">
+          RUT <span class="required">*</span>
+        </label>
+        <input
+          id="rut"
+          class="input"
+          type="text"
+          [ngModel]="rut"
+          (ngModelChange)="onRutInput($event)"
+          name="rut"
+          placeholder="12.345.678-9"
+          autocomplete="off"
+          inputmode="text"
+          maxlength="12"
+          [disabled]="loading"
+          required
+        />
+      </div>
+
+      <div class="form-group">
         <label class="form-label" for="email">
           Correo electrónico <span class="required">*</span>
         </label>
@@ -42,6 +62,30 @@
           [disabled]="loading"
           required
         />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="phone">
+          Teléfono móvil <span class="required">*</span>
+        </label>
+        <div class="phone-input">
+          <span class="phone-input__prefix">+56&nbsp;9</span>
+          <input
+            id="phone"
+            class="input phone-input__field"
+            type="tel"
+            [ngModel]="phoneDigits"
+            (ngModelChange)="onPhoneInput($event)"
+            name="phone"
+            placeholder="12345678"
+            autocomplete="tel-national"
+            inputmode="numeric"
+            maxlength="8"
+            [disabled]="loading"
+            required
+          />
+        </div>
+        <p class="form-hint">Solo los 8 dígitos del número, sin espacios.</p>
       </div>
 
       <div class="form-group">
@@ -69,22 +113,6 @@
             {{ showPass ? '🙈' : '👁️' }}
           </button>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="phone">
-          Teléfono <span class="optional">(opcional)</span>
-        </label>
-        <input
-          id="phone"
-          class="input"
-          type="tel"
-          [(ngModel)]="phone"
-          name="phone"
-          placeholder="+56 9 1234 5678"
-          autocomplete="tel"
-          [disabled]="loading"
-        />
       </div>
 
       <!-- Error message -->

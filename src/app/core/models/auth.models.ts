@@ -11,13 +11,16 @@ export interface AuthUser {
   phone?: string;
   position?: string;
   profileImage?: string;
+  /** Solo presente cuando role === CLIENTE: id de su ficha CRM en `clients`. */
+  clientId?: string | null;
 }
 
 export interface RegisterRequest {
   name: string;
   email: string;
   password: string;
-  phone?: string;
+  rut: string;          // canónico: "12345678-9"
+  phone: string;        // E.164: "+56912345678"
 }
 
 export interface LoginRequest {

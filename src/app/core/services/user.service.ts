@@ -73,4 +73,7 @@ export class UserService {
       {},
     );
   }
+
+  // NOTA: La gestión de CLIENTEs vive en ClientService porque un CLIENTE es
+  // ante todo una entidad CRM. Su cuenta de portal es opcional.
 }

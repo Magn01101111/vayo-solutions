@@ -3,7 +3,7 @@
   <div class="page-header">
     <div>
       <h2 class="page-title">Usuarios</h2>
-      <p class="page-subtitle">Gestión de cotizadores y proveedores</p>
+      <p class="page-subtitle">Gestión del personal interno (cotizadores y proveedores)</p>
     </div>
     <button class="btn btn-primary" type="button" (click)="openCreate()">
       + Nuevo usuario
@@ -12,131 +12,121 @@
 
   <!-- Tabs -->
   <div class="tabs">
-    <button
-      class="tab"
-      [class.tab--active]="activeTab === 'cotizadores'"
-      type="button"
-      (click)="setTab('cotizadores')"
-    >
+    <button class="tab" [class.tab--active]="activeTab === 'cotizadores'" type="button" (click)="setTab('cotizadores')">
       Cotizadores ({{ cotizadores.length }})
     </button>
-    <button
-      class="tab"
-      [class.tab--active]="activeTab === 'proveedores'"
-      type="button"
-      (click)="setTab('proveedores')"
-    >
+    <button class="tab" [class.tab--active]="activeTab === 'proveedores'" type="button" (click)="setTab('proveedores')">
       Proveedores ({{ proveedores.length }})
     </button>
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando usuarios…</p>
+  <p class="state-msg">Cargando usuarios…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  <p class="state-msg state-msg--error">{{ loadError }}</p>
   } @else if (currentList.length === 0) {
-    <p class="state-msg">No hay {{ activeTab }} registrados.</p>
+  <p class="state-msg">No hay {{ activeTab }} registrados.</p>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Nombre</th>
-            <th>Correo</th>
-            <th>Cargo</th>
-            <th>Teléfono</th>
-            <th>Estado</th>
-            <th>Acciones</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (user of currentList; track user.id) {
-            <tr [class.row--inactive]="!user.isActive">
-              <td class="td--name">{{ user.name }}</td>
-              <td>{{ user.email }}</td>
-              <td>{{ user.position || '—' }}</td>
-              <td>{{ user.phone || '—' }}</td>
-              <td>
-                <span class="badge" [class.badge-success]="user.isActive" [class.badge-danger]="!user.isActive">
-                  {{ user.isActive ? 'Activo' : 'Inactivo' }}
-                </span>
-              </td>
-              <td class="td--actions">
-                <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(user)">
-                  Editar
-                </button>
-                @if (user.isActive) {
-                  @if (confirmingId === user.id) {
-                    <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(user.id)">Confirmar</button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
-                    </span>
-                  } @else {
-                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(user.id)">
-                      Desactivar
-                    </button>
-                  }
-                }
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
+  <div class="table-wrap">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Correo</th>
+          <th>Cargo</th>
+          <th>Teléfono</th>
+          <th>Estado</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (user of currentList; track user.id) {
+        <tr [class.row--inactive]="!user.isActive">
+          <td class="td--name">{{ user.name }}</td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.position || '—' }}</td>
+          <td>{{ user.phone || '—' }}</td>
+          <td>
+            <span class="badge" [class.badge-success]="user.isActive" [class.badge-danger]="!user.isActive">
+              {{ user.isActive ? 'Activo' : 'Inactivo' }}
+            </span>
+          </td>
+          <td class="td--actions">
+            <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(user)">
+              Editar
+            </button>
+            @if (user.isActive) {
+            @if (confirmingId === user.id) {
+            <span class="confirm-inline">
+              <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(user.id)">Confirmar</button>
+              <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
+            </span>
+            } @else {
+            <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(user.id)">
+              Desactivar
+            </button>
+            }
+            }
+          </td>
+        </tr>
+        }
+      </tbody>
+    </table>
+  </div>
   }
 
 </div>
 
 @if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <h3 class="modal__title">
-          {{ formMode === 'create'
-            ? ('Nuevo ' + (activeTab === 'cotizadores' ? 'cotizador' : 'proveedor'))
-            : 'Editar usuario' }}
-        </h3>
-        <button class="modal__close" type="button" (click)="closeModal()">✕</button>
-      </div>
-      <form (ngSubmit)="save()" novalidate>
-        <div class="modal__body">
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="u-name">Nombre <span class="required">*</span></label>
-              <input id="u-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="u-email">Correo <span class="required">*</span></label>
-              <input id="u-email" class="input" type="email" [(ngModel)]="form.email" name="email" required />
-            </div>
-          </div>
-          @if (formMode === 'create') {
-            <div class="form-group">
-              <label class="form-label" for="u-pass">Contraseña <span class="required">*</span></label>
-              <input id="u-pass" class="input" type="password" [(ngModel)]="form.password" name="password" required />
-            </div>
-          }
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="u-position">Cargo</label>
-              <input id="u-position" class="input" type="text" [(ngModel)]="form.position" name="position" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="u-phone">Teléfono</label>
-              <input id="u-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
-            </div>
-          </div>
-          @if (formError) {
-            <p class="form-error">{{ formError }}</p>
-          }
-        </div>
-        <div class="modal__footer">
-          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
-          <button class="btn btn-primary" type="submit" [disabled]="saving">
-            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear usuario' : 'Guardar cambios') }}
-          </button>
-        </div>
-      </form>
+<div class="modal-backdrop" (click)="closeModal()">
+  <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal__header">
+      <h3 class="modal__title">
+        {{ formMode === 'create'
+          ? ('Nuevo ' + (activeTab === 'cotizadores' ? 'cotizador' : 'proveedor'))
+          : ('Editar ' + (activeTab === 'cotizadores' ? 'cotizador' : 'proveedor')) }}
+      </h3>
+      <button class="modal__close" type="button" (click)="closeModal()">✕</button>
     </div>
+    <form (ngSubmit)="save()" novalidate>
+      <div class="modal__body">
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="u-name">Nombre <span class="required">*</span></label>
+            <input id="u-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="u-email">Correo <span class="required">*</span></label>
+            <input id="u-email" class="input" type="email" [(ngModel)]="form.email" name="email" required />
+          </div>
+        </div>
+        @if (formMode === 'create') {
+        <div class="form-group">
+          <label class="form-label" for="u-pass">Contraseña <span class="required">*</span></label>
+          <input id="u-pass" class="input" type="password" [(ngModel)]="form.password" name="password" required />
+        </div>
+        }
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="u-position">Cargo</label>
+            <input id="u-position" class="input" type="text" [(ngModel)]="form.position" name="position" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="u-phone">Teléfono</label>
+            <input id="u-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
+          </div>
+        </div>
+        @if (formError) {
+        <p class="form-error">{{ formError }}</p>
+        }
+      </div>
+      <div class="modal__footer">
+        <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="saving">
+          {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear usuario' : 'Guardar cambios') }}
+        </button>
+      </div>
+    </form>
   </div>
+</div>
 }

@@ -2,23 +2,29 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule }  from '@angular/common';
 import { FormsModule }   from '@angular/forms';
 
-import { ClientService }           from '../../../../core/services/client.service';
-import { ApiClient, CreateClientPayload } from '../../../../core/models/api.models';
+import { ClientService }                   from '../../../../core/services/client.service';
+import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
+import {
+  formatRut,
+  formatRutInput,
+  formatPhone,
+  onlyDigits,
+} from '../../../../core/utils/validators';
 
 type FormMode = 'create' | 'edit';
 
 interface ClientForm {
   name: string;
   company: string;
-  rut: string;
+  rut: string;          // formateado mientras se tipea: "12.345.678-9"
   email: string;
-  phone: string;
+  phoneDigits: string;  // solo los 8 dígitos (sin prefijo)
   address: string;
   notes: string;
 }
 
 function emptyForm(): ClientForm {
-  return { name: '', company: '', rut: '', email: '', phone: '', address: '', notes: '' };
+  return { name: '', company: '', rut: '', email: '', phoneDigits: '', address: '', notes: '' };
 }
 
 @Component({
@@ -37,7 +43,7 @@ export class ClientsComponent implements OnInit {
   searchQ   = '';
   loadError = '';
 
-  // ── Modal state ───────────────────────────────────────────────────────────
+  // ── Modal create/edit ─────────────────────────────────────────────────────
   showModal  = false;
   formMode: FormMode = 'create';
   editingId  = '';
@@ -47,6 +53,16 @@ export class ClientsComponent implements OnInit {
 
   // ── Confirm deactivate ────────────────────────────────────────────────────
   confirmingId = '';
+
+  // ── Modal invitar al portal ───────────────────────────────────────────────
+  showInviteModal = false;
+  invitingClient: ApiClient | null = null;
+  invitePassword  = '';
+  inviting        = false;
+  inviteError     = '';
+
+  // ── Confirm revoke portal ─────────────────────────────────────────────────
+  revokingId = '';
 
   ngOnInit(): void {
     this.load();
@@ -81,7 +97,7 @@ export class ClientsComponent implements OnInit {
     this.load();
   }
 
-  // ── Modal ─────────────────────────────────────────────────────────────────
+  // ── Modal CRUD ────────────────────────────────────────────────────────────
 
   openCreate(): void {
     this.formMode  = 'create';
@@ -94,17 +110,29 @@ export class ClientsComponent implements OnInit {
   openEdit(client: ApiClient): void {
     this.formMode  = 'edit';
     this.editingId = client.id;
+    // El backend nos da RUT canónico ("12345678-9") y teléfono E.164 ("+56912345678").
+    // Lo convertimos al formato de display para que el usuario lo edite cómodo.
     this.form = {
-      name:    client.name,
-      company: client.company  ?? '',
-      rut:     client.rut      ?? '',
-      email:   client.email    ?? '',
-      phone:   client.phone    ?? '',
-      address: client.address  ?? '',
-      notes:   client.notes    ?? '',
+      name:        client.name,
+      company:     client.company  ?? '',
+      rut:         client.rut ? formatRut(client.rut) : '',
+      email:       client.email    ?? '',
+      phoneDigits: client.phone ? client.phone.replace(/^\+569/, '') : '',
+      address:     client.address  ?? '',
+      notes:       client.notes    ?? '',
     };
     this.formError = '';
     this.showModal = true;
+  }
+
+  // ── Handlers de input con auto-formateo ───────────────────────────────────
+
+  onRutInput(value: string): void {
+    this.form.rut = formatRutInput(value);
+  }
+
+  onPhoneInput(value: string): void {
+    this.form.phoneDigits = onlyDigits(value, 8);
   }
 
   closeModal(): void {
@@ -120,12 +148,15 @@ export class ClientsComponent implements OnInit {
     this.saving    = true;
     this.formError = '';
 
+    // Construir el payload — el backend valida y normaliza RUT y teléfono.
+    // Le mandamos lo que tenemos; si hay error vuelve un 400 con mensaje claro.
     const payload: CreateClientPayload = {
       name:    this.form.name.trim(),
       company: this.form.company.trim() || undefined,
       rut:     this.form.rut.trim()     || undefined,
       email:   this.form.email.trim()   || undefined,
-      phone:   this.form.phone.trim()   || undefined,
+      // Mandamos los 8 dígitos; el backend lo normaliza a +56912345678
+      phone:   this.form.phoneDigits || undefined,
       address: this.form.address.trim() || undefined,
       notes:   this.form.notes.trim()   || undefined,
     };
@@ -159,22 +190,93 @@ export class ClientsComponent implements OnInit {
 
   deactivate(id: string): void {
     this.clientSvc.deactivateClient(id).subscribe({
-      next: () => {
-        this.confirmingId = '';
-        this.load();
-      },
-      error: () => {
-        this.confirmingId = '';
-      },
+      next: () => { this.confirmingId = ''; this.load(); },
+      error: () => { this.confirmingId = ''; },
     });
+  }
+
+  // ── Invitar al portal ─────────────────────────────────────────────────────
+
+  openInvite(client: ApiClient): void {
+    this.invitingClient = client;
+    this.invitePassword = '';
+    this.inviteError    = '';
+    this.showInviteModal = true;
+  }
+
+  closeInvite(): void {
+    this.showInviteModal = false;
+    this.invitingClient  = null;
+  }
+
+  sendInvite(): void {
+    if (!this.invitingClient) return;
+
+    if (this.invitePassword.length < 8) {
+      this.inviteError = 'La contraseña debe tener al menos 8 caracteres.';
+      return;
+    }
+
+    this.inviting    = true;
+    this.inviteError = '';
+
+    this.clientSvc
+      .inviteToPortal(this.invitingClient.id, { password: this.invitePassword })
+      .subscribe({
+        next: () => {
+          this.inviting        = false;
+          this.showInviteModal = false;
+          this.invitingClient  = null;
+          this.load();
+        },
+        error: (err) => {
+          this.inviting    = false;
+          this.inviteError = err?.error?.error ?? 'Error al crear cuenta de portal.';
+        },
+      });
+  }
+
+  // ── Revocar portal ────────────────────────────────────────────────────────
+
+  confirmRevoke(id: string): void {
+    this.revokingId = id;
+  }
+
+  cancelRevoke(): void {
+    this.revokingId = '';
+  }
+
+  revokePortal(id: string): void {
+    this.clientSvc.revokePortalAccess(id).subscribe({
+      next: () => { this.revokingId = ''; this.load(); },
+      error: () => { this.revokingId = ''; },
+    });
+  }
+
+  // ── Helpers de display ────────────────────────────────────────────────────
+
+  /** Formatea el RUT canónico para mostrarlo: "12345678-9" → "12.345.678-9" */
+  displayRut(rut: string | null | undefined): string {
+    return rut ? formatRut(rut) : '—';
+  }
+
+  /** Formatea el teléfono E.164 para mostrarlo: "+56912345678" → "+56 9 1234 5678" */
+  displayPhone(phone: string | null | undefined): string {
+    return phone ? formatPhone(phone) : '—';
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
 
   createdByName(client: ApiClient): string {
     const cb = client.createdBy;
-    if (!cb) return '—';
+    if (!cb) return 'Auto-registro';
     if (typeof cb === 'string') return cb;
     return cb.name;
+  }
+
+  canInvite(client: ApiClient): boolean {
+    return client.isActive
+        && !client.hasPortalAccount
+        && !!client.email;
   }
 }

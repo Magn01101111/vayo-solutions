@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
 import { CatalogService }  from '../../../../core/services/catalog.service';
+import { UploadService }   from '../../../../core/services/upload.service';
 import {
   ApiProductListItem,
   ApiCategory,
@@ -23,6 +24,8 @@ interface ProductForm {
   stock:              string;
   availabilityStatus: ApiProductAvailabilityStatus;
   tags:               string;
+  imageUrl:           string;
+  imagePublicId:      string;
 }
 
 function emptyForm(): ProductForm {
@@ -37,6 +40,8 @@ function emptyForm(): ProductForm {
     stock:              '0',
     availabilityStatus: 'in_stock',
     tags:               '',
+    imageUrl:           '',
+    imagePublicId:      '',
   };
 }
 
@@ -49,6 +54,7 @@ function emptyForm(): ProductForm {
 })
 export class ProductsComponent implements OnInit {
   private readonly catalogSvc = inject(CatalogService);
+  private readonly uploadSvc  = inject(UploadService);
 
   // ── List state ────────────────────────────────────────────────────────────
   products:   ApiProductListItem[] = [];
@@ -65,6 +71,10 @@ export class ProductsComponent implements OnInit {
   form: ProductForm  = emptyForm();
   saving     = false;
   formError  = '';
+
+  // ── Imagen (estado local) ─────────────────────────────────────────────────
+  uploadingImage = false;
+  imageError     = '';
 
   // ── Confirm deactivate ────────────────────────────────────────────────────
   confirmingId = '';
@@ -125,6 +135,7 @@ export class ProductsComponent implements OnInit {
     this.editingId = '';
     this.form      = emptyForm();
     this.formError = '';
+    this.imageError = '';
     this.showModal = true;
   }
 
@@ -142,14 +153,60 @@ export class ProductsComponent implements OnInit {
       stock:              String(product.stock),
       availabilityStatus: product.availabilityStatus,
       tags:               product.tags.join(', '),
+      imageUrl:           product.imageUrl ?? '',
+      imagePublicId:      product.imagePublicId ?? '',
     };
-    this.formError = '';
+    this.formError  = '';
+    this.imageError = '';
     this.showModal = true;
   }
 
   closeModal(): void {
     this.showModal = false;
   }
+
+  // ── Manejo de imagen ──────────────────────────────────────────────────────
+
+  /** Handler del <input type="file">. Sube directo a Cloudinary vía backend. */
+  onImageSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file  = input.files?.[0];
+    if (!file) return;
+
+    // Validación cliente antes de mandar al servidor
+    const validationError = this.uploadSvc.validateImageFile(file);
+    if (validationError) {
+      this.imageError = validationError;
+      input.value = ''; // limpiar input
+      return;
+    }
+
+    this.imageError     = '';
+    this.uploadingImage = true;
+
+    this.uploadSvc.uploadProductImage(file).subscribe({
+      next: ({ url, publicId }) => {
+        this.form.imageUrl      = url;
+        this.form.imagePublicId = publicId;
+        this.uploadingImage     = false;
+        input.value = ''; // permitir re-seleccionar el mismo archivo
+      },
+      error: (err) => {
+        this.uploadingImage = false;
+        this.imageError = err?.error?.error ?? 'Error al subir la imagen.';
+        input.value = '';
+      },
+    });
+  }
+
+  removeImage(): void {
+    // El backend se encarga de borrar la imagen vieja de Cloudinary cuando
+    // detecta que imagePublicId cambió. Aquí solo limpiamos el form.
+    this.form.imageUrl      = '';
+    this.form.imagePublicId = '';
+  }
+
+  // ── Save ──────────────────────────────────────────────────────────────────
 
   save(): void {
     const { categoryId, name, sku, brand, price, stock } = this.form;
@@ -178,6 +235,8 @@ export class ProductsComponent implements OnInit {
       stock:              Number(stock) || 0,
       availabilityStatus: this.form.availabilityStatus,
       tags,
+      imageUrl:           this.form.imageUrl      || undefined,
+      imagePublicId:      this.form.imagePublicId || null,
     };
 
     const obs$ = this.formMode === 'create'

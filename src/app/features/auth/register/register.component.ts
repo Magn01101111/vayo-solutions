@@ -5,6 +5,12 @@ import { Router, RouterLink } from '@angular/router';
 
 import { AuthService }    from '../../../core/services/auth.service';
 import { ROLE_REDIRECTS } from '../../../core/constants/roles';
+import {
+  validateRut,
+  formatRutInput,
+  normalizeChileanPhone,
+  onlyDigits,
+} from '../../../core/utils/validators';
 
 @Component({
   selector: 'app-register',
@@ -18,15 +24,32 @@ export class RegisterComponent {
   private readonly router = inject(Router);
 
   // Form state
-  name     = '';
-  email    = '';
-  password = '';
-  phone    = '';
-  showPass = false;
+  name        = '';
+  email       = '';
+  password    = '';
+  rut         = '';   // formateado para mostrar al usuario "12.345.678-9"
+  phoneDigits = '';   // solo los 8 dígitos que tipea el usuario
+  showPass    = false;
 
   // UI state
   loading = false;
   error   = '';
+
+  // ── Handlers de input con auto-formateo ─────────────────────────────────────
+
+  onRutInput(value: string): void {
+    this.rut = formatRutInput(value);
+  }
+
+  onPhoneInput(value: string): void {
+    this.phoneDigits = onlyDigits(value, 8);
+  }
+
+  togglePassword(): void {
+    this.showPass = !this.showPass;
+  }
+
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
   onSubmit(): void {
     this.error = '';
@@ -41,19 +64,36 @@ export class RegisterComponent {
       return;
     }
 
+    // ── Validar RUT (algoritmo módulo 11 + dígito verificador) ───────────────
+    const canonicalRut = validateRut(this.rut);
+    if (!canonicalRut) {
+      this.error = 'RUT inválido. Verifica el dígito verificador.';
+      return;
+    }
+
+    // ── Validar teléfono ─────────────────────────────────────────────────────
+    if (this.phoneDigits.length !== 8) {
+      this.error = 'El teléfono debe tener 8 dígitos.';
+      return;
+    }
+    const canonicalPhone = normalizeChileanPhone(this.phoneDigits);
+    if (!canonicalPhone) {
+      this.error = 'Teléfono inválido.';
+      return;
+    }
+
     this.loading = true;
-    console.log('[Register] Enviando registro...');
 
     this.auth
       .register({
-        name: this.name.trim(),
-        email: this.email,
+        name:     this.name.trim(),
+        email:    this.email.trim().toLowerCase(),
         password: this.password,
-        phone: this.phone.trim() || undefined,
+        rut:      canonicalRut,
+        phone:    canonicalPhone,
       })
       .subscribe({
         next: (res) => {
-          console.log('[Register] Respuesta OK:', res);
           this.loading = false;
           if (res.ok) {
             const target = ROLE_REDIRECTS[res.data.user.role] ?? '/';
@@ -61,15 +101,10 @@ export class RegisterComponent {
           }
         },
         error: (err) => {
-          console.error('[Register] Error:', err.status, err.error);
           this.loading = false;
           const body = err?.error;
           this.error = body?.error ?? 'No se pudo completar el registro. Intenta más tarde.';
         },
       });
-  }
-
-  togglePassword(): void {
-    this.showPass = !this.showPass;
   }
 }

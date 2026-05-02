@@ -5,6 +5,14 @@ import { FormsModule }  from '@angular/forms';
 import { UserService }                   from '../../../../core/services/user.service';
 import { ApiUser, CreateUserPayload }    from '../../../../core/models/api.models';
 
+/**
+ * Esta página gestiona SOLO el personal interno de VAYO:
+ *  - COTIZADORES
+ *  - PROVEEDORES
+ *
+ * Los CLIENTES (rol CLIENTE) NO se gestionan aquí porque son entidades CRM.
+ * Su gestión completa (incluyendo cuenta de portal) vive en /admin/clientes.
+ */
 type TabType  = 'cotizadores' | 'proveedores';
 type FormMode = 'create' | 'edit';
 
@@ -135,6 +143,7 @@ export class UsersComponent implements OnInit {
         next: () => { this.saving = false; this.showModal = false; this.load(); },
         error: (err) => { this.saving = false; this.formError = err?.error?.error ?? 'Error al crear usuario.'; },
       });
+
     } else {
       const payload = {
         name:     this.form.name.trim()     || undefined,
@@ -163,8 +172,7 @@ export class UsersComponent implements OnInit {
   }
 
   deactivate(id: string): void {
-    const isCotizador = this.activeTab === 'cotizadores';
-    const obs$ = isCotizador
+    const obs$ = this.activeTab === 'cotizadores'
       ? this.userSvc.deactivateCotizador(id)
       : this.userSvc.deactivateProveedor(id);
 

@@ -17,11 +17,14 @@ export const API_CONFIG = {
     categories: 'categories',
     products: 'products',
 
+    // Upload (Cloudinary)
+    uploadProduct: 'upload/product',
+
     // Clients
     clients: 'clients',
 
-    // Users
-    users: 'users',
+    // Users (solo personal interno: cotizadores y proveedores)
+    users:       'users',
     cotizadores: 'users/cotizadores',
     proveedores: 'users/proveedores',
 

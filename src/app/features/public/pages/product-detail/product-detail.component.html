@@ -53,6 +53,15 @@
                 <span class="product-gallery__sku">{{ currentProduct.sku }}</span>
 
                 <div class="product-gallery__icon">
+                  <!-- Imagen real si existe; si no, fallback al icono SVG por categoría -->
+                  <img
+                    *ngIf="currentProduct.imageUrl; else productHeroIcon"
+                    [src]="currentProduct.imageUrl"
+                    [alt]="currentProduct.name"
+                    class="product-gallery__image"
+                    loading="eager"
+                  />
+                  <ng-template #productHeroIcon>
                   <ng-container [ngSwitch]="currentProduct.icon">
                     <svg *ngSwitchCase="'compressor'" width="140" height="140" viewBox="0 0 140 140" fill="none"
                       aria-hidden="true">
@@ -95,6 +104,7 @@
                       <rect x="34" y="34" width="72" height="72" rx="16" stroke="#378ADD" stroke-width="6" />
                     </svg>
                   </ng-container>
+                  </ng-template>
                 </div>
               </div>
 

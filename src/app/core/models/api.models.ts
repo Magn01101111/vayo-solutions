@@ -53,6 +53,8 @@ export interface ApiProductListItem {
   stock: number;
   availabilityStatus: ApiProductAvailabilityStatus;
   imageUrl?: string;
+  /** public_id de Cloudinary — necesario para limpiar al reemplazar */
+  imagePublicId?: string | null;
   isActive: boolean;
   tags: string[];
 }
@@ -83,6 +85,7 @@ export interface CreateProductPayload {
   stock: number;
   availabilityStatus: ApiProductAvailabilityStatus;
   imageUrl?: string;
+  imagePublicId?: string | null;
   isActive?: boolean;
   tags?: string[];
   specs?: ApiProductSpec[];
@@ -92,6 +95,13 @@ export interface CreateProductPayload {
 }
 
 export type UpdateProductPayload = Partial<Omit<CreateProductPayload, 'sku'>>;
+
+// ── Upload ────────────────────────────────────────────────────────────────────
+
+export interface UploadResponse {
+  url: string;
+  publicId: string;
+}
 
 // ── Clients ───────────────────────────────────────────────────────────────────
 
@@ -105,9 +115,30 @@ export interface ApiClient {
   address?: string;
   notes?: string;
   isActive: boolean;
-  createdBy?: { id: string; name: string; email: string } | string;
+  createdBy?: { id: string; name: string; email: string } | string | null;
+  /** Resumen de la cuenta de portal vinculada (null si no tiene) */
+  portalAccount?: {
+    id: string;
+    email?: string;
+    isActive?: boolean;
+  } | null;
+  /** Flag conveniente: true si el cliente tiene cuenta de portal */
+  hasPortalAccount?: boolean;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface InvitePortalPayload {
+  password: string;
+}
+
+export interface InvitePortalResponse {
+  message: string;
+  portalAccount: {
+    id: string;
+    email: string;
+    isActive: boolean;
+  };
 }
 
 export interface CreateClientPayload {

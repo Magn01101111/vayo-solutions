@@ -44,6 +44,7 @@
       <table class="data-table">
         <thead>
           <tr>
+            <th class="th--thumb"></th>
             <th>SKU</th>
             <th>Nombre</th>
             <th>Categoría</th>
@@ -57,6 +58,13 @@
         <tbody>
           @for (product of products; track product.id) {
             <tr [class.row--inactive]="!product.isActive">
+              <td class="td--thumb">
+                @if (product.imageUrl) {
+                  <img [src]="product.imageUrl" [alt]="product.name" class="product-thumb" loading="lazy" />
+                } @else {
+                  <div class="product-thumb product-thumb--empty">📦</div>
+                }
+              </td>
               <td class="td--sku">{{ product.sku }}</td>
               <td class="td--name">{{ product.name }}</td>
               <td>{{ product.categoryName || categoryName(product.categoryId) }}</td>
@@ -188,6 +196,65 @@
           <div class="form-group">
             <label class="form-label" for="p-tags">Etiquetas (separadas por coma)</label>
             <input id="p-tags" class="input" type="text" [(ngModel)]="form.tags" name="tags" placeholder="compresor, scroll, 5ton" />
+          </div>
+
+          <!-- ── Imagen del producto ──────────────────────────────────────── -->
+          <div class="form-group">
+            <label class="form-label">Imagen del producto</label>
+
+            <div class="image-uploader" [class.image-uploader--has-image]="form.imageUrl">
+
+              @if (form.imageUrl) {
+                <!-- Preview con la imagen actual -->
+                <div class="image-uploader__preview">
+                  <img [src]="form.imageUrl" alt="Preview" />
+                </div>
+                <div class="image-uploader__actions">
+                  <label class="btn btn-sm btn-outline" [class.disabled]="uploadingImage">
+                    {{ uploadingImage ? 'Subiendo…' : 'Reemplazar imagen' }}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      (change)="onImageSelected($event)"
+                      [disabled]="uploadingImage"
+                      hidden
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-ghost-danger"
+                    (click)="removeImage()"
+                    [disabled]="uploadingImage"
+                  >
+                    Quitar imagen
+                  </button>
+                </div>
+              } @else {
+                <!-- Placeholder + botón de subida -->
+                <label class="image-uploader__dropzone" [class.disabled]="uploadingImage">
+                  <div class="image-uploader__icon">📷</div>
+                  <div class="image-uploader__text">
+                    @if (uploadingImage) {
+                      Subiendo imagen…
+                    } @else {
+                      <strong>Selecciona una imagen</strong>
+                      <span class="image-uploader__hint">JPG, PNG o WEBP, máximo 5 MB</span>
+                    }
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    (change)="onImageSelected($event)"
+                    [disabled]="uploadingImage"
+                    hidden
+                  />
+                </label>
+              }
+            </div>
+
+            @if (imageError) {
+              <p class="form-error form-error--inline">{{ imageError }}</p>
+            }
           </div>
 
           @if (formError) {

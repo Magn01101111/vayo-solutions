@@ -245,7 +245,16 @@
   align-items: center;
   justify-content: center;
   min-height: 5.625rem;
+  height: 20rem;
+  overflow: hidden;
   background: var(--color-brand-100);
+}
+
+.portal-product__image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
 }
 
 .portal-product__body {

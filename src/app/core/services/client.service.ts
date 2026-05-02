@@ -8,6 +8,8 @@ import {
   ApiResponse,
   CreateClientPayload,
   UpdateClientPayload,
+  InvitePortalPayload,
+  InvitePortalResponse,
 } from '../models/api.models';
 
 @Injectable({ providedIn: 'root' })
@@ -45,6 +47,22 @@ export class ClientService {
     return this.api.patch<ApiResponse<{ message: string; id: string }>, Record<string, never>>(
       `${API_CONFIG.endpoints.clients}/${id}/deactivate`,
       {},
+    );
+  }
+
+  // ── Portal de cliente ─────────────────────────────────────────────────────
+  // Crea una cuenta de portal (User[CLIENTE]) para un Client CRM existente.
+  inviteToPortal(id: string, payload: InvitePortalPayload): Observable<ApiResponse<InvitePortalResponse>> {
+    return this.api.post<ApiResponse<InvitePortalResponse>, InvitePortalPayload>(
+      `${API_CONFIG.endpoints.clients}/${id}/invite`,
+      payload,
+    );
+  }
+
+  // Revoca el acceso al portal: elimina solo el User, el Client CRM permanece.
+  revokePortalAccess(id: string): Observable<ApiResponse<{ message: string }>> {
+    return this.api.delete<ApiResponse<{ message: string }>>(
+      `${API_CONFIG.endpoints.clients}/${id}/portal-access`,
     );
   }
 }

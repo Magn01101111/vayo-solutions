@@ -4,7 +4,7 @@
   <div class="page-header">
     <div>
       <h2 class="page-title">Clientes</h2>
-      <p class="page-subtitle">Gestión del directorio de clientes</p>
+      <p class="page-subtitle">Directorio CRM y gestión de cuentas de portal</p>
     </div>
     <button class="btn btn-primary" type="button" (click)="openCreate()">
       + Nuevo cliente
@@ -43,6 +43,7 @@
             <th>RUT</th>
             <th>Correo</th>
             <th>Teléfono</th>
+            <th>Portal</th>
             <th>Estado</th>
             <th>Acciones</th>
           </tr>
@@ -52,22 +53,70 @@
             <tr [class.row--inactive]="!client.isActive">
               <td class="td--name">{{ client.name }}</td>
               <td>{{ client.company || '—' }}</td>
-              <td>{{ client.rut || '—' }}</td>
+              <td>{{ displayRut(client.rut) }}</td>
               <td>{{ client.email || '—' }}</td>
-              <td>{{ client.phone || '—' }}</td>
+              <td>{{ displayPhone(client.phone) }}</td>
+
+              <!-- Columna Portal -->
+              <td>
+                @if (client.hasPortalAccount) {
+                  <span class="badge badge-portal" title="El cliente tiene acceso al portal">
+                    ✓ Activo
+                  </span>
+                } @else {
+                  <span class="badge badge-muted" title="Solo CRM, sin acceso al portal">
+                    Sin cuenta
+                  </span>
+                }
+              </td>
+
               <td>
                 <span class="badge" [class.badge-success]="client.isActive" [class.badge-danger]="!client.isActive">
                   {{ client.isActive ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
+
               <td class="td--actions">
-                <button
-                  class="btn btn-sm btn-outline"
-                  type="button"
-                  (click)="openEdit(client)"
-                >
+                <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(client)">
                   Editar
                 </button>
+
+                <!-- Botón invitar al portal (solo si NO tiene cuenta y tiene email) -->
+                @if (canInvite(client)) {
+                  <button
+                    class="btn btn-sm btn-portal"
+                    type="button"
+                    (click)="openInvite(client)"
+                    title="Crear cuenta de portal con email {{ client.email }}"
+                  >
+                    Invitar al portal
+                  </button>
+                }
+
+                <!-- Botón revocar portal -->
+                @if (client.hasPortalAccount && client.isActive) {
+                  @if (revokingId === client.id) {
+                    <span class="confirm-inline">
+                      <button class="btn btn-sm btn-danger" type="button" (click)="revokePortal(client.id)">
+                        Revocar
+                      </button>
+                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelRevoke()">
+                        Cancelar
+                      </button>
+                    </span>
+                  } @else {
+                    <button
+                      class="btn btn-sm btn-ghost-danger"
+                      type="button"
+                      (click)="confirmRevoke(client.id)"
+                      title="Eliminar cuenta de portal (el CRM se mantiene)"
+                    >
+                      Revocar portal
+                    </button>
+                  }
+                }
+
+                <!-- Botón desactivar cliente -->
                 @if (client.isActive) {
                   @if (confirmingId === client.id) {
                     <span class="confirm-inline">
@@ -79,11 +128,7 @@
                       </button>
                     </span>
                   } @else {
-                    <button
-                      class="btn btn-sm btn-ghost-danger"
-                      type="button"
-                      (click)="confirmDeactivate(client.id)"
-                    >
+                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(client.id)">
                       Desactivar
                     </button>
                   }
@@ -98,7 +143,7 @@
 
 </div>
 
-<!-- ── Modal crear/editar ──────────────────────────────────────────────────── -->
+<!-- ── Modal crear/editar cliente CRM ─────────────────────────────────────── -->
 @if (showModal) {
   <div class="modal-backdrop" (click)="closeModal()">
     <div class="modal" (click)="$event.stopPropagation()">
@@ -126,7 +171,17 @@
           <div class="form-row">
             <div class="form-group">
               <label class="form-label" for="c-rut">RUT</label>
-              <input id="c-rut" class="input" type="text" [(ngModel)]="form.rut" name="rut" placeholder="76.000.000-0" />
+              <input
+                id="c-rut"
+                class="input"
+                type="text"
+                [ngModel]="form.rut"
+                (ngModelChange)="onRutInput($event)"
+                name="rut"
+                placeholder="76.000.000-0"
+                maxlength="12"
+                inputmode="text"
+              />
             </div>
             <div class="form-group">
               <label class="form-label" for="c-email">Correo</label>
@@ -136,8 +191,21 @@
 
           <div class="form-row">
             <div class="form-group">
-              <label class="form-label" for="c-phone">Teléfono</label>
-              <input id="c-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
+              <label class="form-label" for="c-phone">Teléfono móvil</label>
+              <div class="phone-input">
+                <span class="phone-input__prefix">+56&nbsp;9</span>
+                <input
+                  id="c-phone"
+                  class="input phone-input__field"
+                  type="tel"
+                  [ngModel]="form.phoneDigits"
+                  (ngModelChange)="onPhoneInput($event)"
+                  name="phone"
+                  placeholder="12345678"
+                  inputmode="numeric"
+                  maxlength="8"
+                />
+              </div>
             </div>
             <div class="form-group">
               <label class="form-label" for="c-address">Dirección</label>
@@ -162,6 +230,60 @@
           </button>
           <button class="btn btn-primary" type="submit" [disabled]="saving">
             {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear cliente' : 'Guardar cambios') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<!-- ── Modal invitar al portal ────────────────────────────────────────────── -->
+@if (showInviteModal && invitingClient) {
+  <div class="modal-backdrop" (click)="closeInvite()">
+    <div class="modal modal--small" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">Invitar al portal</h3>
+        <button class="modal__close" type="button" (click)="closeInvite()">✕</button>
+      </div>
+
+      <form (ngSubmit)="sendInvite()" novalidate>
+        <div class="modal__body">
+          <p class="invite-intro">
+            Se creará una cuenta de portal para
+            <strong>{{ invitingClient.name }}</strong>
+            usando el email <strong>{{ invitingClient.email }}</strong>.
+            <br>
+            Comparte la contraseña inicial con el cliente — podrá cambiarla luego.
+          </p>
+
+          <div class="form-group">
+            <label class="form-label" for="invite-pass">
+              Contraseña temporal <span class="required">*</span>
+            </label>
+            <input
+              id="invite-pass"
+              class="input"
+              type="text"
+              [(ngModel)]="invitePassword"
+              name="invitePassword"
+              placeholder="Mínimo 8 caracteres"
+              autocomplete="off"
+              required
+            />
+            <p class="form-hint">El cliente deberá cambiarla en su primer ingreso.</p>
+          </div>
+
+          @if (inviteError) {
+            <p class="form-error">{{ inviteError }}</p>
+          }
+        </div>
+
+        <div class="modal__footer">
+          <button class="btn btn-secondary" type="button" (click)="closeInvite()" [disabled]="inviting">
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="inviting">
+            {{ inviting ? 'Creando…' : 'Crear cuenta de portal' }}
           </button>
         </div>
       </form>
