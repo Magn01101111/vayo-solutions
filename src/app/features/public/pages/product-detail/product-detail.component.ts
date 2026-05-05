@@ -41,6 +41,28 @@ export class ProductDetailComponent implements OnInit {
   isLoading = signal(false);
   errorMessage = signal('');
 
+  /** Índice de la imagen actualmente seleccionada en la galería. */
+  activeImageIndex = signal(0);
+
+  /** URL de la imagen activa (la grande del hero). */
+  activeImageUrl = computed(() => {
+    const p = this.product();
+    if (!p) return undefined;
+    const imgs = p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [p.imageUrl] : []);
+    return imgs[this.activeImageIndex()] ?? imgs[0];
+  });
+
+  /** Lista de URLs disponibles (puede tener entre 0 y 4). */
+  galleryImages = computed(() => {
+    const p = this.product();
+    if (!p) return [];
+    return p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [p.imageUrl] : []);
+  });
+
+  selectImage(index: number): void {
+    this.activeImageIndex.set(index);
+  }
+
   // Computed signals para precios
   unitPrice = computed(() => {
     const currentProduct = this.product();
@@ -311,6 +333,7 @@ export class ProductDetailComponent implements OnInit {
     this.isLoading.set(true);
     this.errorMessage.set('');
     this.product.set(null);
+    this.activeImageIndex.set(0); // reset al cambiar de producto
 
     this.catalogService.getProductById(id).subscribe({
       next: (response) => {

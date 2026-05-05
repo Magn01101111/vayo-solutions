@@ -9,7 +9,10 @@ import {
   ApiCategory,
   CreateProductPayload,
   ApiProductAvailabilityStatus,
+  ApiProductImage,
 } from '../../../../core/models/api.models';
+
+const MAX_IMAGES = 4;
 
 type FormMode = 'create' | 'edit';
 
@@ -24,8 +27,8 @@ interface ProductForm {
   stock:              string;
   availabilityStatus: ApiProductAvailabilityStatus;
   tags:               string;
-  imageUrl:           string;
-  imagePublicId:      string;
+  /** Galería: hasta 4 imágenes. images[0] es la principal. */
+  images:             ApiProductImage[];
 }
 
 function emptyForm(): ProductForm {
@@ -40,8 +43,7 @@ function emptyForm(): ProductForm {
     stock:              '0',
     availabilityStatus: 'in_stock',
     tags:               '',
-    imageUrl:           '',
-    imagePublicId:      '',
+    images:             [],
   };
 }
 
@@ -72,9 +74,10 @@ export class ProductsComponent implements OnInit {
   saving     = false;
   formError  = '';
 
-  // ── Imagen (estado local) ─────────────────────────────────────────────────
+  // ── Imágenes (estado local) ───────────────────────────────────────────────
   uploadingImage = false;
   imageError     = '';
+  readonly maxImages = MAX_IMAGES;
 
   // ── Confirm deactivate ────────────────────────────────────────────────────
   confirmingId = '';
@@ -142,6 +145,15 @@ export class ProductsComponent implements OnInit {
   openEdit(product: ApiProductListItem): void {
     this.formMode  = 'edit';
     this.editingId = product.id;
+
+    // Reconstruir images[] — manejar productos viejos que solo tienen imageUrl
+    let images: ApiProductImage[] = [];
+    if (product.images && product.images.length > 0) {
+      images = product.images.map((i) => ({ url: i.url, publicId: i.publicId ?? null }));
+    } else if (product.imageUrl) {
+      images = [{ url: product.imageUrl, publicId: product.imagePublicId ?? null }];
+    }
+
     this.form = {
       categoryId:         product.categoryId ?? '',
       name:               product.name,
@@ -153,8 +165,7 @@ export class ProductsComponent implements OnInit {
       stock:              String(product.stock),
       availabilityStatus: product.availabilityStatus,
       tags:               product.tags.join(', '),
-      imageUrl:           product.imageUrl ?? '',
-      imagePublicId:      product.imagePublicId ?? '',
+      images,
     };
     this.formError  = '';
     this.imageError = '';
@@ -165,19 +176,27 @@ export class ProductsComponent implements OnInit {
     this.showModal = false;
   }
 
-  // ── Manejo de imagen ──────────────────────────────────────────────────────
+  // ── Manejo de imágenes (galería de hasta 4) ───────────────────────────────
 
-  /** Handler del <input type="file">. Sube directo a Cloudinary vía backend. */
+  /**
+   * Handler del <input type="file">. Sube a Cloudinary y agrega al array.
+   * Si ya hay 4 imágenes, no se permite agregar más (validación UI).
+   */
   onImageSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     const file  = input.files?.[0];
     if (!file) return;
 
-    // Validación cliente antes de mandar al servidor
+    if (this.form.images.length >= MAX_IMAGES) {
+      this.imageError = `Máximo ${MAX_IMAGES} imágenes por producto.`;
+      input.value = '';
+      return;
+    }
+
     const validationError = this.uploadSvc.validateImageFile(file);
     if (validationError) {
       this.imageError = validationError;
-      input.value = ''; // limpiar input
+      input.value = '';
       return;
     }
 
@@ -186,10 +205,10 @@ export class ProductsComponent implements OnInit {
 
     this.uploadSvc.uploadProductImage(file).subscribe({
       next: ({ url, publicId }) => {
-        this.form.imageUrl      = url;
-        this.form.imagePublicId = publicId;
-        this.uploadingImage     = false;
-        input.value = ''; // permitir re-seleccionar el mismo archivo
+        // Agregar al final del array (NO se vuelve principal automáticamente)
+        this.form.images = [...this.form.images, { url, publicId }];
+        this.uploadingImage = false;
+        input.value = '';
       },
       error: (err) => {
         this.uploadingImage = false;
@@ -199,11 +218,22 @@ export class ProductsComponent implements OnInit {
     });
   }
 
-  removeImage(): void {
-    // El backend se encarga de borrar la imagen vieja de Cloudinary cuando
-    // detecta que imagePublicId cambió. Aquí solo limpiamos el form.
-    this.form.imageUrl      = '';
-    this.form.imagePublicId = '';
+  /** Quita una imagen del form. La eliminación en Cloudinary la hace el backend al guardar. */
+  removeImageAt(index: number): void {
+    this.form.images = this.form.images.filter((_, i) => i !== index);
+  }
+
+  /** Mueve la imagen del índice dado al [0] (la convierte en principal). */
+  makePrimary(index: number): void {
+    if (index <= 0 || index >= this.form.images.length) return;
+    const reordered = [...this.form.images];
+    const [chosen]  = reordered.splice(index, 1);
+    reordered.unshift(chosen);
+    this.form.images = reordered;
+  }
+
+  get canAddMoreImages(): boolean {
+    return this.form.images.length < MAX_IMAGES;
   }
 
   // ── Save ──────────────────────────────────────────────────────────────────
@@ -235,8 +265,7 @@ export class ProductsComponent implements OnInit {
       stock:              Number(stock) || 0,
       availabilityStatus: this.form.availabilityStatus,
       tags,
-      imageUrl:           this.form.imageUrl      || undefined,
-      imagePublicId:      this.form.imagePublicId || null,
+      images:             this.form.images,  // backend deriva imageUrl/imagePublicId desde images[0]
     };
 
     const obs$ = this.formMode === 'create'

@@ -4,6 +4,7 @@ import { BehaviorSubject, Observable, tap } from 'rxjs';
 
 import { ApiService }     from './api.service';
 import { StorageService } from './storage.service';
+import { CacheService }   from './cache.service';
 import { API_CONFIG }     from '../config/api.config';
 import type { UserRole }  from '../constants/roles';
 import { ApiResponse }    from '../models/api.models';
@@ -24,6 +25,7 @@ const USER_KEY  = 'vayo_user';
 export class AuthService {
   private readonly api     = inject(ApiService);
   private readonly storage = inject(StorageService);
+  private readonly cache   = inject(CacheService);
   private readonly router  = inject(Router);
 
   private readonly _user$ = new BehaviorSubject<AuthUser | null>(this.loadUser());
@@ -157,6 +159,9 @@ export class AuthService {
   private clear(): void {
     this.storage.removeItem(TOKEN_KEY);
     this.storage.removeItem(USER_KEY);
+    // Limpiar todo el caché de la sesión — el siguiente usuario podría tener
+    // permisos distintos y no debe ver datos cacheados del anterior.
+    this.cache.clearAll();
     this._user$.next(null);
   }
 

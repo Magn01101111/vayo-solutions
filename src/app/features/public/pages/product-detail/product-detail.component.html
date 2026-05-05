@@ -53,10 +53,10 @@
                 <span class="product-gallery__sku">{{ currentProduct.sku }}</span>
 
                 <div class="product-gallery__icon">
-                  <!-- Imagen real si existe; si no, fallback al icono SVG por categoría -->
+                  <!-- Imagen activa de la galería (o fallback al icono SVG por categoría) -->
                   <img
-                    *ngIf="currentProduct.imageUrl; else productHeroIcon"
-                    [src]="currentProduct.imageUrl"
+                    *ngIf="activeImageUrl(); else productHeroIcon"
+                    [src]="activeImageUrl()"
                     [alt]="currentProduct.name"
                     class="product-gallery__image"
                     loading="eager"
@@ -108,11 +108,19 @@
                 </div>
               </div>
 
-              <div class="product-gallery__thumbs">
-                <button type="button" class="thumb is-active" aria-label="Vista principal"></button>
-                <button type="button" class="thumb" aria-label="Vista secundaria"></button>
-                <button type="button" class="thumb" aria-label="Ficha técnica"></button>
-                <button type="button" class="thumb" aria-label="Compatibilidad"></button>
+              <!-- Thumbnails: solo se muestran si hay más de 1 imagen real -->
+              <div class="product-gallery__thumbs" *ngIf="galleryImages().length > 1">
+                <button
+                  *ngFor="let img of galleryImages(); let i = index"
+                  type="button"
+                  class="thumb"
+                  [class.is-active]="i === activeImageIndex()"
+                  (click)="selectImage(i)"
+                  [attr.aria-label]="'Vista ' + (i + 1)"
+                  [attr.aria-current]="i === activeImageIndex() ? 'true' : null"
+                >
+                  <img [src]="img" [alt]="'Vista ' + (i + 1)" loading="lazy" />
+                </button>
               </div>
             </div>
 

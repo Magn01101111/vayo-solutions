@@ -39,6 +39,11 @@ export interface ApiProductDocument {
   url?: string;
 }
 
+export interface ApiProductImage {
+  url: string;
+  publicId?: string | null;
+}
+
 export interface ApiProductListItem {
   id: string;
   categoryId?: string;
@@ -52,8 +57,11 @@ export interface ApiProductListItem {
   currency: 'CLP';
   stock: number;
   availabilityStatus: ApiProductAvailabilityStatus;
+  /** Galería de imágenes — `[0]` es la principal. Hasta 4. */
+  images?: ApiProductImage[];
+  /** @deprecated Usar `images[0].url`. Se mantiene por compatibilidad. */
   imageUrl?: string;
-  /** public_id de Cloudinary — necesario para limpiar al reemplazar */
+  /** @deprecated Usar `images[0].publicId`. Se mantiene por compatibilidad. */
   imagePublicId?: string | null;
   isActive: boolean;
   tags: string[];
@@ -84,6 +92,9 @@ export interface CreateProductPayload {
   currency?: 'CLP';
   stock: number;
   availabilityStatus: ApiProductAvailabilityStatus;
+  /** Hasta 4 imágenes. La primera es la principal. */
+  images?: ApiProductImage[];
+  /** @deprecated mantener solo legacy. Si va `images[]` no usar esto. */
   imageUrl?: string;
   imagePublicId?: string | null;
   isActive?: boolean;

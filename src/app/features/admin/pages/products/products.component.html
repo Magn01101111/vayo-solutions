@@ -198,49 +198,55 @@
             <input id="p-tags" class="input" type="text" [(ngModel)]="form.tags" name="tags" placeholder="compresor, scroll, 5ton" />
           </div>
 
-          <!-- ── Imagen del producto ──────────────────────────────────────── -->
+          <!-- ── Galería de imágenes (hasta 4) ────────────────────────────── -->
           <div class="form-group">
-            <label class="form-label">Imagen del producto</label>
+            <label class="form-label">
+              Galería de imágenes
+              <span class="form-label__hint">
+                ({{ form.images.length }}/{{ maxImages }} — la primera es la principal)
+              </span>
+            </label>
 
-            <div class="image-uploader" [class.image-uploader--has-image]="form.imageUrl">
+            <div class="gallery">
+              <!-- Imágenes ya cargadas -->
+              @for (img of form.images; track img.publicId; let i = $index) {
+                <div class="gallery__slot" [class.gallery__slot--primary]="i === 0">
+                  <img [src]="img.url" [alt]="'Imagen ' + (i + 1)" class="gallery__img" />
 
-              @if (form.imageUrl) {
-                <!-- Preview con la imagen actual -->
-                <div class="image-uploader__preview">
-                  <img [src]="form.imageUrl" alt="Preview" />
-                </div>
-                <div class="image-uploader__actions">
-                  <label class="btn btn-sm btn-outline" [class.disabled]="uploadingImage">
-                    {{ uploadingImage ? 'Subiendo…' : 'Reemplazar imagen' }}
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/webp"
-                      (change)="onImageSelected($event)"
-                      [disabled]="uploadingImage"
-                      hidden
-                    />
-                  </label>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-ghost-danger"
-                    (click)="removeImage()"
-                    [disabled]="uploadingImage"
-                  >
-                    Quitar imagen
-                  </button>
-                </div>
-              } @else {
-                <!-- Placeholder + botón de subida -->
-                <label class="image-uploader__dropzone" [class.disabled]="uploadingImage">
-                  <div class="image-uploader__icon">📷</div>
-                  <div class="image-uploader__text">
-                    @if (uploadingImage) {
-                      Subiendo imagen…
-                    } @else {
-                      <strong>Selecciona una imagen</strong>
-                      <span class="image-uploader__hint">JPG, PNG o WEBP, máximo 5 MB</span>
+                  @if (i === 0) {
+                    <span class="gallery__badge">Principal</span>
+                  }
+
+                  <div class="gallery__actions">
+                    @if (i !== 0) {
+                      <button
+                        type="button"
+                        class="gallery__btn gallery__btn--primary"
+                        (click)="makePrimary(i)"
+                        title="Hacer principal"
+                      >★</button>
                     }
+                    <button
+                      type="button"
+                      class="gallery__btn gallery__btn--danger"
+                      (click)="removeImageAt(i)"
+                      [disabled]="uploadingImage"
+                      title="Quitar"
+                    >✕</button>
                   </div>
+                </div>
+              }
+
+              <!-- Slot para agregar (solo si hay espacio) -->
+              @if (canAddMoreImages) {
+                <label class="gallery__slot gallery__slot--add" [class.disabled]="uploadingImage">
+                  @if (uploadingImage) {
+                    <div class="gallery__spinner"></div>
+                    <span class="gallery__add-text">Subiendo…</span>
+                  } @else {
+                    <div class="gallery__add-icon">+</div>
+                    <span class="gallery__add-text">Agregar imagen</span>
+                  }
                   <input
                     type="file"
                     accept="image/jpeg,image/png,image/webp"
@@ -251,6 +257,13 @@
                 </label>
               }
             </div>
+
+            <p class="gallery__hint">
+              JPG, PNG o WEBP. Máximo 5 MB por imagen.
+              @if (form.images.length > 1) {
+                Click ★ para hacer principal · ✕ para quitar.
+              }
+            </p>
 
             @if (imageError) {
               <p class="form-error form-error--inline">{{ imageError }}</p>

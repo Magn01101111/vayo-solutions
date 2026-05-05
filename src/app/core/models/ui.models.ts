@@ -92,7 +92,10 @@ export interface ProductCardData {
   sku: string;
   description?: string;
   price: string;
+  /** URL de la imagen principal (compatibilidad). */
   imageUrl?: string;
+  /** Galería completa — usada en la ficha de detalle. */
+  images?: string[];
   shortStatus: string;
   stockLabel: string;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
@@ -108,6 +111,7 @@ export interface ProductDetailData {
   description?: string;
   price: string;
   imageUrl?: string;
+  images?: string[];
   shortStatus: string;
   stockLabel: string;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';

@@ -129,6 +129,19 @@ function mapProductDocuments(
   }));
 }
 
+/**
+ * Devuelve la lista de URLs de imágenes del producto.
+ * Compatibilidad: si solo viene `imageUrl` legacy, devuelve un array de uno.
+ */
+function resolveImageUrls(
+  product: ApiProductListItem | ApiProductDetail,
+): string[] {
+  if (product.images && product.images.length > 0) {
+    return product.images.map((i) => i.url);
+  }
+  return product.imageUrl ? [product.imageUrl] : [];
+}
+
 export function mapApiCategoryToCatalogCategory(
   category: ApiCategory,
 ): CatalogCategory {
@@ -181,6 +194,7 @@ export function mapApiProductToCardData(
   const categoryName = resolvedCategory?.name ?? 'Sin categoría';
   const categorySlug = resolvedCategory?.slug ?? 'sin-categoria';
 
+  const imageUrls = resolveImageUrls(product);
   return {
     id: product.id,
     category: categoryName,
@@ -189,7 +203,8 @@ export function mapApiProductToCardData(
     sku: product.sku,
     description: product.description,
     price: formatCurrency(product.price, product.currency),
-    imageUrl: product.imageUrl,
+    imageUrl: imageUrls[0],
+    images: imageUrls,
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),
     stockLabel: mapAvailabilityToStockLabel(
       product.availabilityStatus,
@@ -202,6 +217,7 @@ export function mapApiProductToCardData(
 export function mapApiProductDetailToProductDetailData(
   product: ApiProductDetail,
 ): ProductDetailData {
+  const imageUrls = resolveImageUrls(product);
   return {
     id: product.id,
     category: product.category.name,
@@ -210,7 +226,8 @@ export function mapApiProductDetailToProductDetailData(
     sku: product.sku,
     description: product.description,
     price: formatCurrency(product.price, product.currency),
-    imageUrl: product.imageUrl,
+    imageUrl: imageUrls[0],
+    images: imageUrls,
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),
     stockLabel: mapAvailabilityToStockLabel(
       product.availabilityStatus,
