@@ -1,7 +1,16 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, of, shareReplay, tap, finalize } from 'rxjs';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Observable, of, shareReplay, tap, finalize, Subject } from 'rxjs';
 
 import { StorageService } from './storage.service';
+
+/** Mensaje que se publica entre pestañas para invalidar cache. */
+type CacheInvalidationMessage =
+  | { type: 'invalidate'; key: string }
+  | { type: 'invalidate-prefix'; prefix: string }
+  | { type: 'clear-all' };
+
+const BROADCAST_CHANNEL_NAME = 'vayo_cache_v1';
 
 /**
  * Servicio de caché en dos capas:
@@ -35,13 +44,37 @@ const STORAGE_PREFIX = 'vayo_cache:';
 
 @Injectable({ providedIn: 'root' })
 export class CacheService {
-  private readonly storage = inject(StorageService);
+  private readonly storage    = inject(StorageService);
+  private readonly platformId = inject(PLATFORM_ID);
 
   /** Capa 1: memoria — guarda Observables en vuelo (shareReplay). */
   private readonly inflight = new Map<string, Observable<any>>();
 
   /** Capa 2: snapshot de cada key → no andamos parseando JSON 100 veces. */
   private readonly memorySnapshot = new Map<string, CacheEntry<any>>();
+
+  /**
+   * BroadcastChannel para sincronizar invalidaciones entre pestañas.
+   * Solo existe en navegador (no en SSR), y solo si la API está disponible.
+   */
+  private readonly bc: BroadcastChannel | null = (() => {
+    if (!isPlatformBrowser(this.platformId)) return null;
+    if (typeof BroadcastChannel === 'undefined') return null;
+    return new BroadcastChannel(BROADCAST_CHANNEL_NAME);
+  })();
+
+  /** Stream público de invalidaciones — útil para que componentes recarguen. */
+  readonly invalidations$ = new Subject<{ kind: 'key' | 'prefix' | 'all'; value?: string }>();
+
+  constructor() {
+    // Escuchar invalidaciones de otras pestañas y aplicarlas localmente
+    this.bc?.addEventListener('message', (ev) => {
+      const msg = ev.data as CacheInvalidationMessage;
+      if (msg.type === 'invalidate')         this.invalidateLocal(msg.key);
+      else if (msg.type === 'invalidate-prefix') this.invalidatePrefixLocal(msg.prefix);
+      else if (msg.type === 'clear-all')     this.clearAllLocal();
+    });
+  }
 
   // ── API pública ───────────────────────────────────────────────────────────
 
@@ -112,19 +145,35 @@ export class CacheService {
     }
   }
 
-  /** Borra una clave específica. Llamar tras cualquier mutación del recurso. */
+  /** Borra una clave específica + notifica a otras pestañas. */
   invalidate(key: string): void {
+    this.invalidateLocal(key);
+    this.bc?.postMessage({ type: 'invalidate', key } as CacheInvalidationMessage);
+  }
+
+  /** Borra todas las claves con un prefijo dado + notifica a otras pestañas. */
+  invalidatePrefix(prefix: string): void {
+    this.invalidatePrefixLocal(prefix);
+    this.bc?.postMessage({ type: 'invalidate-prefix', prefix } as CacheInvalidationMessage);
+  }
+
+  /** Limpia todo el caché de la app + notifica a otras pestañas. Útil al logout. */
+  clearAll(): void {
+    this.clearAllLocal();
+    this.bc?.postMessage({ type: 'clear-all' } as CacheInvalidationMessage);
+  }
+
+  // ── Versiones "local" (no broadcastean) ───────────────────────────────────
+  // Se llaman desde los handlers de mensajes recibidos para evitar loops.
+
+  private invalidateLocal(key: string): void {
     this.memorySnapshot.delete(key);
     this.inflight.delete(key);
     this.storage.removeItem(STORAGE_PREFIX + key);
+    this.invalidations$.next({ kind: 'key', value: key });
   }
 
-  /**
-   * Borra todas las claves con un prefijo dado.
-   * Ej: invalidatePrefix('products:') borra todas las queries de productos.
-   */
-  invalidatePrefix(prefix: string): void {
-    // Memoria
+  private invalidatePrefixLocal(prefix: string): void {
     for (const key of Array.from(this.memorySnapshot.keys())) {
       if (key.startsWith(prefix)) this.memorySnapshot.delete(key);
     }
@@ -132,8 +181,7 @@ export class CacheService {
       if (key.startsWith(prefix)) this.inflight.delete(key);
     }
 
-    // localStorage — buscamos todas las claves que matcheen
-    if (typeof localStorage !== 'undefined') {
+    if (isPlatformBrowser(this.platformId) && typeof localStorage !== 'undefined') {
       const fullPrefix = STORAGE_PREFIX + prefix;
       const toRemove: string[] = [];
       for (let i = 0; i < localStorage.length; i++) {
@@ -142,12 +190,14 @@ export class CacheService {
       }
       toRemove.forEach((k) => localStorage.removeItem(k));
     }
+
+    this.invalidations$.next({ kind: 'prefix', value: prefix });
   }
 
-  /** Limpia todo el caché de la app. Útil al hacer logout. */
-  clearAll(): void {
+  private clearAllLocal(): void {
     this.memorySnapshot.clear();
     this.inflight.clear();
-    this.invalidatePrefix('');
+    this.invalidatePrefixLocal('');
+    this.invalidations$.next({ kind: 'all' });
   }
 }

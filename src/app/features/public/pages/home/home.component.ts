@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { forkJoin } from 'rxjs';
+import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
 import { mapApiCategoryToCatalogCategory, mapApiProductToCardData } from '../../../public/mapper';
 import {
   CatalogCategory,
@@ -10,6 +10,7 @@ import {
   StepItem,
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
+import { CacheService }   from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
@@ -19,9 +20,12 @@ import { QuotationService } from '../../../../core/services/quotation.service';
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
-export class HomeComponent implements OnInit {
+export class HomeComponent implements OnInit, OnDestroy {
   private readonly catalogService = inject(CatalogService);
+  private readonly cacheService   = inject(CacheService);
   qs = inject(QuotationService);
+
+  private readonly destroy$ = new Subject<void>();
   categories: CatalogCategory[] = [
     { id: 'all', label: 'Todos', slug: 'all', active: true },
   ];
@@ -63,6 +67,23 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogData();
+
+    // Si admin crea/edita/desactiva productos o categorías (incluso desde
+    // OTRA pestaña), recargamos automáticamente.
+    this.cacheService.invalidations$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((ev) =>
+          ev.kind === 'all' ||
+          (ev.kind === 'prefix' && (ev.value === 'products:' || ev.value === 'categories:')),
+        ),
+      )
+      .subscribe(() => this.loadCatalogData());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get filteredProducts(): ProductCardData[] {

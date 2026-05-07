@@ -1,8 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { RouterLink }   from '@angular/router';
-import { forkJoin }     from 'rxjs';
+import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
 
 import {
   mapApiCategoryToCatalogCategory,
@@ -13,6 +13,7 @@ import {
   ProductCardData,
 } from '../../../../core/models/ui.models';
 import { CatalogService }   from '../../../../core/services/catalog.service';
+import { CacheService }     from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
@@ -22,9 +23,12 @@ import { QuotationService } from '../../../../core/services/quotation.service';
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
-export class CatalogComponent implements OnInit {
+export class CatalogComponent implements OnInit, OnDestroy {
   private readonly catalogService = inject(CatalogService);
+  private readonly cacheService   = inject(CacheService);
   qs = inject(QuotationService);
+
+  private readonly destroy$ = new Subject<void>();
 
   categories: CatalogCategory[] = [
     { id: 'all', label: 'Todos', slug: 'all', active: true },
@@ -38,6 +42,23 @@ export class CatalogComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCatalogData();
+
+    // Auto-refresh cuando admin hace cambios en productos/categorías (incluso
+    // desde otra pestaña — vía BroadcastChannel).
+    this.cacheService.invalidations$
+      .pipe(
+        takeUntil(this.destroy$),
+        filter((ev) =>
+          ev.kind === 'all' ||
+          (ev.kind === 'prefix' && (ev.value === 'products:' || ev.value === 'categories:')),
+        ),
+      )
+      .subscribe(() => this.loadCatalogData());
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   get filteredProducts(): ProductCardData[] {

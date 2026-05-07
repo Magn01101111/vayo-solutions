@@ -13,8 +13,13 @@ import { ApiService }   from './api.service';
 import { CacheService } from './cache.service';
 
 // ── TTL por tipo de recurso (en milisegundos) ──────────────────────────────
-const TTL_CATEGORIES = 5 * 60 * 1000; // 5 min — cambian raramente
-const TTL_PRODUCTS   = 2 * 60 * 1000; // 2 min — cambian más
+// Los productos cambian con frecuencia en un negocio activo, así que mantenemos
+// un TTL bajo. Las categorías son mucho más estables.
+// Nota: cualquier mutación (create/update/deactivate) invalida el cache de
+// inmediato y se propaga entre pestañas vía BroadcastChannel — el TTL es
+// solo el "tope superior" de tiempo que un dato puede quedar obsoleto.
+const TTL_CATEGORIES = 5 * 60 * 1000;  // 5 min
+const TTL_PRODUCTS   = 30 * 1000;      // 30 segundos
 
 // ── Prefijos de cache para invalidaciones agrupadas ───────────────────────
 const CACHE_PREFIX_CATEGORIES = 'categories:';
