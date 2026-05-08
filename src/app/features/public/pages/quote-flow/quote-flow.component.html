@@ -1,0 +1,372 @@
+<div class="container section quote-flow">
+  <header class="quote-flow__header">
+    <div>
+      <small class="quote-flow__breadcrumb">Inicio › Cotización</small>
+      <h1 class="quote-flow__title">Generar cotización</h1>
+      <p class="quote-flow__lede">
+        Revisa tus productos, completa tus datos y recibe tu cotización oficial en minutos.
+      </p>
+    </div>
+
+    @if (qs.reservationExpiresAt() && qs.hasItems() && qs.step() === 1) {
+      <div class="quote-flow__reservation badge badge-warning">
+        Productos reservados · 15 min
+      </div>
+    }
+  </header>
+
+  <!-- Stepper -->
+  <ol class="stepper" role="list" aria-label="Pasos de la cotización">
+    @for (s of steps; track s.step) {
+      <li
+        class="stepper__item"
+        [class.stepper__item--active]="qs.step() === s.step"
+        [class.stepper__item--done]="qs.step() > s.step"
+        [class.stepper__item--disabled]="!qs.canGoToStep(s.step)"
+        (click)="qs.setStep(s.step)">
+        <span class="stepper__bullet">
+          @if (qs.step() > s.step) {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          } @else {
+            {{ s.step }}
+          }
+        </span>
+        <span class="stepper__label">{{ s.label }}</span>
+        @if (!$last) {
+          <span class="stepper__connector" aria-hidden="true"></span>
+        }
+      </li>
+    }
+  </ol>
+
+  @switch (qs.step()) {
+
+    <!-- ─────────────── STEP 1: PRODUCTOS ─────────────── -->
+    @case (1) {
+      <div class="quote-layout">
+        <!-- LEFT: Lista de productos en cotización -->
+        <section class="quote-main">
+          <div class="card quote-card">
+            <div class="quote-card__header">
+              <div>
+                <h2 class="quote-card__title">Productos en tu cotización</h2>
+                <p class="quote-card__sub">
+                  {{ qs.uniqueItems() }} {{ qs.uniqueItems() === 1 ? 'producto' : 'productos' }}
+                  · {{ qs.totalItems() }} {{ qs.totalItems() === 1 ? 'unidad' : 'unidades' }}
+                </p>
+              </div>
+
+              <div class="quote-card__actions">
+                @if (qs.hasItems()) {
+                  <button type="button" class="btn btn-outline btn-sm" (click)="clearCart()">
+                    Vaciar
+                  </button>
+                }
+                <a class="btn btn-secondary btn-sm" routerLink="/catalogo">
+                  + Agregar productos
+                </a>
+              </div>
+            </div>
+
+            @if (qs.hasItems()) {
+              <div class="quote-search">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <circle cx="11" cy="11" r="8" />
+                  <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                </svg>
+                <input
+                  type="search"
+                  class="quote-search__input"
+                  placeholder="Buscar en tu cotización…"
+                  [value]="search()"
+                  (input)="search.set($any($event.target).value)">
+              </div>
+            }
+
+            @if (!qs.hasItems()) {
+              <div class="quote-empty">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <line x1="3" y1="6" x2="21" y2="6" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
+                </svg>
+                <h3>Tu cotización está vacía</h3>
+                <p>Explora nuestro catálogo y agrega productos para comenzar.</p>
+                <a routerLink="/catalogo" class="btn btn-primary">Ir al catálogo</a>
+              </div>
+            } @else if (filteredItems().length === 0) {
+              <div class="quote-empty quote-empty--small">
+                <p>No hay productos que coincidan con “{{ search() }}”.</p>
+                <button type="button" class="btn btn-outline btn-sm" (click)="search.set('')">
+                  Limpiar búsqueda
+                </button>
+              </div>
+            } @else {
+              <ul class="quote-items" role="list">
+                @for (item of filteredItems(); track item.id) {
+                  <li class="quote-row">
+                    <div class="quote-row__media">
+                      @if (item.imageUrl) {
+                        <img [src]="item.imageUrl" [alt]="item.name" loading="lazy">
+                      } @else {
+                        <div class="quote-row__media-fallback">{{ item.name.charAt(0) }}</div>
+                      }
+                    </div>
+
+                    <div class="quote-row__info">
+                      <div class="quote-row__head">
+                        <div>
+                          <h4 class="quote-row__name">{{ item.name }}</h4>
+                          <div class="quote-row__meta">
+                            <span class="badge badge-brand">{{ item.category }}</span>
+                            <span>SKU: {{ item.sku }}</span>
+                            <span>·</span>
+                            <span>{{ item.stockLabel }}</span>
+                          </div>
+                        </div>
+
+                        <button
+                          type="button"
+                          class="quote-row__remove"
+                          [attr.aria-label]="'Eliminar ' + item.name"
+                          (click)="removeItem(item.id)">
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="3 6 5 6 21 6" />
+                            <path d="M19 6l-2 14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2L5 6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                          </svg>
+                        </button>
+                      </div>
+
+                      <div class="quote-row__controls">
+                        <div class="quantity-selector" role="group" aria-label="Cantidad">
+                          <button
+                            type="button"
+                            class="quantity-selector__btn"
+                            [disabled]="item.qty === 1"
+                            (click)="qs.decreaseQty(item.id)">−</button>
+                          <input
+                            type="number"
+                            min="1"
+                            [max]="item.maxQty || 999"
+                            class="quantity-selector__input"
+                            [value]="item.qty"
+                            (input)="onQtyInput(item.id, $any($event.target).value)"
+                            aria-label="Cantidad">
+                          <button
+                            type="button"
+                            class="quantity-selector__btn"
+                            (click)="qs.increaseQty(item.id)">+</button>
+                        </div>
+
+                        <div class="quote-row__pricing">
+                          <span class="quote-row__unit">{{ formatCLP(qs.parsePrice(item.price)) }} c/u</span>
+                          <strong class="quote-row__total">{{ formatCLP(itemSubtotal(item.price, item.qty)) }}</strong>
+                        </div>
+                      </div>
+
+                      <div class="quote-row__sub-actions">
+                        <button type="button" class="link-btn" (click)="toggleItemNotes(item.id)">
+                          {{ expandedNotesId() === item.id ? 'Ocultar nota' : (item.notes ? 'Editar nota' : '+ Agregar nota') }}
+                        </button>
+                        <button type="button" class="link-btn" (click)="saveForLater(item.id)">
+                          Guardar para después
+                        </button>
+                      </div>
+
+                      @if (expandedNotesId() === item.id) {
+                        <textarea
+                          class="textarea quote-row__notes"
+                          rows="2"
+                          placeholder="Especificaciones, urgencia, observaciones para este producto…"
+                          [value]="item.notes || ''"
+                          (input)="onItemNotesInput(item.id, $any($event.target).value)"></textarea>
+                      } @else if (item.notes) {
+                        <p class="quote-row__notes-preview" (click)="toggleItemNotes(item.id)">
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                          </svg>
+                          “{{ item.notes }}”
+                        </p>
+                      }
+                    </div>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+
+          <!-- Saved for later -->
+          @if (qs.savedItems().length > 0) {
+            <div class="card quote-card">
+              <div class="quote-card__header">
+                <div>
+                  <h3 class="quote-card__title">Guardados para después</h3>
+                  <p class="quote-card__sub">{{ qs.savedItems().length }} productos en espera</p>
+                </div>
+              </div>
+              <ul class="saved-list" role="list">
+                @for (s of qs.savedItems(); track s.id) {
+                  <li class="saved-row">
+                    <div>
+                      <strong>{{ s.name }}</strong>
+                      <small class="text-muted">SKU: {{ s.sku }}</small>
+                    </div>
+                    <div class="saved-row__actions">
+                      <span class="saved-row__price">{{ s.price }}</span>
+                      <button type="button" class="btn btn-outline btn-sm" (click)="moveToCart(s.id)">
+                        Mover al carrito
+                      </button>
+                      <button type="button" class="link-btn link-btn--danger" (click)="qs.removeSavedItem(s.id)">
+                        Eliminar
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </section>
+
+        <!-- RIGHT: Resumen + envío + cupón -->
+        <aside class="quote-side">
+          <div class="card quote-summary" [class.quote-summary--sticky]="qs.hasItems()">
+            <h3 class="quote-summary__title">Resumen</h3>
+
+            @if (!qs.hasItems()) {
+              <p class="text-muted text-center">Agrega productos para ver el resumen.</p>
+            } @else {
+              <!-- Envío -->
+              <div class="quote-summary__section">
+                <h4 class="quote-summary__section-title">Método de envío</h4>
+                <div class="shipping-options">
+                  @for (m of qs.shippingMethods; track m.id) {
+                    <label
+                      class="shipping-option"
+                      [class.shipping-option--active]="qs.shippingMethodId() === m.id">
+                      <input
+                        type="radio"
+                        name="shipping"
+                        [value]="m.id"
+                        [checked]="qs.shippingMethodId() === m.id"
+                        (change)="selectShipping(m.id)">
+                      <div class="shipping-option__body">
+                        <div>
+                          <strong>{{ m.label }}</strong>
+                          @if (m.estimatedDays) {
+                            <small class="text-muted">{{ m.estimatedDays }}</small>
+                          }
+                        </div>
+                        <span class="shipping-option__cost">
+                          {{ m.cost === 0 ? 'Gratis' : formatCLP(m.cost) }}
+                        </span>
+                      </div>
+                    </label>
+                  }
+                </div>
+              </div>
+
+              <!-- Cupón -->
+              <div class="quote-summary__section">
+                @if (qs.coupon(); as c) {
+                  <div class="coupon-applied">
+                    <div>
+                      <span class="badge badge-success">✓ {{ c.code }}</span>
+                      <small class="text-muted">{{ c.description }}</small>
+                    </div>
+                    <button type="button" class="link-btn link-btn--danger" (click)="removeCoupon()">
+                      Quitar
+                    </button>
+                  </div>
+                } @else if (showCouponInput()) {
+                  <div class="form-group">
+                    <label class="form-label">Código de descuento</label>
+                    <div class="coupon-form">
+                      <input
+                        type="text"
+                        class="input"
+                        placeholder="Ingresa tu código"
+                        [value]="couponCode()"
+                        (input)="couponCode.set($any($event.target).value)"
+                        (keydown.enter)="applyCoupon()">
+                      <button type="button" class="btn btn-secondary" (click)="applyCoupon()">
+                        Aplicar
+                      </button>
+                    </div>
+                    @if (qs.couponError()) {
+                      <small class="text-danger">{{ qs.couponError() }}</small>
+                    }
+                    <small class="text-muted">
+                      Prueba: VAYO5, VAYO10, VAYO15 o BIENVENIDO
+                    </small>
+                  </div>
+                } @else {
+                  <button type="button" class="link-btn link-btn--primary" (click)="showCouponInput.set(true)">
+                    + Aplicar código de descuento
+                  </button>
+                }
+              </div>
+
+              <!-- Totales -->
+              <div class="quote-summary__totals">
+                <div class="total-line">
+                  <span>Subtotal</span>
+                  <span>{{ formatCLP(qs.subtotal()) }}</span>
+                </div>
+                @if (qs.discount() > 0) {
+                  <div class="total-line total-line--discount">
+                    <span>Descuento</span>
+                    <span>− {{ formatCLP(qs.discount()) }}</span>
+                  </div>
+                }
+                <div class="total-line">
+                  <span>IVA (19%)</span>
+                  <span>{{ formatCLP(qs.iva()) }}</span>
+                </div>
+                <div class="total-line">
+                  <span>Envío</span>
+                  <span>{{ qs.shippingCost() === 0 ? 'Gratis' : formatCLP(qs.shippingCost()) }}</span>
+                </div>
+                <div class="total-line total-line--final">
+                  <strong>Total</strong>
+                  <strong>{{ formatCLP(qs.total()) }}</strong>
+                </div>
+
+                @if (qs.discount() > 0) {
+                  <p class="quote-summary__savings">
+                    Estás ahorrando {{ formatCLP(qs.discount()) }}
+                  </p>
+                }
+              </div>
+
+              <button
+                type="button"
+                class="btn btn-primary btn-block"
+                [disabled]="!qs.hasItems()"
+                (click)="qs.nextStep()">
+                Continuar con datos
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </button>
+
+              <p class="quote-summary__hint">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                </svg>
+                Compra segura · Sin compromiso de pago
+              </p>
+            }
+          </div>
+        </aside>
+      </div>
+    }
+
+    @case (2) { <app-step-client /> }
+    @case (3) { <app-step-document /> }
+    @case (4) { <app-step-confirmation /> }
+  }
+</div>

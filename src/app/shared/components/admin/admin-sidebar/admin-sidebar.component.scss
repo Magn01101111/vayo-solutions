@@ -1,0 +1,37 @@
+.admin-sidebar {
+  min-height: 100dvh;
+  padding: 1.5rem 1rem;
+  background: var(--color-brand-900);
+  color: var(--color-text-inverse);
+}
+
+.admin-sidebar__brand {
+  margin-bottom: 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.admin-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+
+  a {
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    color: var(--color-brand-100);
+    transition: background 0.15s ease;
+  }
+
+  a:hover,
+  a.active {
+    background: rgba(255, 255, 255, 0.12);
+  }
+}
+
+@media (max-width: 1023.98px) {
+  .admin-sidebar {
+    min-height: auto;
+  }
+}

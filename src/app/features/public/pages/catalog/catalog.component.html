@@ -1,0 +1,86 @@
+<div class="catalog-page">
+  <div class="container">
+
+    <header class="catalog-header">
+      <h1 class="catalog-title">Catálogo de repuestos</h1>
+      <p class="catalog-subtitle">
+        Explora todos los productos disponibles. Usa los filtros y la búsqueda
+        para encontrar lo que necesitas más rápido.
+      </p>
+    </header>
+
+    <!-- ── Búsqueda ──────────────────────────────────────────────────────── -->
+    <div class="catalog-search">
+      <input
+        type="search"
+        class="input catalog-search__input"
+        [(ngModel)]="searchQuery"
+        placeholder="Buscar por nombre, SKU o marca…"
+        autocomplete="off"
+      />
+      <button
+        type="button"
+        class="catalog-search__clear"
+        *ngIf="searchQuery"
+        (click)="clearSearch()"
+        aria-label="Limpiar búsqueda"
+      >✕</button>
+    </div>
+
+    <!-- ── Filtro por categoría ───────────────────────────────────────────── -->
+    <div class="catalog-filters">
+      <button
+        type="button"
+        class="catalog-filter"
+        *ngFor="let category of categories; trackBy: trackByLabel"
+        [class.is-active]="isCategoryActive(category)"
+        (click)="selectCategory(category.label)"
+      >
+        {{ category.label }}
+      </button>
+    </div>
+
+    <!-- ── Resultado ──────────────────────────────────────────────────────── -->
+    <p class="catalog-count">
+      {{ filteredProducts.length }}
+      {{ filteredProducts.length === 1 ? 'producto encontrado' : 'productos encontrados' }}
+    </p>
+
+    @if (isLoading) {
+      <div class="catalog-empty card"><p>Cargando catálogo…</p></div>
+    } @else if (errorMessage) {
+      <div class="catalog-empty card"><p>{{ errorMessage }}</p></div>
+    } @else if (filteredProducts.length === 0) {
+      <div class="catalog-empty card">
+        <h3>Sin resultados</h3>
+        <p>No se encontraron productos con esos filtros. Prueba con otros términos.</p>
+      </div>
+    } @else {
+      <div class="catalog-grid">
+        <article class="catalog-card card" *ngFor="let product of filteredProducts; trackBy: trackByProduct">
+          <div class="catalog-card__media">
+            <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+            <div *ngIf="!product.imageUrl" class="catalog-card__placeholder">📦</div>
+          </div>
+
+          <div class="catalog-card__body">
+            <span class="badge badge-brand">{{ product.category }}</span>
+            <h3 class="catalog-card__title">{{ product.name }}</h3>
+            <p class="catalog-card__sku">Ref: {{ product.sku }}</p>
+            <p class="catalog-card__price">{{ product.price }}</p>
+
+            <div class="catalog-card__actions">
+              <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
+                Agregar
+              </button>
+              <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
+                Ver ficha
+              </a>
+            </div>
+          </div>
+        </article>
+      </div>
+    }
+
+  </div>
+</div>

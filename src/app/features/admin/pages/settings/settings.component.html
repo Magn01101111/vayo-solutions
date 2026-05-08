@@ -1,0 +1,116 @@
+<div class="page-settings">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Configuración de la empresa</h2>
+      <p class="page-subtitle">Datos comerciales que aparecen en cotizaciones y facturas</p>
+    </div>
+  </div>
+
+  @if (loading) {
+    <p class="state-msg">Cargando configuración…</p>
+  } @else {
+    <form class="settings-form" (ngSubmit)="save()" novalidate>
+
+      <!-- ── IVA (lo más importante) ─────────────────────────────────────── -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Impuestos</h3>
+        <p class="settings-section__hint">
+          El IVA configurado se aplica automáticamente en todas las cotizaciones nuevas.
+        </p>
+
+        <div class="form-group form-group--narrow">
+          <label class="form-label" for="iva">
+            IVA (%) <span class="required">*</span>
+          </label>
+          <input
+            id="iva"
+            class="input"
+            type="number"
+            min="0"
+            max="100"
+            step="0.01"
+            [(ngModel)]="ivaPercent"
+            name="ivaPercent"
+            required
+          />
+          <p class="form-hint">Valor actual en Chile: 19%.</p>
+        </div>
+      </section>
+
+      <!-- ── Datos de la empresa ─────────────────────────────────────────── -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Datos de la empresa</h3>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="name">Razón social</label>
+            <input id="name" class="input" type="text" [(ngModel)]="name" name="name" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="rut">RUT</label>
+            <input id="rut" class="input" type="text" [(ngModel)]="rut" name="rut" placeholder="76.000.000-0" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="address">Dirección</label>
+          <input id="address" class="input" type="text" [(ngModel)]="address" name="address" />
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label" for="phone">Teléfono</label>
+            <input id="phone" class="input" type="tel" [(ngModel)]="phone" name="phone" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="email">Correo</label>
+            <input id="email" class="input" type="email" [(ngModel)]="email" name="email" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="website">Sitio web</label>
+          <input id="website" class="input" type="url" [(ngModel)]="website" name="website" placeholder="https://..." />
+        </div>
+      </section>
+
+      <!-- ── Términos de factura ─────────────────────────────────────────── -->
+      <section class="settings-section">
+        <h3 class="settings-section__title">Términos comerciales</h3>
+        <p class="settings-section__hint">
+          Aparecen al pie de cada cotización (condiciones de pago, validez, etc.).
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="terms">Términos para cotizaciones</label>
+          <textarea
+            id="terms"
+            class="textarea"
+            [(ngModel)]="invoiceTerms"
+            name="invoiceTerms"
+            rows="4"
+            placeholder="Ej. Cotización válida por 15 días. Precios sujetos a stock disponible."
+          ></textarea>
+        </div>
+      </section>
+
+      <!-- ── Mensajes ──────────────────────────────────────────────────────── -->
+      @if (error) {
+        <div class="settings-alert settings-alert--error">{{ error }}</div>
+      }
+      @if (success) {
+        <div class="settings-alert settings-alert--success">{{ success }}</div>
+      }
+
+      <!-- ── Acciones ──────────────────────────────────────────────────────── -->
+      <div class="settings-actions">
+        <button type="submit" class="btn btn-primary" [disabled]="saving">
+          {{ saving ? 'Guardando…' : 'Guardar cambios' }}
+        </button>
+      </div>
+
+    </form>
+  }
+
+</div>

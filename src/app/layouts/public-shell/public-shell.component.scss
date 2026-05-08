@@ -1,0 +1,10 @@
+.public-shell {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-page);
+}
+
+.public-shell__content {
+  flex: 1;
+}

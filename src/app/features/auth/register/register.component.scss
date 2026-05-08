@@ -1,0 +1,169 @@
+// Reutiliza los mismos estilos base de la página de login
+// Los tokens .auth-page, .auth-card, etc. están aquí para ser DRY
+
+.auth-page {
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-brand-900);
+  padding: 1.5rem;
+}
+
+.auth-card {
+  width: min(100%, 26rem);
+  background: var(--color-white);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 2rem;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.auth-card__brand {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.auth-card__logo {
+  display: inline-block;
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  color: var(--color-brand-900);
+}
+
+.auth-card__tagline {
+  margin-top: 0.375rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.125rem;
+}
+
+.auth-form__pass-wrap {
+  position: relative;
+
+  .input {
+    padding-right: 3rem;
+  }
+}
+
+.auth-form__pass-toggle {
+  position: absolute;
+  right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  padding: 0.25rem;
+  font-size: 1rem;
+  line-height: 1;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: color var(--transition-fast);
+
+  &:hover { color: var(--color-text-primary); }
+}
+
+.auth-form__spinner {
+  display: inline-block;
+  width: 0.875rem;
+  height: 0.875rem;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  border-top-color: #fff;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.auth-alert {
+  padding: 0.75rem 1rem;
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(153, 60, 29, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+  line-height: 1.4;
+}
+
+.auth-card__footer {
+  margin-top: 1.5rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+.auth-link {
+  color: var(--color-brand-600, var(--color-brand-900));
+  font-weight: 500;
+  margin-left: 0.25rem;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+
+  &:hover { color: var(--color-brand-900); }
+}
+
+.required {
+  color: var(--color-danger);
+  margin-left: 0.125rem;
+}
+
+.optional {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  font-weight: 400;
+}
+
+// ── Input de teléfono con prefijo +56 9 ──────────────────────────────────────
+
+.phone-input {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  background: var(--color-white);
+  overflow: hidden;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+
+  &:focus-within {
+    border-color: var(--color-brand-700, var(--color-brand-900));
+    box-shadow: 0 0 0 3px rgba(30, 58, 95, 0.1);
+  }
+}
+
+.phone-input__prefix {
+  display: flex;
+  align-items: center;
+  padding: 0 0.875rem;
+  background: var(--color-bg-soft);
+  border-right: 1px solid var(--color-border-primary);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  user-select: none;
+  white-space: nowrap;
+}
+
+.phone-input__field {
+  flex: 1;
+  border: none !important;
+  border-radius: 0;
+  background: transparent;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+
+  &:focus { box-shadow: none !important; }
+}
+
+.form-hint {
+  margin-top: 0.375rem;
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+}

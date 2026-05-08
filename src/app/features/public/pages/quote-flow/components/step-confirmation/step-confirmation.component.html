@@ -1,0 +1,182 @@
+<div class="step-conf">
+
+  <!-- LOADING -->
+  @if (loading()) {
+    <div class="card step-conf__state">
+      <div class="spinner" aria-hidden="true"></div>
+      <h2>Enviando cotización…</h2>
+      <p>Estamos generando tu cotización oficial. No cierres esta ventana.</p>
+    </div>
+  }
+
+  <!-- ERROR -->
+  @if (error() && !loading()) {
+    <div class="card step-conf__state step-conf__state--error">
+      <div class="step-conf__icon step-conf__icon--error">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="12" y1="8" x2="12" y2="12" />
+          <line x1="12" y1="16" x2="12.01" y2="16" />
+          <circle cx="12" cy="12" r="10" />
+        </svg>
+      </div>
+      <h2>Algo no salió bien</h2>
+      <p>{{ error() }}</p>
+      <div class="step-conf__actions">
+        <button class="btn btn-outline" (click)="back()">Volver</button>
+        <button class="btn btn-primary" (click)="sendQuote()">Reintentar</button>
+      </div>
+    </div>
+  }
+
+  <!-- SUCCESS -->
+  @if (success() && !loading()) {
+    <div class="card step-conf__state step-conf__state--success">
+      <div class="step-conf__icon step-conf__icon--success">
+        <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      </div>
+
+      <h2 class="step-conf__title">¡Cotización enviada!</h2>
+      <p class="step-conf__sub">
+        Tu cotización fue generada correctamente. Te enviamos una copia a
+        <strong>{{ client()?.email }}</strong>.
+      </p>
+
+      <div class="step-conf__details">
+        <div class="step-conf__detail">
+          <span class="label">Folio</span>
+          <strong>{{ folio() ?? '—' }}</strong>
+        </div>
+        <div class="step-conf__detail">
+          <span class="label">Productos</span>
+          <strong>{{ itemCount() }}</strong>
+        </div>
+        <div class="step-conf__detail">
+          <span class="label">Total</span>
+          <strong class="step-conf__total">{{ formatCLP(total()) }}</strong>
+        </div>
+      </div>
+
+      <!-- Acciones principales -->
+      <div class="step-conf__primary-actions">
+        <button
+          class="btn btn-primary"
+          [disabled]="pdfDownloading()"
+          (click)="downloadPDF()">
+          @if (pdfDownloading()) {
+            <span class="spinner spinner--inline"></span>
+            Generando…
+          } @else {
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Descargar PDF
+          }
+        </button>
+      </div>
+
+      <!-- Compartir -->
+      <div class="step-conf__share">
+        <h4>Compartir cotización</h4>
+        <div class="share-grid">
+          <button class="share-btn" (click)="copyLink()" [class.share-btn--success]="copied()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              @if (copied()) {
+                <polyline points="20 6 9 17 4 12" />
+              } @else {
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+              }
+            </svg>
+            <span>{{ copied() ? '¡Copiado!' : 'Copiar enlace' }}</span>
+          </button>
+
+          <button class="share-btn share-btn--whatsapp" (click)="shareWhatsApp()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M17.5 14.4c-.3-.1-1.7-.8-2-.9-.3-.1-.5-.1-.7.1-.2.3-.8.9-.9 1.1-.2.2-.3.2-.6.1-.3-.1-1.2-.4-2.3-1.4-.9-.8-1.4-1.7-1.6-2-.2-.3 0-.5.1-.6.1-.1.3-.3.4-.5.1-.2.2-.3.3-.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.8 1.2 3 .1.2 2 3.1 4.9 4.3.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.5-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4 0-.1-.3-.2-.6-.3z"/>
+              <path d="M12 2C6.5 2 2 6.5 2 12c0 1.8.5 3.5 1.3 4.9L2 22l5.3-1.4c1.4.7 2.9 1.1 4.7 1.1 5.5 0 10-4.5 10-10S17.5 2 12 2zm0 18.2c-1.5 0-3-.4-4.3-1.1l-.3-.2-3.1.8.8-3-.2-.3C4.2 14.9 4 13.5 4 12c0-4.4 3.6-8 8-8s8 3.6 8 8-3.6 8.2-8 8.2z"/>
+            </svg>
+            <span>WhatsApp</span>
+          </button>
+
+          <button class="share-btn" (click)="shareEmail()">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+              <polyline points="22,6 12,13 2,6" />
+            </svg>
+            <span>Email</span>
+          </button>
+
+          <button
+            class="share-btn"
+            [disabled]="emailSending() || emailSent()"
+            (click)="resendByEmail()">
+            @if (emailSending()) {
+              <span class="spinner spinner--inline"></span>
+              <span>Enviando…</span>
+            } @else if (emailSent()) {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+              <span>Enviado</span>
+            } @else {
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 2L11 13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
+              </svg>
+              <span>Reenviar</span>
+            }
+          </button>
+        </div>
+
+        @if (shareUrl()) {
+          <div class="share-link">
+            <input
+              type="text"
+              class="input"
+              readonly
+              [value]="shareUrl()"
+              (click)="$any($event.target).select()">
+          </div>
+        }
+      </div>
+
+      <!-- Próximos pasos -->
+      <div class="step-conf__next">
+        <h4>¿Qué sigue?</h4>
+        <ul class="next-steps">
+          <li>
+            <span class="next-steps__num">1</span>
+            <div>
+              <strong>Revisa tu correo</strong>
+              <small>Recibirás la cotización oficial en PDF en los próximos minutos.</small>
+            </div>
+          </li>
+          <li>
+            <span class="next-steps__num">2</span>
+            <div>
+              <strong>Te contactaremos</strong>
+              <small>Un asesor se comunicará para confirmar disponibilidad y plazos.</small>
+            </div>
+          </li>
+          <li>
+            <span class="next-steps__num">3</span>
+            <div>
+              <strong>Aprueba la cotización</strong>
+              <small>Acepta los términos y comenzamos con tu pedido.</small>
+            </div>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Footer actions -->
+      <div class="step-conf__actions step-conf__actions--footer">
+        <button class="btn btn-outline" (click)="goHome()">Ir al inicio</button>
+        <button class="btn btn-primary" (click)="finish()">Seguir explorando catálogo</button>
+      </div>
+    </div>
+  }
+</div>

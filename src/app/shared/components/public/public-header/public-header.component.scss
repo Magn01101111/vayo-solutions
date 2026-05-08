@@ -1,0 +1,208 @@
+// public-header.component.scss
+
+.public-header {
+  background: var(--color-white);
+  border-bottom: 1px solid var(--color-border-primary);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.public-header__inner {
+  min-height: 3.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.public-header__brand {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-brand-900);
+  letter-spacing: -0.02em;
+  flex-shrink: 0;
+}
+
+.public-header__nav {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+
+  > a:not(.ph-btn) {
+    font-size: 0.875rem;
+    color: var(--color-text-secondary);
+    transition: color var(--transition-fast);
+    white-space: nowrap;
+
+    &:hover { color: var(--color-brand-900); }
+  }
+}
+
+// ── Botones de auth ───────────────────────────────────────────────────────────
+
+.ph-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.4rem 0.875rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast),
+              border-color var(--transition-fast);
+  text-decoration: none;
+
+  &--ghost {
+    color: var(--color-text-secondary);
+    border: 1px solid var(--color-border-primary);
+    background: transparent;
+
+    &:hover {
+      color: var(--color-text-primary);
+      border-color: var(--color-text-secondary);
+    }
+  }
+
+  &--primary {
+    background: var(--color-brand-900);
+    color: var(--color-white);
+    border: 1px solid transparent;
+
+    &:hover { background: var(--color-brand-700, #1e3a5f); }
+  }
+}
+
+// ── Menú de usuario autenticado ───────────────────────────────────────────────
+
+.ph-user-menu {
+  position: relative;
+}
+
+.ph-user-menu__trigger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: none;
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-sm);
+  padding: 0.3rem 0.625rem;
+  cursor: pointer;
+  transition: border-color var(--transition-fast), background var(--transition-fast);
+
+  &:hover {
+    border-color: var(--color-text-secondary);
+    background: var(--color-bg-subtle, #f5f5f5);
+  }
+}
+
+.ph-user-menu__avatar {
+  width: 1.75rem;
+  height: 1.75rem;
+  border-radius: 50%;
+  background: var(--color-brand-900);
+  color: var(--color-white);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  letter-spacing: 0;
+}
+
+.ph-user-menu__name {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  max-width: 9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  // Ocultar nombre en pantallas pequeñas
+  @media (max-width: 480px) { display: none; }
+}
+
+.ph-user-menu__chevron {
+  color: var(--color-text-secondary);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+
+  &--open { transform: rotate(180deg); }
+}
+
+// Dropdown
+.ph-user-menu__dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  min-width: 14rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  z-index: 200;
+
+  // Animación de entrada
+  animation: dropdownIn 0.15s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.ph-user-menu__header {
+  padding: 0.875rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.ph-user-menu__header-name {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ph-user-menu__header-email {
+  font-size: 0.75rem;
+  color: var(--color-text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ph-user-menu__divider {
+  height: 1px;
+  background: var(--color-border-primary);
+}
+
+.ph-user-menu__item {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  font-size: 0.875rem;
+  color: var(--color-text-primary);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-fast);
+
+  &:hover { background: var(--color-bg-subtle, #f5f5f5); }
+
+  &--danger {
+    color: var(--color-danger);
+
+    &:hover { background: var(--color-danger-bg); }
+  }
+}

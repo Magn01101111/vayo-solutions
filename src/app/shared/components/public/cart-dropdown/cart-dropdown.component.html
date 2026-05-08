@@ -1,0 +1,282 @@
+<div class="cart-dropdown" [class.cart-dropdown--open]="isOpen">
+  <button
+    type="button"
+    class="cart-dropdown__trigger"
+    [class.cart-dropdown__trigger--active]="hasItems()"
+    [attr.aria-label]="'Carrito (' + totalItems() + ' artículos)'"
+    [attr.aria-expanded]="isOpen"
+    (click)="toggleDropdown()">
+    <svg class="cart-dropdown__icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+      stroke-width="2">
+      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+      <line x1="3" y1="6" x2="21" y2="6" />
+      <path d="M16 10a4 4 0 0 1-8 0" />
+    </svg>
+
+    @if (totalItems() > 0) {
+      <span class="cart-dropdown__badge" [class.cart-dropdown__badge--bump]="bumping()">
+        {{ totalItems() > 99 ? '99+' : totalItems() }}
+      </span>
+    }
+  </button>
+
+  @if (isOpen) {
+    <div class="cart-dropdown__panel" role="dialog" aria-label="Mi carrito">
+      <div class="cart-dropdown__header">
+        <div class="cart-dropdown__title-wrap">
+          <h4 class="cart-dropdown__title">Mi carrito</h4>
+          @if (uniqueItems() > 0) {
+            <span class="cart-dropdown__count">
+              {{ uniqueItems() }} {{ uniqueItems() === 1 ? 'producto' : 'productos' }}
+              · {{ totalItems() }} {{ totalItems() === 1 ? 'unidad' : 'unidades' }}
+            </span>
+          }
+        </div>
+        @if (totalItems() > 0) {
+          <button type="button" class="cart-dropdown__clear" (click)="clearCart()" aria-label="Vaciar carrito">
+            Vaciar
+          </button>
+        }
+      </div>
+
+      @if (remainingMs() > 0 && hasItems()) {
+        <div class="cart-dropdown__reservation">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10" />
+            <polyline points="12 6 12 12 16 14" />
+          </svg>
+          <span>Reservado por <strong>{{ remainingLabel() }}</strong></span>
+        </div>
+      }
+
+      @if (lastRemoved(); as removed) {
+        <div class="cart-dropdown__undo">
+          <span><strong>{{ removed.item.name }}</strong> eliminado</span>
+          <div class="cart-dropdown__undo-actions">
+            <button type="button" (click)="undoRemove()">Deshacer</button>
+            <button type="button" class="cart-dropdown__undo-close" aria-label="Cerrar" (click)="dismissUndo()">×</button>
+          </div>
+        </div>
+      }
+
+      @if (totalItems() === 0 && !hasSaved()) {
+        <div class="cart-dropdown__empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+            <line x1="3" y1="6" x2="21" y2="6" />
+            <path d="M16 10a4 4 0 0 1-8 0" />
+          </svg>
+          <p class="cart-dropdown__empty-title">Tu carrito está vacío</p>
+          <p class="cart-dropdown__empty-sub">Explora nuestro catálogo y comienza a cotizar</p>
+          <a routerLink="/catalogo" class="btn btn-primary btn-sm" (click)="closeDropdown()">
+            Explorar productos
+          </a>
+        </div>
+      } @else {
+        @if (hasItems()) {
+          <ul class="cart-dropdown__items" role="list">
+            @for (item of items(); track item.id) {
+              <li class="cart-item">
+                <div class="cart-item__media" aria-hidden="true">
+                  @if (item.imageUrl) {
+                    <img [src]="item.imageUrl" [alt]="item.name" loading="lazy">
+                  } @else {
+                    <div class="cart-item__media-fallback">
+                      {{ item.name.charAt(0) }}
+                    </div>
+                  }
+                </div>
+
+                <div class="cart-item__body">
+                  <div class="cart-item__top">
+                    <div class="cart-item__info">
+                      <h5 class="cart-item__title" [title]="item.name">{{ item.name }}</h5>
+                      <span class="cart-item__sku">SKU: {{ item.sku }}</span>
+                      @if (item.stockLabel) {
+                        <span class="cart-item__stock">{{ item.stockLabel }}</span>
+                      }
+                    </div>
+                    <button
+                      type="button"
+                      class="cart-item__remove"
+                      [attr.aria-label]="'Eliminar ' + item.name"
+                      (click)="removeItem(item.id)">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div class="cart-item__bottom">
+                    <div class="quantity-selector" role="group" [attr.aria-label]="'Cantidad de ' + item.name">
+                      <button
+                        type="button"
+                        class="quantity-selector__btn"
+                        [disabled]="item.qty === 1"
+                        aria-label="Disminuir cantidad"
+                        (click)="decreaseQty(item.id)">−</button>
+                      <input
+                        type="number"
+                        class="quantity-selector__input"
+                        min="1"
+                        [max]="item.maxQty || 999"
+                        [value]="item.qty"
+                        (input)="onQtyInput(item.id, $any($event.target).value)"
+                        aria-label="Cantidad">
+                      <button
+                        type="button"
+                        class="quantity-selector__btn"
+                        aria-label="Aumentar cantidad"
+                        (click)="increaseQty(item.id)">+</button>
+                    </div>
+
+                    <div class="cart-item__pricing">
+                      @if (item.qty > 1) {
+                        <span class="cart-item__unit">{{ formatPrice(parsePrice(item.price)) }} c/u</span>
+                      }
+                      <span class="cart-item__price">{{ formatPrice(itemSubtotal(item.price, item.qty)) }}</span>
+                    </div>
+                  </div>
+
+                  <div class="cart-item__meta-actions">
+                    <button
+                      type="button"
+                      class="cart-item__link"
+                      (click)="toggleNotes(item.id)">
+                      {{ expandedItem() === item.id ? 'Ocultar nota' : (item.notes ? 'Editar nota' : 'Agregar nota') }}
+                    </button>
+                    <button
+                      type="button"
+                      class="cart-item__link"
+                      (click)="saveForLater(item.id)">
+                      Guardar para después
+                    </button>
+                  </div>
+
+                  @if (expandedItem() === item.id) {
+                    <textarea
+                      class="cart-item__notes"
+                      placeholder="Especificaciones, urgencia, observaciones…"
+                      [value]="item.notes || ''"
+                      (input)="onNotesInput(item.id, $any($event.target).value)"
+                      rows="2"></textarea>
+                  } @else if (item.notes) {
+                    <p class="cart-item__notes-preview" (click)="toggleNotes(item.id)">
+                      <em>“{{ item.notes }}”</em>
+                    </p>
+                  }
+                </div>
+              </li>
+            }
+          </ul>
+        }
+
+        @if (hasSaved()) {
+          <div class="cart-dropdown__saved">
+            <h5 class="cart-dropdown__saved-title">
+              Guardados para después ({{ savedItems().length }})
+            </h5>
+            <ul class="cart-dropdown__saved-list" role="list">
+              @for (s of savedItems(); track s.id) {
+                <li class="saved-item">
+                  <div class="saved-item__info">
+                    <span class="saved-item__name" [title]="s.name">{{ s.name }}</span>
+                    <span class="saved-item__price">{{ s.price }}</span>
+                  </div>
+                  <div class="saved-item__actions">
+                    <button type="button" class="cart-item__link" (click)="moveToCart(s.id)">Mover al carrito</button>
+                    <button
+                      type="button"
+                      class="saved-item__remove"
+                      aria-label="Eliminar guardado"
+                      (click)="removeSavedItem(s.id)">×</button>
+                  </div>
+                </li>
+              }
+            </ul>
+          </div>
+        }
+
+        @if (hasItems()) {
+          <div class="cart-dropdown__coupon">
+            @if (coupon(); as c) {
+              <div class="cart-dropdown__coupon-applied">
+                <div>
+                  <span class="badge badge-success">Cupón {{ c.code }}</span>
+                  <small class="cart-dropdown__coupon-desc">{{ c.description }}</small>
+                </div>
+                <button type="button" class="cart-item__link" (click)="removeCoupon()">Quitar</button>
+              </div>
+            } @else if (showCoupon()) {
+              <div class="cart-dropdown__coupon-form">
+                <input
+                  type="text"
+                  class="input input--sm"
+                  placeholder="Código de descuento"
+                  [value]="couponCode()"
+                  (input)="couponCode.set($any($event.target).value)"
+                  (keydown.enter)="applyCoupon()"
+                  aria-label="Código de descuento">
+                <button type="button" class="btn btn-outline btn-sm" (click)="applyCoupon()">Aplicar</button>
+              </div>
+              @if (couponError()) {
+                <small class="text-danger">{{ couponError() }}</small>
+              }
+            } @else {
+              <button type="button" class="cart-dropdown__coupon-toggle" (click)="showCoupon.set(true)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                  <line x1="7" y1="7" x2="7.01" y2="7" />
+                </svg>
+                ¿Tienes un código de descuento?
+              </button>
+            }
+          </div>
+
+          <div class="cart-dropdown__footer">
+            <div class="cart-dropdown__summary">
+              <div class="summary-line">
+                <span>Subtotal</span>
+                <span>{{ formatPrice(subtotal()) }}</span>
+              </div>
+              @if (discount() > 0) {
+                <div class="summary-line summary-line--discount">
+                  <span>Descuento</span>
+                  <span>− {{ formatPrice(discount()) }}</span>
+                </div>
+              }
+              <div class="summary-line">
+                <span>IVA (19%)</span>
+                <span>{{ formatPrice(iva()) }}</span>
+              </div>
+              <div class="summary-line summary-line--total">
+                <span>Total estimado</span>
+                <span>{{ formatPrice(total()) }}</span>
+              </div>
+              <p class="cart-dropdown__hint">El envío se calculará en el siguiente paso.</p>
+            </div>
+
+            <div class="cart-dropdown__actions">
+              <a
+                routerLink="/cotizacion"
+                class="btn btn-primary btn-block"
+                (click)="closeDropdown()">
+                Continuar cotización
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              </a>
+              <a
+                routerLink="/catalogo"
+                class="btn btn-outline btn-sm btn-block"
+                (click)="closeDropdown()">
+                Seguir explorando
+              </a>
+            </div>
+          </div>
+        }
+      }
+    </div>
+  }
+</div>
