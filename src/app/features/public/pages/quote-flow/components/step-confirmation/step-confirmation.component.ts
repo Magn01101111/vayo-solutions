@@ -21,6 +21,7 @@ export class StepConfirmationComponent {
   error = signal<string | null>(null);
   quoteId = signal<string | null>(null);
   folio = signal<string | null>(null);
+  pdfToken = signal<string | null>(null);
   copied = signal(false);
   emailSending = signal(false);
   emailSent = signal(false);
@@ -34,7 +35,9 @@ export class StepConfirmationComponent {
     const id = this.quoteId();
     if (!id) return '';
     if (typeof window === 'undefined') return '';
-    return `${window.location.origin}/cotizacion/ver/${id}`;
+    const base = `${window.location.origin}/cotizacion/ver/${id}`;
+    const token = this.pdfToken();
+    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
   });
 
   formatCLP(value: number): string {
@@ -53,16 +56,34 @@ export class StepConfirmationComponent {
     this.loading.set(true);
     this.error.set(null);
     const payload = this.qs.buildPayload();
+    console.log('[StepConfirmation] POST quotes payload →', payload);
 
     this.quoteApi.createQuote(payload).subscribe({
       next: (res: any) => {
-        this.quoteId.set(res?._id ?? null);
-        this.folio.set(res?.folio ?? null);
+        console.log('[StepConfirmation] respuesta backend →', res);
+        // El backend puede devolver el documento directo o envuelto en { data: {...} }.
+        const data = res?.data ?? res ?? {};
+        const id = data._id ?? data.id ?? null;
+        const folio = data.folio ?? null;
+        const pdfToken = data.pdfToken ?? res?.pdfToken ?? null;
+
+        if (!id) {
+          console.warn('[StepConfirmation] respuesta sin _id, no se podrá descargar PDF', res);
+        }
+
+        this.quoteId.set(id);
+        this.folio.set(folio);
+        this.pdfToken.set(pdfToken);
         this.success.set(true);
         this.loading.set(false);
       },
-      error: () => {
-        this.error.set('No pudimos enviar la cotización. Verifica tu conexión.');
+      error: (err) => {
+        console.error('[StepConfirmation] error al enviar cotización', err);
+        const msg =
+          err?.error?.message ??
+          err?.message ??
+          'No pudimos enviar la cotización. Verifica tu conexión.';
+        this.error.set(`${msg} (${err?.status ?? '—'})`);
         this.loading.set(false);
       },
     });
@@ -70,22 +91,50 @@ export class StepConfirmationComponent {
 
   downloadPDF() {
     const id = this.quoteId();
-    if (!id) return;
+    if (!id) {
+      console.warn('[StepConfirmation] downloadPDF abortado: no hay quoteId');
+      this.error.set('No hay cotización generada para descargar.');
+      return;
+    }
 
     this.pdfDownloading.set(true);
-    this.quoteApi.downloadPDF(id).subscribe({
+    const token = this.pdfToken();
+    console.log('[StepConfirmation] GET PDF para id →', id, token ? '(con pdfToken)' : '(sin token)');
+
+    this.quoteApi.downloadPDF(id, token).subscribe({
       next: (blob) => {
-        const url = window.URL.createObjectURL(blob);
+        if (!(blob instanceof Blob) || blob.size === 0) {
+          console.error('[StepConfirmation] blob inválido o vacío', blob);
+          this.pdfDownloading.set(false);
+          this.error.set('El servidor devolvió un PDF vacío.');
+          return;
+        }
+
+        const pdfBlob =
+          blob.type && blob.type.includes('pdf')
+            ? blob
+            : new Blob([blob], { type: 'application/pdf' });
+
+        const url = window.URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         a.href = url;
         a.download = `cotizacion-${this.folio() ?? id}.pdf`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
         a.click();
-        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+        // Liberar la URL después de que el navegador inicie la descarga.
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
         this.pdfDownloading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        console.error('[StepConfirmation] error al descargar PDF', err);
         this.pdfDownloading.set(false);
-        this.error.set('No pudimos generar el PDF.');
+        const msg =
+          err?.error?.message ??
+          err?.message ??
+          'No pudimos generar el PDF.';
+        this.error.set(`${msg} (${err?.status ?? '—'})`);
       },
     });
   }

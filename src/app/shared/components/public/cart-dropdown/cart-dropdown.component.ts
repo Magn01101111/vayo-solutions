@@ -7,8 +7,9 @@ import {
   signal,
   effect,
   DestroyRef,
+  PLATFORM_ID,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -65,19 +66,24 @@ export class CartDropdownComponent {
   });
 
   constructor() {
+    const platformId = inject(PLATFORM_ID);
+    const isBrowser = isPlatformBrowser(platformId);
+
     let prevTotal = this.totalItems();
     effect(() => {
       const t = this.totalItems();
-      if (t > prevTotal) {
+      if (isBrowser && t > prevTotal) {
         this.bumping.set(true);
         setTimeout(() => this.bumping.set(false), 350);
       }
       prevTotal = t;
     });
 
-    interval(1000)
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.now.set(Date.now()));
+    if (isBrowser) {
+      interval(1000)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe(() => this.now.set(Date.now()));
+    }
   }
 
   toggleDropdown() {

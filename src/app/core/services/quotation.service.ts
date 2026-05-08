@@ -397,40 +397,70 @@ export class QuotationService {
   });
 
   // ─────────────── BACKEND PAYLOAD ───────────────
+  /**
+   * Construye el payload para POST /quotes.
+   * Mantiene la forma "minima" compatible con el backend (client, items, totals, metadata)
+   * y agrega información extra como campo `extra` que el backend puede ignorar
+   * sin romper la validación.
+   */
   buildPayload() {
+    const c = this._client();
+
+    const minimalClient = c
+      ? {
+          name: c.name,
+          email: c.email,
+          phone: c.phone ?? '',
+          company: c.company ?? '',
+          notes: c.notes ?? '',
+        }
+      : null;
+
     return {
-      client: this._client(),
+      client: minimalClient,
 
       items: this._items().map((i) => ({
         productId: i.id,
         name: i.name,
-        sku: i.sku,
         price: this.parsePrice(i.price),
         quantity: i.qty,
-        notes: i.notes ?? '',
         total: this.parsePrice(i.price) * i.qty,
       })),
 
       totals: {
         subtotal: this.subtotal(),
-        discount: this.discount(),
-        taxableBase: this.taxableBase(),
         iva: this.iva(),
-        shipping: this.shippingCost(),
         total: this.total(),
       },
-
-      coupon: this._coupon(),
-      shippingMethod: this.shippingMethod(),
-      currency: this._currency(),
-      paymentTerms: this._paymentTerms(),
-      deliveryTerms: this._deliveryTerms(),
-      validUntil: this.validUntilDate(),
-      notes: this._generalNotes(),
 
       metadata: {
         createdAt: new Date().toISOString(),
         status: 'sent',
+      },
+
+      // Información adicional — opcional, el backend puede ignorarla.
+      extra: {
+        customerType: c?.customerType,
+        taxId: c?.taxId,
+        businessActivity: c?.businessActivity,
+        billingAddress: c?.billingAddress,
+        shippingAddress: c?.shippingAddress,
+        shippingSameAsBilling: c?.shippingSameAsBilling,
+        acceptsTerms: c?.acceptsTerms,
+        acceptsMarketing: c?.acceptsMarketing,
+        itemNotes: this._items().map((i) => ({ productId: i.id, note: i.notes ?? '' })),
+        coupon: this._coupon(),
+        discount: this.discount(),
+        shipping: {
+          method: this.shippingMethod(),
+          cost: this.shippingCost(),
+        },
+        currency: this._currency(),
+        paymentTerms: this._paymentTerms(),
+        deliveryTerms: this._deliveryTerms(),
+        validUntil: this.validUntilDate(),
+        validityDays: this._validityDays(),
+        generalNotes: this._generalNotes(),
       },
     };
   }
