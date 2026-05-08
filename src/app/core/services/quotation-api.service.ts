@@ -45,7 +45,15 @@ export class QuotationApiService {
     return this.api.get<ApiResponse<ApiQuote>>(`${API_CONFIG.endpoints.quotes}/${id}`);
   }
 
-  downloadPDF(id: string) {
-    return this.api.getBlob(`${API_CONFIG.endpoints.quotes}/${id}/pdf`);
+  /**
+   * Descarga el PDF de una cotización.
+   * Si recibe `token`, lo agrega como `?token=` para autorizar el flujo público
+   * (cotizaciones generadas sin sesión iniciada).
+   */
+  downloadPDF(id: string, token?: string | null) {
+    const path = token
+      ? `${API_CONFIG.endpoints.quotes}/${id}/pdf?token=${encodeURIComponent(token)}`
+      : `${API_CONFIG.endpoints.quotes}/${id}/pdf`;
+    return this.api.getBlob(path);
   }
 }

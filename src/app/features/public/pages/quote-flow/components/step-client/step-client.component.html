@@ -1,97 +1,252 @@
-<div class="card">
+<form class="step-client" [formGroup]="form" (ngSubmit)="submit()" novalidate>
 
-  <div class="card-header">
-    <div class="card-title">Datos del cliente</div>
-    <div class="card-subtitle">
-      Completa la información para generar la cotización
+  <div class="card step-client__card">
+    <div class="card-header">
+      <div>
+        <h2 class="step-client__title">Datos del cliente</h2>
+        <p class="step-client__sub">
+          Completa la información para emitir la cotización oficial.
+        </p>
+      </div>
+    </div>
+
+    <!-- Tipo de cliente -->
+    <div class="form-group">
+      <label class="form-label">Tipo de cliente</label>
+      <div class="customer-type">
+        <button
+          type="button"
+          class="customer-type__btn"
+          [class.customer-type__btn--active]="customerType() === 'person'"
+          (click)="setCustomerType('person')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Persona
+        </button>
+        <button
+          type="button"
+          class="customer-type__btn"
+          [class.customer-type__btn--active]="customerType() === 'company'"
+          (click)="setCustomerType('company')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M3 21h18M5 21V7l7-4 7 4v14M9 9h2M9 13h2M9 17h2M13 9h2M13 13h2M13 17h2" />
+          </svg>
+          Empresa
+        </button>
+      </div>
+    </div>
+
+    <h3 class="step-client__section-title">Información de contacto</h3>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">{{ customerType() === 'company' ? 'Nombre del contacto' : 'Nombre completo' }} *</label>
+        <input class="input" formControlName="name" placeholder="Juan Pérez">
+        @if (isInvalid('name')) { <small class="text-danger">{{ errorOf('name') }}</small> }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Email *</label>
+        <input class="input" type="email" formControlName="email" placeholder="correo@empresa.cl">
+        @if (isInvalid('email')) { <small class="text-danger">{{ errorOf('email') }}</small> }
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label class="form-label">Teléfono</label>
+        <input class="input" formControlName="phone" placeholder="+56 9 1234 5678">
+        @if (isInvalid('phone')) { <small class="text-danger">{{ errorOf('phone') }}</small> }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">RUT {{ customerType() === 'company' ? '*' : '' }}</label>
+        <input
+          class="input"
+          formControlName="taxId"
+          placeholder="12.345.678-9"
+          (blur)="formatRutOnBlur()">
+        @if (isInvalid('taxId')) { <small class="text-danger">{{ errorOf('taxId') }}</small> }
+      </div>
+    </div>
+
+    @if (customerType() === 'company') {
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Razón social *</label>
+          <input class="input" formControlName="company" placeholder="Empresa S.A.">
+          @if (isInvalid('company')) { <small class="text-danger">{{ errorOf('company') }}</small> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Giro</label>
+          <input class="input" formControlName="businessActivity" placeholder="Comercio al por mayor">
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Dirección de facturación -->
+  <div class="card step-client__card">
+    <h3 class="step-client__section-title step-client__section-title--first">
+      Dirección de facturación
+    </h3>
+
+    <div class="form-row form-row--3">
+      <div class="form-group form-group--street">
+        <label class="form-label">Calle *</label>
+        <input class="input" formControlName="billingStreet" placeholder="Av. Providencia">
+        @if (isInvalid('billingStreet')) { <small class="text-danger">{{ errorOf('billingStreet') }}</small> }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Número *</label>
+        <input class="input" formControlName="billingNumber" placeholder="1234">
+        @if (isInvalid('billingNumber')) { <small class="text-danger">{{ errorOf('billingNumber') }}</small> }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Depto / Oficina</label>
+        <input class="input" formControlName="billingApt" placeholder="502">
+      </div>
+    </div>
+
+    <div class="form-row form-row--3">
+      <div class="form-group">
+        <label class="form-label">Ciudad / Comuna *</label>
+        <input class="input" formControlName="billingCity" placeholder="Providencia">
+        @if (isInvalid('billingCity')) { <small class="text-danger">{{ errorOf('billingCity') }}</small> }
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Región *</label>
+        <select class="select" formControlName="billingRegion">
+          @for (r of regions; track r) {
+            <option [value]="r">{{ r }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Código postal</label>
+        <input class="input" formControlName="billingZip" placeholder="7500000">
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Referencia</label>
+      <input class="input" formControlName="billingReference" placeholder="Frente a la plaza, edificio azul…">
     </div>
   </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()">
-
-    <div class="form-row">
-
-      <!-- Nombre -->
-      <div class="form-group">
-        <label class="form-label">Nombre *</label>
-        <input
-          class="input"
-          formControlName="name"
-          placeholder="Juan Pérez"
-        />
-        @if (isInvalid('name')) {
-          <small class="text-danger">Nombre requerido (mín. 3 caracteres)</small>
-        }
-      </div>
-
-      <!-- Email -->
-      <div class="form-group">
-        <label class="form-label">Email *</label>
-        <input
-          class="input"
-          formControlName="email"
-          placeholder="correo@empresa.cl"
-        />
-        @if (isInvalid('email')) {
-          <small class="text-danger">Email válido requerido</small>
-        }
-      </div>
-
+  <!-- Dirección de envío -->
+  <div class="card step-client__card">
+    <div class="step-client__shipping-header">
+      <h3 class="step-client__section-title step-client__section-title--first">
+        Dirección de envío
+      </h3>
+      <label class="checkbox">
+        <input type="checkbox" formControlName="shippingSameAsBilling">
+        <span>Misma que la facturación</span>
+      </label>
     </div>
 
-    <div class="form-row">
+    @if (!form.controls.shippingSameAsBilling.value) {
+      <button type="button" class="link-btn link-btn--primary mb-3" (click)="copyBillingToShipping()">
+        Copiar desde facturación
+      </button>
 
-      <!-- Teléfono -->
-      <div class="form-group">
-        <label class="form-label">Teléfono</label>
-        <input
-          class="input"
-          formControlName="phone"
-          placeholder="+56 9 1234 5678"
-        />
+      <div class="form-row form-row--3">
+        <div class="form-group form-group--street">
+          <label class="form-label">Calle *</label>
+          <input class="input" formControlName="shippingStreet">
+          @if (isInvalid('shippingStreet')) { <small class="text-danger">{{ errorOf('shippingStreet') }}</small> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Número *</label>
+          <input class="input" formControlName="shippingNumber">
+          @if (isInvalid('shippingNumber')) { <small class="text-danger">{{ errorOf('shippingNumber') }}</small> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Depto / Oficina</label>
+          <input class="input" formControlName="shippingApt">
+        </div>
       </div>
 
-      <!-- Empresa -->
-      <div class="form-group">
-        <label class="form-label">Empresa</label>
-        <input
-          class="input"
-          formControlName="company"
-          placeholder="Empresa Ltda."
-        />
+      <div class="form-row form-row--3">
+        <div class="form-group">
+          <label class="form-label">Ciudad / Comuna *</label>
+          <input class="input" formControlName="shippingCity">
+          @if (isInvalid('shippingCity')) { <small class="text-danger">{{ errorOf('shippingCity') }}</small> }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Región *</label>
+          <select class="select" formControlName="shippingRegion">
+            @for (r of regions; track r) {
+              <option [value]="r">{{ r }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Código postal</label>
+          <input class="input" formControlName="shippingZip">
+        </div>
       </div>
 
-    </div>
+      <div class="form-group">
+        <label class="form-label">Referencia</label>
+        <input class="input" formControlName="shippingReference">
+      </div>
+    }
+  </div>
 
-    <!-- Notas -->
-    <div class="form-group mt-3">
+  <!-- Notas y términos -->
+  <div class="card step-client__card">
+    <div class="form-group">
       <label class="form-label">Notas adicionales</label>
       <textarea
         class="textarea"
         formControlName="notes"
-        placeholder="Requerimientos especiales, urgencia, etc."
-      ></textarea>
+        placeholder="Requerimientos especiales, urgencia, observaciones…"></textarea>
     </div>
 
-    <!-- acciones -->
-    <div class="d-flex justify-between mt-4">
+    <label class="checkbox checkbox--terms">
+      <input type="checkbox" formControlName="acceptsTerms">
+      <span>
+        Acepto los <a href="#" target="_blank">términos y condiciones</a> y la
+        <a href="#" target="_blank">política de privacidad</a> *
+      </span>
+    </label>
+    @if (isInvalid('acceptsTerms')) {
+      <small class="text-danger">{{ errorOf('acceptsTerms') }}</small>
+    }
 
-      <button
-        type="button"
-        class="btn btn-outline"
-        (click)="back()">
-        Volver
-      </button>
+    <label class="checkbox">
+      <input type="checkbox" formControlName="acceptsMarketing">
+      <span>Quiero recibir ofertas y novedades por email</span>
+    </label>
+  </div>
 
-      <button
-        type="submit"
-        class="btn btn-primary"
-        [disabled]="form.invalid">
-        Continuar
-      </button>
+  <!-- Acciones -->
+  <div class="step-client__actions">
+    <button type="button" class="btn btn-outline" (click)="back()">
+      ← Volver
+    </button>
 
-    </div>
-
-  </form>
-
-</div>
+    <button
+      type="submit"
+      class="btn btn-primary"
+      [disabled]="form.invalid">
+      Continuar a vista previa
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+        <polyline points="9 18 15 12 9 6" />
+      </svg>
+    </button>
+  </div>
+</form>

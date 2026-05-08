@@ -1,86 +1,259 @@
-<div class="container">
+<div class="step-doc">
 
-  <div class="card quote-document">
+  <!-- Configuración (no se imprime) -->
+  <div class="card step-doc__config no-print">
+    <h2 class="step-doc__config-title">Ajustes del documento</h2>
 
-    <!-- HEADER -->
-    <div class="quote-header">
-      <div>
-        <h2>VAYO Solutions</h2>
-        <small>Cotización</small>
+    <div class="step-doc__grid">
+      <div class="form-group">
+        <label class="form-label">Validez de la cotización</label>
+        <div class="chip-group">
+          @for (d of validityOptions; track d) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--active]="qs.validityDays() === d"
+              (click)="setValidity(d)">
+              {{ d }} días
+            </button>
+          }
+        </div>
       </div>
 
-      <div class="text-right">
-        <div><strong>Fecha:</strong> {{ today | date:'dd/MM/yyyy' }}</div>
+      <div class="form-group">
+        <label class="form-label">Forma de pago</label>
+        <div class="chip-group">
+          @for (p of paymentOptions; track p.value) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--active]="qs.paymentTerms() === p.value"
+              (click)="setPayment(p.value)">
+              {{ p.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Tipo de entrega</label>
+        <div class="chip-group">
+          @for (d of deliveryOptions; track d.value) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--active]="qs.deliveryTerms() === d.value"
+              (click)="setDelivery(d.value)">
+              {{ d.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Moneda</label>
+        <div class="chip-group">
+          @for (c of currencyOptions; track c.value) {
+            <button
+              type="button"
+              class="chip"
+              [class.chip--active]="qs.currency() === c.value"
+              (click)="setCurrency(c.value)">
+              {{ c.symbol }} {{ c.value }}
+            </button>
+          }
+        </div>
       </div>
     </div>
 
-    <hr>
-
-    <!-- CLIENTE -->
-    <div class="quote-client mb-4">
-      <h4>Cliente</h4>
-
-      @if (qs.client()) {
-      <div>{{ qs.client()?.name }}</div>
-      <div>{{ qs.client()?.email }}</div>
-      <div>{{ qs.client()?.phone }}</div>
-      }
+    <div class="form-group">
+      <label class="form-label">Observaciones generales</label>
+      <textarea
+        class="textarea"
+        rows="2"
+        placeholder="Plazos especiales, condiciones generales, etc."
+        [value]="qs.generalNotes()"
+        (input)="setNotes($any($event.target).value)"></textarea>
     </div>
-
-    <!-- TABLA -->
-    <table class="quote-table">
-      <thead>
-        <tr>
-          <th>Producto</th>
-          <th>Precio</th>
-          <th>Cantidad</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-
-      <tbody>
-        @for (item of qs.items(); track item.id) {
-        <tr>
-          <td>{{ item.name }}</td>
-          <td>{{ qs['parsePrice'](item.price) | currency:'CLP' }}</td>
-          <td>{{ item.qty }}</td>
-          <td>{{ getItemTotal(item) | currency:'CLP' }}</td>
-        </tr>
-        }
-      </tbody>
-    </table>
-
-    <!-- TOTALES -->
-    <div class="quote-totals mt-4">
-
-      <div class="total-row">
-        <span>Subtotal</span>
-        <span>{{ qs.subtotal() | currency:'CLP' }}</span>
-      </div>
-
-      <div class="total-row">
-        <span>IVA (19%)</span>
-        <span>{{ qs.iva() | currency:'CLP' }}</span>
-      </div>
-
-      <div class="total-final">
-        <strong>Total</strong>
-        <strong>{{ qs.total() | currency:'CLP' }}</strong>
-      </div>
-
-    </div>
-
-    <!-- ACCIONES -->
-    <div class="mt-4 text-right">
-      <button class="btn btn-secondary mr-2" (click)="back()">
-        Volver
-      </button>
-
-      <button class="btn btn-primary" (click)="confirm()">
-        Confirmar y enviar
-      </button>
-    </div>
-
   </div>
 
+  <!-- Documento -->
+  <article class="card step-doc__doc" id="quote-document">
+
+    <!-- Encabezado -->
+    <header class="doc-header">
+      <div class="doc-header__brand">
+        <div class="doc-header__logo">VAYO</div>
+        <div>
+          <strong>VAYO Solutions SpA</strong>
+          <small>contacto&#64;vayo.cl · +56 2 2345 6789</small>
+          <small>Av. Providencia 1234, Santiago</small>
+        </div>
+      </div>
+
+      <div class="doc-header__meta">
+        <span class="badge badge-brand">COTIZACIÓN</span>
+        <h1 class="doc-header__folio">N° {{ folio() }}</h1>
+        <small>Emitida: {{ today | date:'dd/MM/yyyy' }}</small>
+        <small>Válida hasta: <strong>{{ validUntil() | date:'dd/MM/yyyy' }}</strong></small>
+      </div>
+    </header>
+
+    <!-- Cliente -->
+    <section class="doc-section">
+      <div class="doc-grid-2">
+        <div class="doc-block">
+          <h4 class="doc-block__title">Cliente</h4>
+          @if (qs.client(); as c) {
+            <strong>{{ c.company || c.name }}</strong>
+            @if (c.company && c.name) { <small>Contacto: {{ c.name }}</small> }
+            @if (c.taxId) { <small>RUT: {{ c.taxId }}</small> }
+            <small>{{ c.email }}</small>
+            @if (c.phone) { <small>{{ c.phone }}</small> }
+            @if (c.businessActivity) { <small>Giro: {{ c.businessActivity }}</small> }
+          }
+        </div>
+
+        <div class="doc-block">
+          <h4 class="doc-block__title">Dirección de facturación</h4>
+          @if (qs.client()?.billingAddress; as a) {
+            <small>{{ a.street }} {{ a.number }}<ng-container *ngIf="a.apt">, Of/Dpto {{ a.apt }}</ng-container></small>
+            <small>{{ a.city }}, {{ a.region }}</small>
+            @if (a.zip) { <small>CP: {{ a.zip }}</small> }
+          }
+
+          @if (qs.client()?.shippingAddress && !qs.client()?.shippingSameAsBilling) {
+            <h4 class="doc-block__title doc-block__title--mt">Dirección de envío</h4>
+            @if (qs.client()?.shippingAddress; as s) {
+              <small>{{ s.street }} {{ s.number }}<ng-container *ngIf="s.apt">, Of/Dpto {{ s.apt }}</ng-container></small>
+              <small>{{ s.city }}, {{ s.region }}</small>
+            }
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- Tabla de ítems -->
+    <section class="doc-section">
+      <table class="doc-table">
+        <thead>
+          <tr>
+            <th class="doc-table__col-num">#</th>
+            <th>Producto / SKU</th>
+            <th class="doc-table__col-qty">Cant.</th>
+            <th class="doc-table__col-price">Precio unitario</th>
+            <th class="doc-table__col-price">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of qs.items(); track item.id; let i = $index) {
+            <tr>
+              <td class="doc-table__col-num">{{ i + 1 }}</td>
+              <td>
+                <strong>{{ item.name }}</strong>
+                <small class="text-muted">SKU: {{ item.sku }}</small>
+                @if (item.notes) {
+                  <small class="doc-table__note">Nota: {{ item.notes }}</small>
+                }
+              </td>
+              <td class="doc-table__col-qty">{{ item.qty }}</td>
+              <td class="doc-table__col-price">{{ formatCurrency(qs.parsePrice(item.price)) }}</td>
+              <td class="doc-table__col-price"><strong>{{ formatCurrency(itemTotal(item)) }}</strong></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Totales -->
+    <section class="doc-totals">
+      <div class="doc-totals__terms">
+        <div class="doc-block">
+          <h4 class="doc-block__title">Términos comerciales</h4>
+          <small><strong>Pago:</strong>
+            @switch (qs.paymentTerms()) {
+              @case ('contado') { Contado }
+              @case ('15-dias') { 15 días }
+              @case ('30-dias') { 30 días }
+              @case ('60-dias') { 60 días }
+            }
+          </small>
+          <small><strong>Entrega:</strong>
+            @switch (qs.deliveryTerms()) {
+              @case ('pickup') { Retiro en tienda }
+              @case ('delivery') { Despacho local }
+              @case ('shipping') { Envío nacional }
+            }
+          </small>
+          <small><strong>Envío:</strong> {{ qs.shippingMethod().label }} ({{ qs.shippingMethod().estimatedDays }})</small>
+          <small><strong>Validez:</strong> {{ qs.validityDays() }} días</small>
+          <small><strong>Moneda:</strong> {{ qs.currency() }}</small>
+        </div>
+      </div>
+
+      <div class="doc-totals__amounts">
+        <div class="total-line">
+          <span>Subtotal</span>
+          <span>{{ formatCurrency(qs.subtotal()) }}</span>
+        </div>
+        @if (qs.coupon(); as c) {
+          <div class="total-line total-line--discount">
+            <span>Descuento ({{ c.code }})</span>
+            <span>− {{ formatCurrency(qs.discount()) }}</span>
+          </div>
+        }
+        <div class="total-line">
+          <span>IVA (19%)</span>
+          <span>{{ formatCurrency(qs.iva()) }}</span>
+        </div>
+        <div class="total-line">
+          <span>Envío</span>
+          <span>{{ qs.shippingCost() === 0 ? 'Sin costo' : formatCurrency(qs.shippingCost()) }}</span>
+        </div>
+        <div class="total-line total-line--final">
+          <strong>Total {{ qs.currency() }}</strong>
+          <strong>{{ formatCurrency(qs.total()) }}</strong>
+        </div>
+      </div>
+    </section>
+
+    @if (qs.generalNotes()) {
+      <section class="doc-section doc-notes">
+        <h4 class="doc-block__title">Observaciones</h4>
+        <p>{{ qs.generalNotes() }}</p>
+      </section>
+    }
+
+    <footer class="doc-footer">
+      <small>
+        Esta cotización tiene una validez de <strong>{{ qs.validityDays() }} días</strong> a partir de su fecha de emisión.
+        Los precios incluyen IVA e impuestos correspondientes según la legislación chilena vigente.
+        Cualquier modificación posterior podrá afectar el valor final.
+      </small>
+    </footer>
+  </article>
+
+  <!-- Acciones -->
+  <div class="step-doc__actions no-print">
+    <button type="button" class="btn btn-outline" (click)="back()">
+      ← Editar datos
+    </button>
+
+    <div class="step-doc__actions-right">
+      <button type="button" class="btn btn-secondary" (click)="print()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="6 9 6 2 18 2 18 9" />
+          <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
+          <rect x="6" y="14" width="12" height="8" />
+        </svg>
+        Imprimir
+      </button>
+      <button type="button" class="btn btn-primary" (click)="confirm()">
+        Confirmar y enviar
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <polyline points="9 18 15 12 9 6" />
+        </svg>
+      </button>
+    </div>
+  </div>
 </div>

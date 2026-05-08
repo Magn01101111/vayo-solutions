@@ -11,15 +11,80 @@ import { ProductCardData } from './ui.models';
 
 export interface QuotationItem extends ProductCardData {
   qty: number;
+  /** Notas del cliente sobre este ítem (especificaciones, urgencia, etc). */
+  notes?: string;
+  /** Cantidad máxima permitida (derivada del stock o reglas comerciales). */
+  maxQty?: number;
+  /** Marca de tiempo cuando se agregó al carrito (ISO). */
+  addedAt?: string;
 }
 
+export interface SavedItem extends ProductCardData {
+  savedAt: string;
+}
+
+export interface QuotationAddress {
+  street?: string;
+  number?: string;
+  apt?: string;
+  city?: string;
+  region?: string;
+  zip?: string;
+  reference?: string;
+}
+
+export type CustomerType = 'person' | 'company';
+
 export interface QuotationClient {
+  /** Tipo de cliente: persona natural o empresa. */
+  customerType?: CustomerType;
   name: string;
   email: string;
   phone?: string;
   company?: string;
+  /** RUT (persona) o RUT empresa, formato chileno con DV. */
+  taxId?: string;
+  /** Giro (sólo empresa). */
+  businessActivity?: string;
+  /** Dirección de facturación. */
+  billingAddress?: QuotationAddress;
+  /** Dirección de envío (puede ser igual a la de facturación). */
+  shippingAddress?: QuotationAddress;
+  /** Si el envío es el mismo que la facturación. */
+  shippingSameAsBilling?: boolean;
   notes?: string;
+  /** Aceptación de términos y condiciones. */
+  acceptsTerms?: boolean;
+  /** Marketing opt-in. */
+  acceptsMarketing?: boolean;
 }
+
+export type CouponType = 'percentage' | 'fixed';
+
+export interface Coupon {
+  code: string;
+  type: CouponType;
+  /** Si es percentage, 0-100. Si es fixed, monto en CLP. */
+  value: number;
+  /** Monto mínimo de subtotal para aplicar. */
+  minSubtotal?: number;
+  /** Descripción legible. */
+  description?: string;
+}
+
+export interface ShippingMethod {
+  id: string;
+  label: string;
+  description?: string;
+  cost: number;
+  estimatedDays?: string;
+}
+
+export type QuotationCurrency = 'CLP' | 'USD' | 'UF';
+
+export type PaymentTerms = 'contado' | '15-dias' | '30-dias' | '60-dias';
+
+export type DeliveryTerms = 'pickup' | 'delivery' | 'shipping';
 
 // ── Entidades de dominio (usadas antes de conectar con API — Sprint 3) ─────────
 
