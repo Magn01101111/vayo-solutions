@@ -42,9 +42,10 @@ export class DashboardComponent implements OnInit {
         const totalProducts   = products.data?.length   ?? 0;
         const totalCategories = categories.data?.length ?? 0;
         const totalClients    = clients.data?.length    ?? 0;
-        const inStockProducts = products.data?.filter(
-          (p) => p.availabilityStatus === 'in_stock'
-        ).length ?? 0;
+        const inStockProducts = products.data?.reduce(
+          (sum, p) => sum + (p.availabilityStatus === 'in_stock' ? p.stock : 0),
+          0,
+        ) ?? 0;
 
         this.metrics = [
           {
