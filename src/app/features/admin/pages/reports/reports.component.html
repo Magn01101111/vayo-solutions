@@ -1,1 +1,64 @@
-<p>reports works!</p>
+<div class="page-reports">
+
+  <header class="page-header">
+    <div>
+      <h2 class="page-title">Reportes</h2>
+      <p class="page-subtitle">Exporta tus datos a Excel (CSV) con filtros de fecha</p>
+    </div>
+  </header>
+
+  <!-- Filtro de fechas compartido -->
+  <div class="date-filter">
+    <div class="date-filter__field">
+      <label class="form-label" for="from">Desde</label>
+      <input id="from" class="input" type="date" [(ngModel)]="from" />
+    </div>
+    <div class="date-filter__field">
+      <label class="form-label" for="to">Hasta</label>
+      <input id="to" class="input" type="date" [(ngModel)]="to" />
+    </div>
+    @if (from || to) {
+      <button class="btn btn-outline" type="button" (click)="clearDates()">Limpiar fechas</button>
+    }
+    <p class="date-filter__hint">Si no eliges fechas, se exporta todo el historial.</p>
+  </div>
+
+  @if (error()) {
+    <div class="reports-alert">{{ error() }}</div>
+  }
+
+  <!-- Tarjetas de reporte -->
+  <div class="reports-grid">
+    @for (r of reports; track r.type) {
+      <article class="report-card">
+        <div class="report-card__head">
+          <span class="report-card__icon">{{ r.icon }}</span>
+          <h3 class="report-card__title">{{ r.title }}</h3>
+        </div>
+        <p class="report-card__desc">{{ r.description }}</p>
+
+        @if (r.statuses.length > 0) {
+          <select class="select report-card__status" [(ngModel)]="statusByType[r.type]">
+            @for (st of r.statuses; track st.value) {
+              <option [value]="st.value">{{ st.label }}</option>
+            }
+          </select>
+        }
+
+        <button
+          class="btn btn-primary report-card__btn"
+          type="button"
+          [disabled]="downloading() === r.type"
+          (click)="download(r.type)"
+        >
+          @if (downloading() === r.type) {
+            Generando…
+          } @else {
+            ⬇ Descargar CSV
+          }
+        </button>
+      </article>
+    }
+  </div>
+
+</div>

@@ -1,0 +1,118 @@
+.page-reports {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.page-subtitle {
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary);
+}
+
+// ── Filtro de fechas ──────────────────────────────────────────────────────────
+
+.date-filter {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1.125rem 1.25rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+}
+
+.date-filter__field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+
+  .input { min-width: 10rem; }
+}
+
+.date-filter__hint {
+  flex-basis: 100%;
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin-top: 0.25rem;
+}
+
+// ── Alerta ────────────────────────────────────────────────────────────────────
+
+.reports-alert {
+  padding: 0.75rem 1rem;
+  background: var(--color-danger-bg);
+  border: 1px solid rgba(153, 60, 29, 0.2);
+  border-radius: var(--radius-sm);
+  color: var(--color-danger);
+  font-size: 0.875rem;
+}
+
+// ── Tarjetas de reporte ───────────────────────────────────────────────────────
+
+.reports-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 40rem) { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 64rem) { grid-template-columns: repeat(3, 1fr); }
+}
+
+.report-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+  background: var(--color-white);
+  border: 1px solid var(--color-border-primary);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+}
+
+.report-card__head {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.report-card__icon {
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.report-card__title {
+  font-size: 1.0625rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.report-card__desc {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  flex: 1;
+}
+
+.report-card__status {
+  width: 100%;
+}
+
+.report-card__btn {
+  width: 100%;
+  justify-content: center;
+}

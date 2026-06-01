@@ -1,1 +1,89 @@
-<p>sales works!</p>
+<div class="page-sales">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Ventas</h2>
+      <p class="page-subtitle">Ventas generadas a partir de cotizaciones</p>
+    </div>
+  </div>
+
+  <!-- Filtros -->
+  <div class="filters">
+    <input
+      class="input filters__folio"
+      type="search"
+      placeholder="Buscar por folio (ej. V-2026-0001)…"
+      [(ngModel)]="folioQ"
+      (keyup.enter)="search()"
+    />
+    <select class="select filters__status" [(ngModel)]="statusFilter" (change)="search()">
+      <option value="">Todos los estados</option>
+      <option value="pending">Pendiente</option>
+      <option value="paid">Pagada</option>
+      <option value="cancelled">Anulada</option>
+    </select>
+    <button class="btn btn-secondary" type="button" (click)="search()">Buscar</button>
+    @if (folioQ || statusFilter) {
+      <button class="btn btn-outline" type="button" (click)="clearFilters()">Limpiar</button>
+    }
+  </div>
+
+  @if (loading) {
+    <p class="state-msg">Cargando ventas…</p>
+  } @else if (loadError) {
+    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  } @else if (sales.length === 0) {
+    <p class="state-msg">No hay ventas registradas. Convierte una cotización desde la sección Cotizaciones.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Folio</th>
+            <th>Fecha</th>
+            <th>Cliente</th>
+            <th>Cotización</th>
+            <th>Pago</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (sale of sales; track sale.id) {
+            <tr>
+              <td class="td--folio">{{ sale.folio }}</td>
+              <td>{{ formatDate(sale.createdAt) }}</td>
+              <td class="td--name">{{ sale.client?.name || sale.client?.company || '—' }}</td>
+              <td>{{ sale.quoteFolio || '—' }}</td>
+              <td>{{ paymentLabel(sale.paymentMethod) }}</td>
+              <td class="td--price">{{ formatCLP(sale.totals?.total) }}</td>
+              <td>
+                <span class="badge" [class]="statusBadge(sale.status)">
+                  {{ statusLabel(sale.status) }}
+                </span>
+              </td>
+              <td class="td--actions">
+                @if (sale.status !== 'paid') {
+                  <button class="btn btn-sm btn-success" type="button"
+                          [disabled]="updatingId === sale.id"
+                          (click)="changeStatus(sale, 'paid')">
+                    Marcar pagada
+                  </button>
+                }
+                @if (sale.status !== 'cancelled') {
+                  <button class="btn btn-sm btn-ghost-danger" type="button"
+                          [disabled]="updatingId === sale.id"
+                          (click)="changeStatus(sale, 'cancelled')">
+                    Anular
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+</div>

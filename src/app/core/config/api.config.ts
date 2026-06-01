@@ -38,5 +38,10 @@ export const API_CONFIG = {
 
     // Stats
     statsDashboard: 'stats/dashboard',
+
+    // Reports
+    reportSales:   'reports/sales',
+    reportQuotes:  'reports/quotes',
+    reportClients: 'reports/clients',
   },
 } as const;
