@@ -174,12 +174,25 @@ export class StepConfirmationComponent {
   }
 
   resendByEmail() {
+    const id = this.quoteId();
+    if (!id) {
+      this.error.set('No hay cotización generada para enviar.');
+      return;
+    }
     this.emailSending.set(true);
-    setTimeout(() => {
-      this.emailSending.set(false);
-      this.emailSent.set(true);
-      setTimeout(() => this.emailSent.set(false), 3000);
-    }, 1200);
+    // Envía al email del cliente registrado en la cotización (el backend lo resuelve).
+    this.quoteApi.sendByEmail(id, this.qs.client()?.email).subscribe({
+      next: () => {
+        this.emailSending.set(false);
+        this.emailSent.set(true);
+        setTimeout(() => this.emailSent.set(false), 3500);
+      },
+      error: (err) => {
+        this.emailSending.set(false);
+        const msg = err?.error?.error ?? err?.message ?? 'No se pudo enviar el correo.';
+        this.error.set(msg);
+      },
+    });
   }
 
   back() {

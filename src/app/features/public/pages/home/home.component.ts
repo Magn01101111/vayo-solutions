@@ -1,8 +1,8 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
+
 import { mapApiCategoryToCatalogCategory, mapApiProductToCardData } from '../../../public/mapper';
 import {
   CatalogCategory,
@@ -10,13 +10,13 @@ import {
   StepItem,
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
-import { CacheService }   from '../../../../core/services/cache.service';
+import { CacheService } from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -26,11 +26,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   qs = inject(QuotationService);
 
   private readonly destroy$ = new Subject<void>();
-  categories: CatalogCategory[] = [
-    { id: 'all', label: 'Todos', slug: 'all', active: true },
-  ];
 
-  products: ProductCardData[] = [];
+  /** Productos destacados (marcados por el admin) que se muestran en la portada. */
+  featured: ProductCardData[] = [];
+  /** Categorías para la sección "explora por categoría". */
+  categories: CatalogCategory[] = [];
+
   isLoading = false;
   errorMessage = '';
 
@@ -62,14 +63,11 @@ export class HomeComponent implements OnInit, OnDestroy {
     'Sin cuenta necesaria',
   ];
 
-  selectedCategory = 'Todos';
-  searchQuery      = '';
-
   ngOnInit(): void {
-    this.loadCatalogData();
+    this.loadData();
 
-    // Si admin crea/edita/desactiva productos o categorías (incluso desde
-    // OTRA pestaña), recargamos automáticamente.
+    // Si admin marca/desmarca destacados o cambia productos (incluso en otra
+    // pestaña), recargamos la portada automáticamente.
     this.cacheService.invalidations$
       .pipe(
         takeUntil(this.destroy$),
@@ -78,7 +76,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           (ev.kind === 'prefix' && (ev.value === 'products:' || ev.value === 'categories:')),
         ),
       )
-      .subscribe(() => this.loadCatalogData());
+      .subscribe(() => this.loadData());
   }
 
   ngOnDestroy(): void {
@@ -86,94 +84,33 @@ export class HomeComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get filteredProducts(): ProductCardData[] {
-    const query = this.searchQuery.trim().toLowerCase();
+  trackByProduct(_: number, item: ProductCardData): string { return item.id; }
+  trackByCategory(_: number, item: CatalogCategory): string { return item.id; }
+  trackByStep(_: number, item: StepItem): number { return item.number; }
 
-    return this.products.filter((product) => {
-      // Filtro por categoría
-      const categoryMatch =
-        this.selectedCategory === 'Todos' ||
-        product.category === this.selectedCategory;
-
-      if (!categoryMatch) return false;
-
-      // Filtro por búsqueda (nombre, SKU, marca, descripción)
-      if (!query) return true;
-
-      const haystack = [
-        product.name,
-        product.sku,
-        product.description ?? '',
-        product.category,
-      ].join(' ').toLowerCase();
-
-      return haystack.includes(query);
-    });
-  }
-
-  clearSearch(): void {
-    this.searchQuery = '';
-  }
-
-  get filteredProductsCount(): number {
-    return this.filteredProducts.length;
-  }
-
-  selectCategory(categoryLabel: string): void {
-    this.selectedCategory = categoryLabel;
-  }
-
-  isCategoryActive(category: CatalogCategory): boolean {
-    return category.label === this.selectedCategory;
-  }
-
-  trackByLabel(_: number, item: CatalogCategory): string {
-    return item.id;
-  }
-
-  trackByProduct(_: number, item: ProductCardData): string {
-    return item.id;
-  }
-
-  trackByStep(_: number, item: StepItem): number {
-    return item.number;
-  }
-
-  private loadCatalogData(): void {
+  private loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';
 
     forkJoin({
       categoriesResponse: this.catalogService.getCategories(),
-      productsResponse: this.catalogService.getProducts(),
+      featuredResponse:   this.catalogService.getFeaturedProducts(),
     }).subscribe({
-      next: ({ categoriesResponse, productsResponse }) => {
-        const mappedCategories = categoriesResponse.data.map(
-          mapApiCategoryToCatalogCategory
-        );
+      next: ({ categoriesResponse, featuredResponse }) => {
+        this.categories = categoriesResponse.data.map(mapApiCategoryToCatalogCategory);
 
-        this.categories = [
-          { id: 'all', label: 'Todos', slug: 'all', active: true },
-          ...mappedCategories,
-        ];
-
-        this.products = productsResponse.data.map((product) => {
-          const category = this.categories.find(
-            (item) => item.id === product.categoryId
-          );
-
+        this.featured = featuredResponse.data.map((product) => {
+          const category = this.categories.find((c) => c.id === product.categoryId);
           return mapApiProductToCardData(
             product,
-            category
-              ? { name: category.label, slug: category.slug }
-              : undefined
+            category ? { name: category.label, slug: category.slug } : undefined,
           );
         });
 
         this.isLoading = false;
       },
       error: () => {
-        this.errorMessage = 'No fue posible cargar el catálogo.';
+        this.errorMessage = 'No fue posible cargar la portada.';
         this.isLoading = false;
       },
     });

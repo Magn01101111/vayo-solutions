@@ -64,6 +64,8 @@ export interface ApiProductListItem {
   /** @deprecated Usar `images[0].publicId`. Se mantiene por compatibilidad. */
   imagePublicId?: string | null;
   isActive: boolean;
+  /** Producto destacado: aparece en el home de ofertas. */
+  isFeatured?: boolean;
   tags: string[];
 }
 
@@ -98,6 +100,7 @@ export interface CreateProductPayload {
   imageUrl?: string;
   imagePublicId?: string | null;
   isActive?: boolean;
+  isFeatured?: boolean;
   tags?: string[];
   specs?: ApiProductSpec[];
   dimensions?: ApiProductDimensions;

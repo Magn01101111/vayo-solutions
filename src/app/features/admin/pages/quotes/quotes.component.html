@@ -31,6 +31,14 @@
     }
   </div>
 
+  <!-- Mensajes de conversión a venta -->
+  @if (convertMsg) {
+    <div class="alert alert--success">{{ convertMsg }}</div>
+  }
+  @if (convertError) {
+    <div class="alert alert--error">{{ convertError }}</div>
+  }
+
   <!-- ── Lista ────────────────────────────────────────────────────────────── -->
   @if (loading) {
     <p class="state-msg">Cargando cotizaciones…</p>
@@ -50,6 +58,7 @@
             <th>Items</th>
             <th>Total</th>
             <th>Estado</th>
+            <th>Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -62,9 +71,28 @@
               <td class="td--center">{{ q.items?.length || 0 }}</td>
               <td class="td--price">{{ formatCLP(q.totals?.total) }}</td>
               <td>
-                <span class="badge" [class]="statusBadge(q.metadata?.status)">
-                  {{ statusLabel(q.metadata?.status) }}
-                </span>
+                <select
+                  class="status-select"
+                  [class]="statusBadge(q.metadata?.status)"
+                  [value]="q.metadata?.status || 'sent'"
+                  [disabled]="updatingStatusId === q._id"
+                  (change)="onStatusChange(q, $any($event.target).value)"
+                >
+                  @for (opt of statusOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </td>
+              <td class="td--actions">
+                @if (q.metadata?.status !== 'accepted') {
+                  <button class="btn btn-sm btn-primary" type="button"
+                          [disabled]="convertingId === q._id"
+                          (click)="convertToSale(q)">
+                    {{ convertingId === q._id ? 'Convirtiendo…' : 'Convertir a venta' }}
+                  </button>
+                } @else {
+                  <span class="muted-text">Convertida</span>
+                }
               </td>
             </tr>
           }

@@ -17,9 +17,11 @@ export interface ApiQuote {
     total: number;
   }>;
   totals?: { subtotal?: number; iva?: number; total?: number };
-  metadata?: { status?: 'sent' | 'accepted' | 'rejected' };
+  metadata?: { status?: 'sent' | 'accepted' | 'rejected' | 'expired' };
   createdAt?: string;
 }
+
+export type QuoteStatus = 'sent' | 'accepted' | 'rejected' | 'expired';
 
 @Injectable({ providedIn: 'root' })
 export class QuotationApiService {
@@ -43,6 +45,22 @@ export class QuotationApiService {
 
   getQuoteById(id: string): Observable<ApiResponse<ApiQuote>> {
     return this.api.get<ApiResponse<ApiQuote>>(`${API_CONFIG.endpoints.quotes}/${id}`);
+  }
+
+  /** Cambia el estado de una cotización (ADMIN/COTIZADOR). */
+  updateStatus(id: string, status: QuoteStatus): Observable<ApiResponse<ApiQuote>> {
+    return this.api.patch<ApiResponse<ApiQuote>, { status: QuoteStatus }>(
+      `${API_CONFIG.endpoints.quotes}/${id}/status`,
+      { status },
+    );
+  }
+
+  /** Envía la cotización por correo con el PDF adjunto. */
+  sendByEmail(id: string, to?: string): Observable<ApiResponse<{ message: string; simulated?: boolean }>> {
+    return this.api.post<ApiResponse<{ message: string; simulated?: boolean }>, { to?: string }>(
+      `${API_CONFIG.endpoints.quotes}/${id}/send-email`,
+      to ? { to } : {},
+    );
   }
 
   /**

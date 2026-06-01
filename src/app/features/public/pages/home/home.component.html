@@ -1,3 +1,4 @@
+<!-- ── HERO ──────────────────────────────────────────────────────────────── -->
 <section class="portal-hero">
   <div class="container">
     <div class="portal-hero__content">
@@ -51,7 +52,6 @@
             <div class="store-card__meta">Disponible en</div>
             <div class="store-card__name">App Store</div>
           </div>
-
           <div class="store-card">
             <div class="store-card__meta">Disponible en</div>
             <div class="store-card__name">Google Play</div>
@@ -62,52 +62,45 @@
   </div>
 </section>
 
-<section class="section portal-catalog">
+<!-- ── EXPLORA POR CATEGORÍA ─────────────────────────────────────────────── -->
+<section class="section portal-categories">
   <div class="container">
     <div class="portal-section-header">
       <div>
-        <h2 class="portal-section-title">Catálogo de repuestos</h2>
-        <p class="portal-section-subtitle">
-          {{ filteredProductsCount }}
-          {{ filteredProductsCount === 1 ? 'producto disponible' : 'productos disponibles' }}
-          <span *ngIf="selectedCategory !== 'Todos'"> en {{ selectedCategory }}</span>
-        </p>
+        <h2 class="portal-section-title">Explora por categoría</h2>
+        <p class="portal-section-subtitle">Encuentra el tipo de repuesto que necesitas.</p>
       </div>
+      <a routerLink="/catalogo" class="portal-section-link">Ver catálogo completo →</a>
+    </div>
 
+    <div class="category-grid" *ngIf="categories.length > 0">
+      <a
+        class="category-card"
+        *ngFor="let cat of categories; trackBy: trackByCategory"
+        [routerLink]="['/catalogo']"
+        [queryParams]="{ categoria: cat.slug }"
+      >
+        <span class="category-card__icon">{{ cat.label.charAt(0) }}</span>
+        <span class="category-card__name">{{ cat.label }}</span>
+        <span class="category-card__arrow" aria-hidden="true">→</span>
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ── PRODUCTOS DESTACADOS ──────────────────────────────────────────────── -->
+<section class="section portal-featured">
+  <div class="container">
+    <div class="portal-section-header">
+      <div>
+        <h2 class="portal-section-title">Productos destacados</h2>
+        <p class="portal-section-subtitle">Nuestra selección de repuestos recomendados.</p>
+      </div>
       <a routerLink="/catalogo" class="portal-section-link">Ver todos →</a>
     </div>
 
-    <!-- ── Barra de búsqueda ─────────────────────────────────────────────── -->
-    <div class="portal-search">
-      <input
-        type="search"
-        class="input portal-search__input"
-        [(ngModel)]="searchQuery"
-        placeholder="Buscar por nombre, código (SKU) o marca…"
-        autocomplete="off"
-      />
-      <button
-        type="button"
-        class="portal-search__clear"
-        *ngIf="searchQuery"
-        (click)="clearSearch()"
-        aria-label="Limpiar búsqueda"
-      >✕</button>
-      <a routerLink="/catalogo" class="btn btn-primary btn-sm portal-search__catalog">
-        Ver catálogo completo
-      </a>
-    </div>
-
-    <div class="portal-filters">
-      <button type="button" class="portal-filter" [class.is-active]="isCategoryActive(category)"
-        *ngFor="let category of categories; trackBy: trackByLabel" (click)="selectCategory(category.label)">
-        {{ category.label }}
-      </button>
-    </div>
-
     <div class="portal-empty-state card" *ngIf="isLoading">
-      <h3>Cargando catálogo...</h3>
-      <p>Estamos obteniendo los productos disponibles.</p>
+      <h3>Cargando destacados…</h3>
     </div>
 
     <div class="portal-empty-state card" *ngIf="!isLoading && errorMessage">
@@ -115,88 +108,50 @@
       <p>{{ errorMessage }}</p>
     </div>
 
-    <ng-container *ngIf="!isLoading && !errorMessage && filteredProducts.length > 0; else emptyProducts">
-      <div class="portal-products">
-        <article class="portal-product card" *ngFor="let product of filteredProducts; trackBy: trackByProduct">
-          <div class="portal-product__media">
-            <!-- Si el producto tiene imagen real, se muestra. Si no, fallback al icono SVG por categoría. -->
-            <img
-              *ngIf="product.imageUrl; else productIcon"
-              [src]="product.imageUrl"
-              [alt]="product.name"
-              class="portal-product__image"
-              loading="lazy"
-            />
-            <ng-template #productIcon>
-              <ng-container [ngSwitch]="product.icon">
-                <svg *ngSwitchCase="'compressor'" width="42" height="42" viewBox="0 0 42 42" fill="none"
-                  aria-hidden="true">
-                  <circle cx="21" cy="21" r="13" stroke="#378ADD" stroke-width="2" />
-                  <circle cx="21" cy="21" r="7" stroke="#85B7EB" stroke-width="1.6" />
-                  <path d="M21 7v4M21 31v4M7 21h4M31 21h4" stroke="#378ADD" stroke-width="1.6" stroke-linecap="round" />
-                </svg>
+    <!-- Con destacados -->
+    <div class="portal-products" *ngIf="!isLoading && !errorMessage && featured.length > 0">
+      <article class="portal-product card" *ngFor="let product of featured; trackBy: trackByProduct">
+        <div class="portal-product__media">
+          <img
+            *ngIf="product.imageUrl; else featIcon"
+            [src]="product.imageUrl"
+            [alt]="product.name"
+            class="portal-product__image"
+            loading="lazy"
+          />
+          <ng-template #featIcon>
+            <div class="portal-product__placeholder">📦</div>
+          </ng-template>
+        </div>
 
-                <svg *ngSwitchCase="'fan'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-                  <circle cx="21" cy="21" r="14" stroke="#85B7EB" stroke-width="1.6" stroke-dasharray="3 2" />
-                  <circle cx="21" cy="21" r="5" fill="#B5D4F4" />
-                  <path d="M21 7l2 8-2-2-2 2zM21 35l-2-8 2 2 2-2zM7 21l8-2-2 2 2 2zM35 21l-8 2 2-2-2-2z" fill="#378ADD" />
-                </svg>
+        <div class="portal-product__body">
+          <span class="badge badge-brand">{{ product.category }}</span>
+          <h3 class="portal-product__title">{{ product.name }}</h3>
+          <p class="portal-product__reference">Ref: {{ product.sku }}</p>
 
-                <svg *ngSwitchCase="'valve'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-                  <path d="M10 21h22M16 15l5 6-5 6M26 15l-5 6 5 6" stroke="#378ADD" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round" />
-                </svg>
-
-                <svg *ngSwitchCase="'sensor'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-                  <rect x="15" y="8" width="12" height="20" rx="6" stroke="#378ADD" stroke-width="2" />
-                  <circle cx="21" cy="30" r="4" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.5" />
-                </svg>
-
-                <svg *ngSwitchCase="'filter'" width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-                  <path d="M10 11h22l-8 10v8l-6 2v-10L10 11z" stroke="#378ADD" stroke-width="2" stroke-linejoin="round" />
-                </svg>
-
-                <svg *ngSwitchDefault width="42" height="42" viewBox="0 0 42 42" fill="none" aria-hidden="true">
-                  <rect x="10" y="10" width="22" height="22" rx="6" stroke="#378ADD" stroke-width="2" />
-                </svg>
-              </ng-container>
-            </ng-template>
+          <div class="portal-product__footer">
+            <span class="portal-product__price">{{ product.price }}</span>
+            <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
+              Agregar
+            </button>
+            <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
+              Ver ficha
+            </a>
           </div>
+        </div>
+      </article>
+    </div>
 
-          <div class="portal-product__body">
-            <span class="badge badge-brand">{{ product.category }}</span>
-
-            <h3 class="portal-product__title">{{ product.name }}</h3>
-            <p class="portal-product__reference">Ref: {{ product.sku }}</p>
-
-            <div class="portal-product__footer">
-              <span class="portal-product__price">{{ product.price }}</span>
-              <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
-                Agregar
-              </button>
-              <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
-                Ver ficha
-              </a>
-            </div>
-          </div>
-        </article>
-      </div>
-    </ng-container>
-
-    <ng-template #emptyProducts>
-      <div class="portal-empty-state card" *ngIf="!isLoading && !errorMessage">
-        <h3>No hay productos en esta categoría</h3>
-        <p>
-          Prueba seleccionando otra categoría o revisa el catálogo completo.
-        </p>
-        <button type="button" class="btn btn-primary" (click)="selectCategory('Todos')">
-          Ver todos
-        </button>
-      </div>
-    </ng-template>
+    <!-- Sin destacados configurados -->
+    <div class="portal-empty-state card" *ngIf="!isLoading && !errorMessage && featured.length === 0">
+      <h3>Aún no hay productos destacados</h3>
+      <p>Explora todo nuestro catálogo de repuestos disponibles.</p>
+      <a routerLink="/catalogo" class="btn btn-primary">Ir al catálogo</a>
+    </div>
   </div>
 </section>
 
+<!-- ── CÓMO FUNCIONA ─────────────────────────────────────────────────────── -->
 <section class="section portal-how" id="como-funciona">
   <div class="container">
     <h2 class="portal-section-title">¿Cómo solicitar una cotización?</h2>
@@ -211,6 +166,7 @@
   </div>
 </section>
 
+<!-- ── CTA ───────────────────────────────────────────────────────────────── -->
 <section class="portal-cta">
   <div class="container">
     <div class="portal-cta__inner">
@@ -220,8 +176,7 @@
           Revisa el catálogo y solicita tus repuestos para climatización industrial en pocos pasos.
         </p>
       </div>
-
-      <a routerLink="/cotizacion" class="btn btn-light">Comenzar cotización</a>
+      <a routerLink="/catalogo" class="btn btn-light">Ir al catálogo</a>
     </div>
   </div>
 </section>

@@ -3,8 +3,9 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
-import { QuotationApiService, ApiQuote } from '../../../../core/services/quotation-api.service';
+import { QuotationApiService, ApiQuote, QuoteStatus } from '../../../../core/services/quotation-api.service';
 import { ClientService } from '../../../../core/services/client.service';
+import { SaleService }   from '../../../../core/services/sale.service';
 import { ApiClient }     from '../../../../core/models/api.models';
 
 @Component({
@@ -17,6 +18,7 @@ import { ApiClient }     from '../../../../core/models/api.models';
 export class QuotesComponent implements OnInit {
   private readonly quoteSvc  = inject(QuotationApiService);
   private readonly clientSvc = inject(ClientService);
+  private readonly saleSvc   = inject(SaleService);
   private readonly route     = inject(ActivatedRoute);
 
   quotes: ApiQuote[] = [];
@@ -27,6 +29,21 @@ export class QuotesComponent implements OnInit {
   folioQ      = '';
   clientIdQ   = '';
   filterClient: ApiClient | null = null; // si llegamos con ?clientId=...
+
+  // Conversión a venta
+  convertingId = '';
+  convertMsg   = '';
+  convertError = '';
+
+  // Cambio de estado
+  updatingStatusId = '';
+
+  readonly statusOptions: { value: QuoteStatus; label: string }[] = [
+    { value: 'sent',     label: 'Enviada' },
+    { value: 'accepted', label: 'Aceptada' },
+    { value: 'rejected', label: 'Rechazada' },
+    { value: 'expired',  label: 'Vencida' },
+  ];
 
   ngOnInit(): void {
     // Permite llegar directo desde clientes con /admin/cotizaciones?clientId=...
@@ -69,11 +86,46 @@ export class QuotesComponent implements OnInit {
     this.load();
   }
 
+  /** Convierte una cotización en venta. */
+  convertToSale(quote: ApiQuote): void {
+    this.convertMsg   = '';
+    this.convertError = '';
+    this.convertingId = quote._id;
+
+    this.saleSvc.createFromQuote(quote._id).subscribe({
+      next: (res) => {
+        this.convertingId = '';
+        this.convertMsg = `Venta ${res.data.folio} creada a partir de ${quote.folio}.`;
+        this.load(); // refresca: la cotización pasa a "aceptada"
+        setTimeout(() => (this.convertMsg = ''), 5000);
+      },
+      error: (err) => {
+        this.convertingId = '';
+        this.convertError = err?.error?.error ?? 'No se pudo convertir la cotización.';
+        setTimeout(() => (this.convertError = ''), 6000);
+      },
+    });
+  }
+
   clearFilters(): void {
     this.folioQ       = '';
     this.clientIdQ    = '';
     this.filterClient = null;
     this.load();
+  }
+
+  /** Cambia el estado de la cotización desde el <select>. */
+  onStatusChange(quote: ApiQuote, status: QuoteStatus): void {
+    if (quote.metadata?.status === status) return;
+    this.updatingStatusId = quote._id;
+    this.quoteSvc.updateStatus(quote._id, status).subscribe({
+      next: (res) => {
+        const idx = this.quotes.findIndex((q) => q._id === quote._id);
+        if (idx >= 0) this.quotes[idx] = res.data;
+        this.updatingStatusId = '';
+      },
+      error: () => { this.updatingStatusId = ''; this.load(); },
+    });
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
@@ -90,6 +142,7 @@ export class QuotesComponent implements OnInit {
       sent:     'Enviada',
       accepted: 'Aceptada',
       rejected: 'Rechazada',
+      expired:  'Vencida',
     };
     return map[status ?? 'sent'] ?? 'Enviada';
   }
@@ -99,6 +152,7 @@ export class QuotesComponent implements OnInit {
       sent:     '',
       accepted: 'badge-success',
       rejected: 'badge-danger',
+      expired:  'badge-warning',
     };
     return map[status ?? 'sent'] ?? '';
   }

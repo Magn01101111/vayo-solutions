@@ -33,6 +33,10 @@ export const API_CONFIG = {
 
     // Quotes / Sales (Sprint 3+)
     quotes: 'quotes',
-    sales: 'sales',
+    sales:  'sales',
+    salesFromQuote: 'sales/from-quote',
+
+    // Stats
+    statsDashboard: 'stats/dashboard',
   },
 } as const;

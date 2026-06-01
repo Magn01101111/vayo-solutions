@@ -1,47 +1,95 @@
 <div class="dashboard">
+  <header class="dashboard__header">
+    <h1 class="dashboard__title">Panel de control</h1>
+    <p class="dashboard__subtitle">Resumen general de VAYO Solutions</p>
+  </header>
 
-  <!-- Header -->
-  <div class="dashboard__header">
-    <div>
-      <h2 class="dashboard__title">
-        Bienvenido, {{ user?.name ?? 'Admin' }} 👋
-      </h2>
-      <p class="dashboard__subtitle">Resumen general del sistema VAYO Solutions</p>
-    </div>
-  </div>
+  @if (loading()) {
+    <p class="dashboard__loading">Cargando métricas…</p>
+  } @else if (error()) {
+    <p class="dashboard__error">{{ error() }}</p>
+  } @else if (stats()) {
+    @if (stats(); as s) {
 
-  <!-- Metrics -->
-  @if (loading) {
-    <div class="dashboard__loading">Cargando datos…</div>
-  } @else {
+    <!-- ── Tarjetas de métricas ──────────────────────────────────────────── -->
     <div class="dashboard__metrics">
-      @for (metric of metrics; track metric.label) {
-        <a class="metric-card metric-card--{{ metric.accent }}" [routerLink]="metric.route">
-          <p class="metric-card__label">{{ metric.label }}</p>
-          <p class="metric-card__value">{{ metric.value }}</p>
-          <p class="metric-card__desc">{{ metric.description }}</p>
+      @for (metric of metrics(); track metric.label) {
+        <a class="metric-card" [routerLink]="metric.link">
+          <span class="metric-card__icon">{{ metric.icon }}</span>
+          <span class="metric-card__value">{{ metric.value }}</span>
+          <span class="metric-card__label">{{ metric.label }}</span>
+          <span class="metric-card__hint">{{ metric.hint }}</span>
         </a>
       }
     </div>
-  }
 
-  <!-- Quick links -->
-  <div class="dashboard__section">
-    <h3 class="dashboard__section-title">Accesos rápidos</h3>
-    <div class="dashboard__quick-links">
-      <a class="quick-link" routerLink="/admin/productos">
-        <span class="quick-link__icon">📦</span>
-        <span>Gestionar productos</span>
-      </a>
-      <a class="quick-link" routerLink="/admin/clientes">
-        <span class="quick-link__icon">👥</span>
-        <span>Gestionar clientes</span>
-      </a>
-      <a class="quick-link" routerLink="/admin/cotizaciones">
-        <span class="quick-link__icon">📋</span>
-        <span>Ver cotizaciones</span>
-      </a>
+    <!-- ── Gráficos ──────────────────────────────────────────────────────── -->
+    <div class="dashboard__charts">
+
+      <!-- Ventas por mes (barras) -->
+      <section class="chart-card">
+        <h2 class="chart-card__title">Ventas últimos 6 meses</h2>
+        <div class="bar-chart">
+          @for (m of s.salesByMonth; track m.label + m.year) {
+            <div class="bar-chart__col">
+              <div class="bar-chart__bar-wrap">
+                <span class="bar-chart__value" [class.bar-chart__value--zero]="m.total === 0">
+                  {{ m.total > 0 ? formatCLP(m.total) : '' }}
+                </span>
+                <div class="bar-chart__bar" [style.height.%]="barHeight(m.total)"></div>
+              </div>
+              <span class="bar-chart__label">{{ m.label }}</span>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Cotizaciones por estado (lista con barras) -->
+      <section class="chart-card">
+        <h2 class="chart-card__title">Cotizaciones por estado</h2>
+        @if (totalQuotes() === 0) {
+          <p class="chart-card__empty">Aún no hay cotizaciones.</p>
+        } @else {
+          <div class="status-chart">
+            @for (st of statusList(); track st.label) {
+              <div class="status-row">
+                <div class="status-row__head">
+                  <span class="status-row__dot" [style.background]="st.color"></span>
+                  <span class="status-row__label">{{ st.label }}</span>
+                  <span class="status-row__value">{{ st.value }} ({{ st.pct }}%)</span>
+                </div>
+                <div class="status-row__track">
+                  <div class="status-row__fill" [style.width.%]="st.pct" [style.background]="st.color"></div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Top productos -->
+      <section class="chart-card chart-card--wide">
+        <h2 class="chart-card__title">Top productos vendidos</h2>
+        @if (s.topProducts.length === 0) {
+          <p class="chart-card__empty">Aún no hay ventas registradas.</p>
+        } @else {
+          <div class="top-products">
+            @for (p of s.topProducts; track p.name; let i = $index) {
+              <div class="top-row">
+                <span class="top-row__rank">{{ i + 1 }}</span>
+                <span class="top-row__name" [title]="p.name">{{ p.name }}</span>
+                <div class="top-row__track">
+                  <div class="top-row__fill" [style.width.%]="topWidth(p.qty)"></div>
+                </div>
+                <span class="top-row__qty">{{ p.qty }} u.</span>
+                <span class="top-row__revenue">{{ formatCLP(p.revenue) }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
     </div>
-  </div>
-
+    }
+  }
 </div>

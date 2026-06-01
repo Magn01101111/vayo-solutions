@@ -19,7 +19,8 @@ import { CacheService } from './cache.service';
 // inmediato y se propaga entre pestañas vía BroadcastChannel — el TTL es
 // solo el "tope superior" de tiempo que un dato puede quedar obsoleto.
 const TTL_CATEGORIES = 5 * 60 * 1000;  // 5 min
-const TTL_PRODUCTS   = 30 * 1000;      // 30 segundos
+// Los productos NO se cachean en localStorage (ver getProducts → dedupe):
+// evita el bug de imágenes desactualizadas en las cards.
 
 // ── Prefijos de cache para invalidaciones agrupadas ───────────────────────
 const CACHE_PREFIX_CATEGORIES = 'categories:';
@@ -84,8 +85,7 @@ export class CatalogService {
     q?: string,
     all?: boolean,
   ): Observable<ApiResponse<ApiProductListItem[]>> {
-    // Las búsquedas con texto NO se cachean (alta variabilidad).
-    // Listados estables (sin q) sí.
+    // Las búsquedas con texto van directas al backend (alta variabilidad).
     if (q && q.trim().length > 0) {
       return this.api.get<ApiResponse<ApiProductListItem[]>>(
         API_CONFIG.endpoints.products,
@@ -93,14 +93,27 @@ export class CatalogService {
       );
     }
 
+    // Listados: usamos `dedupe` (NO persiste en localStorage). Así la lista
+    // siempre llega fresca del backend y las imágenes recién subidas se ven de
+    // inmediato en las cards. Solo se comparten requests concurrentes idénticos.
     const key = `${CACHE_PREFIX_PRODUCTS}${all ? 'all' : 'active'}:${category ?? 'any'}`;
-    return this.cache.wrap(
+    return this.cache.dedupe(
       key,
       () => this.api.get<ApiResponse<ApiProductListItem[]>>(
         API_CONFIG.endpoints.products,
         { category, all: all ? 'true' : undefined },
       ),
-      TTL_PRODUCTS,
+    );
+  }
+
+  /** Productos destacados para el home de ofertas. Sin cache persistente. */
+  getFeaturedProducts(): Observable<ApiResponse<ApiProductListItem[]>> {
+    return this.cache.dedupe(
+      `${CACHE_PREFIX_PRODUCTS}featured`,
+      () => this.api.get<ApiResponse<ApiProductListItem[]>>(
+        API_CONFIG.endpoints.products,
+        { featured: 'true' },
+      ),
     );
   }
 

@@ -66,7 +66,12 @@
                 }
               </td>
               <td class="td--sku">{{ product.sku }}</td>
-              <td class="td--name">{{ product.name }}</td>
+              <td class="td--name">
+                {{ product.name }}
+                @if (product.isFeatured) {
+                  <span class="featured-star" title="Producto destacado">★</span>
+                }
+              </td>
               <td>{{ product.categoryName || categoryName(product.categoryId) }}</td>
               <td>{{ product.brand }}</td>
               <td class="td--price">{{ formatPrice(product.price) }}</td>
@@ -196,6 +201,17 @@
           <div class="form-group">
             <label class="form-label" for="p-tags">Etiquetas (separadas por coma)</label>
             <input id="p-tags" class="input" type="text" [(ngModel)]="form.tags" name="tags" placeholder="compresor, scroll, 5ton" />
+          </div>
+
+          <!-- ── Destacado (aparece en el home de ofertas) ─────────────────── -->
+          <div class="form-group">
+            <label class="featured-toggle">
+              <input type="checkbox" [(ngModel)]="form.isFeatured" name="isFeatured" />
+              <span>
+                <strong>Producto destacado</strong>
+                <small>Aparecerá en la portada de ofertas del sitio público.</small>
+              </span>
+            </label>
           </div>
 
           <!-- ── Galería de imágenes (hasta 4) ────────────────────────────── -->

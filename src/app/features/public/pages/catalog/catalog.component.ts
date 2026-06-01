@@ -1,7 +1,7 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
-import { RouterLink }   from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
 
 import {
@@ -26,9 +26,13 @@ import { QuotationService } from '../../../../core/services/quotation.service';
 export class CatalogComponent implements OnInit, OnDestroy {
   private readonly catalogService = inject(CatalogService);
   private readonly cacheService   = inject(CacheService);
+  private readonly route          = inject(ActivatedRoute);
   qs = inject(QuotationService);
 
   private readonly destroy$ = new Subject<void>();
+
+  /** Slug de categoría pendiente de aplicar (viene de ?categoria= en la URL). */
+  private pendingCategorySlug: string | null = null;
 
   categories: CatalogCategory[] = [
     { id: 'all', label: 'Todos', slug: 'all', active: true },
@@ -41,6 +45,10 @@ export class CatalogComponent implements OnInit, OnDestroy {
   searchQuery      = '';
 
   ngOnInit(): void {
+    // Si llegamos desde el home con ?categoria=slug, lo recordamos para
+    // preseleccionar la categoría una vez cargadas.
+    this.pendingCategorySlug = this.route.snapshot.queryParamMap.get('categoria');
+
     this.loadCatalogData();
 
     // Auto-refresh cuando admin hace cambios en productos/categorías (incluso
@@ -105,6 +113,13 @@ export class CatalogComponent implements OnInit, OnDestroy {
           { id: 'all', label: 'Todos', slug: 'all', active: true },
           ...mapped,
         ];
+
+        // Aplicar la categoría que venía en la URL (?categoria=slug)
+        if (this.pendingCategorySlug) {
+          const match = this.categories.find((c) => c.slug === this.pendingCategorySlug);
+          if (match) this.selectedCategory = match.label;
+          this.pendingCategorySlug = null;
+        }
 
         this.products = productsResponse.data.map((product) => {
           const category = this.categories.find((c) => c.id === product.categoryId);

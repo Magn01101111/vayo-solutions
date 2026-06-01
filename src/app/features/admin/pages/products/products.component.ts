@@ -27,6 +27,7 @@ interface ProductForm {
   stock:              string;
   availabilityStatus: ApiProductAvailabilityStatus;
   tags:               string;
+  isFeatured:         boolean;
   /** Galería: hasta 4 imágenes. images[0] es la principal. */
   images:             ApiProductImage[];
 }
@@ -43,6 +44,7 @@ function emptyForm(): ProductForm {
     stock:              '0',
     availabilityStatus: 'in_stock',
     tags:               '',
+    isFeatured:         false,
     images:             [],
   };
 }
@@ -165,6 +167,7 @@ export class ProductsComponent implements OnInit {
       stock:              String(product.stock),
       availabilityStatus: product.availabilityStatus,
       tags:               product.tags.join(', '),
+      isFeatured:         product.isFeatured ?? false,
       images,
     };
     this.formError  = '';
@@ -265,6 +268,7 @@ export class ProductsComponent implements OnInit {
       stock:              Number(stock) || 0,
       availabilityStatus: this.form.availabilityStatus,
       tags,
+      isFeatured:         this.form.isFeatured,
       images:             this.form.images,  // backend deriva imageUrl/imagePublicId desde images[0]
     };
 

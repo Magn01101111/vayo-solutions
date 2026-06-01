@@ -84,3 +84,43 @@
 .td--name   { font-weight: 500; }
 .td--price  { font-weight: 600; }
 .td--center { text-align: center; }
+.td--actions { white-space: nowrap; }
+
+.muted-text {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary);
+  font-style: italic;
+}
+
+.status-select {
+  font-size: 0.8125rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-primary);
+  background: var(--color-white);
+  cursor: pointer;
+  color: var(--color-text-primary);
+
+  &:disabled { opacity: 0.6; cursor: wait; }
+
+  &.badge-success { border-color: rgba(30, 110, 63, 0.4); color: #1e6e3f; }
+  &.badge-danger  { border-color: rgba(153, 60, 29, 0.4); color: var(--color-danger); }
+  &.badge-warning { border-color: rgba(180, 130, 20, 0.4); color: #8a6200; }
+}
+
+.alert {
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.875rem;
+
+  &--success {
+    background: rgba(30, 110, 63, 0.1);
+    color: #1e6e3f;
+    border: 1px solid rgba(30, 110, 63, 0.25);
+  }
+  &--error {
+    background: var(--color-danger-bg);
+    color: var(--color-danger);
+    border: 1px solid rgba(153, 60, 29, 0.2);
+  }
+}

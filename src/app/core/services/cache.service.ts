@@ -107,6 +107,31 @@ export class CacheService {
     return obs$;
   }
 
+  /**
+   * Deduplicación SIN persistencia.
+   *
+   * A diferencia de `wrap()`, NO guarda el resultado en memoria ni localStorage:
+   * cada llamada va al backend y trae datos frescos. Lo único que hace es
+   * compartir el resultado entre requests que ocurren *al mismo tiempo* (evita
+   * disparar la misma petición dos veces en paralelo).
+   *
+   * Úsalo para datos que cambian seguido y donde mostrar algo desactualizado es
+   * un problema (ej. la lista de productos con sus imágenes). Así evitamos el bug
+   * de "subí una imagen pero la card sigue mostrando la vieja".
+   */
+  dedupe<T>(key: string, factory: () => Observable<T>): Observable<T> {
+    const existing = this.inflight.get(key);
+    if (existing) return existing as Observable<T>;
+
+    const obs$ = factory().pipe(
+      shareReplay({ bufferSize: 1, refCount: false }),
+      finalize(() => this.inflight.delete(key)),
+    );
+
+    this.inflight.set(key, obs$);
+    return obs$;
+  }
+
   /** Lee del cache. Devuelve `null` si no existe o expiró. */
   get<T>(key: string): T | null {
     // Memoria primero (sin parsear JSON)

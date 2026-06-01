@@ -99,6 +99,8 @@ export interface ProductCardData {
   shortStatus: string;
   stockLabel: string;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
+  /** Producto destacado (home de ofertas). */
+  isFeatured?: boolean;
   tags: string[];
 }
 
