@@ -23,6 +23,7 @@ export const roleGuard: CanActivateFn = (route: ActivatedRouteSnapshot) => {
     return true;
   }
 
-  // Autenticado pero sin el rol requerido → dashboard
-  return router.createUrlTree(['/admin']);
+  // Autenticado pero sin el rol requerido → al portal público (home).
+  // No redirigir a /admin para evitar loops cuando el bloqueo es justamente /admin.
+  return router.createUrlTree(['/']);
 };

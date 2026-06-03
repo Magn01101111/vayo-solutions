@@ -1,6 +1,7 @@
 // product-detail.component.ts
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   mapApiProductDetailToProductDetailData,
@@ -16,11 +17,15 @@ import {
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { ReviewService } from '../../../../core/services/review.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { ROLES } from '../../../../core/constants/roles';
+import { ApiReview, CreateReviewPayload } from '../../../../core/models/api.models';
 
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -28,6 +33,8 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly catalogService = inject(CatalogService);
+  private readonly reviewService = inject(ReviewService);
+  private readonly auth = inject(AuthService);
   private qs = inject(QuotationService);
 
   activeTab: ProductTab = 'specs';
@@ -93,48 +100,24 @@ export class ProductDetailComponent implements OnInit {
     return cartItem?.qty || 0;
   });
 
-  readonly reviews: ProductReview[] = [
-    {
-      author: 'DataCenter Pro',
-      date: '12 mar 2025',
-      rating: 5,
-      body: 'Excelente repuesto, llegó en perfectas condiciones y en el plazo prometido. Instalamos en nuestro equipo y funcionó a la primera.',
-      tags: ['Envío rápido', 'Calidad original', 'Fácil instalación'],
-      verified: true,
-      initials: 'DC',
-    },
-    {
-      author: 'Marcela G.',
-      company: 'TechCorp S.A.',
-      date: '28 ene 2025',
-      rating: 4,
-      body: 'Buen producto, cumple con las especificaciones. El equipo quedó funcionando correctamente.',
-      tags: ['Buen producto', 'Precio justo'],
-      verified: true,
-      initials: 'MG',
-    },
-  ];
+  // Reseñas reales (cargadas desde el backend)
+  reviews = signal<ProductReview[]>([]);
+  reviewsLoading = signal(false);
 
-  readonly providers: ProductProvider[] = [
-    {
-      name: 'TechParts Chile',
-      location: 'Santiago',
-      deliveryTime: '2–3 días',
-      speed: 'fast',
-    },
-    {
-      name: 'FríoRepuestos S.A.',
-      location: 'Valparaíso',
-      deliveryTime: '4–6 días',
-      speed: 'mid',
-    },
-    {
-      name: 'CoolTech Austral',
-      location: 'Concepción',
-      deliveryTime: '5–7 días',
-      speed: 'mid',
-    },
-  ];
+  // Formulario de nueva reseña (solo CLIENTE autenticado)
+  showReviewForm = signal(false);
+  reviewSending = signal(false);
+  reviewMessage = signal('');
+  reviewError = signal('');
+  newReview = { rating: 5, body: '' };
+
+  /** Proveedores del producto (vienen del propio ProductDetailData). */
+  get providers(): ProductProvider[] {
+    return this.product()?.suppliers ?? [];
+  }
+
+  /** Solo un CLIENTE logueado puede dejar reseña. */
+  canReview = computed(() => this.auth.hasRole(ROLES.CLIENTE));
 
   readonly tabList: ProductTabItem[] = [
     { key: 'specs', label: 'Especificaciones' },
@@ -159,6 +142,98 @@ export class ProductDetailComponent implements OnInit {
 
       this.loadProduct(id);
       this.loadRelatedProducts(id);
+      this.loadReviews(id);
+    });
+  }
+
+  // ── Reseñas ─────────────────────────────────────────────────────────────────
+
+  private loadReviews(productId: string): void {
+    this.reviewsLoading.set(true);
+    this.reviewService.getProductReviews(productId).subscribe({
+      next: (res) => {
+        const data = res.data;
+        this.reviews.set(data.reviews.map(this.toUiReview));
+        // Actualizar rating/conteo del producto con datos reales
+        const p = this.product();
+        if (p) {
+          this.product.set({
+            ...p,
+            rating: data.summary.average,
+            reviewCount: data.summary.count,
+          });
+        }
+        this.reviewsLoading.set(false);
+      },
+      error: () => {
+        this.reviews.set([]);
+        this.reviewsLoading.set(false);
+      },
+    });
+  }
+
+  /** Convierte una reseña de la API al formato de UI. */
+  private toUiReview(r: ApiReview): ProductReview {
+    const initials = (r.authorName || '?')
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((w) => w[0].toUpperCase())
+      .join('');
+    const date = r.createdAt
+      ? new Date(r.createdAt).toLocaleDateString('es-CL', { day: '2-digit', month: 'short', year: 'numeric' })
+      : '';
+    return {
+      author: r.authorName,
+      company: r.authorCompany || undefined,
+      date,
+      rating: r.rating,
+      body: r.body,
+      tags: r.tags ?? [],
+      verified: r.verified,
+      initials,
+    };
+  }
+
+  toggleReviewForm(): void {
+    this.showReviewForm.update((v) => !v);
+    this.reviewError.set('');
+    this.reviewMessage.set('');
+  }
+
+  setReviewRating(rating: number): void {
+    this.newReview.rating = rating;
+  }
+
+  submitReview(): void {
+    const p = this.product();
+    if (!p) return;
+
+    if (!this.newReview.body.trim()) {
+      this.reviewError.set('Escribe tu comentario.');
+      return;
+    }
+
+    this.reviewSending.set(true);
+    this.reviewError.set('');
+    this.reviewMessage.set('');
+
+    const payload: CreateReviewPayload = {
+      rating: this.newReview.rating,
+      body: this.newReview.body.trim(),
+    };
+
+    this.reviewService.createReview(p.id, payload).subscribe({
+      next: (res) => {
+        this.reviewSending.set(false);
+        this.reviewMessage.set(res.data.message);
+        this.newReview = { rating: 5, body: '' };
+        this.showReviewForm.set(false);
+      },
+      error: (err) => {
+        this.reviewSending.set(false);
+        this.reviewError.set(err?.error?.error ?? 'No se pudo enviar la reseña.');
+      },
     });
   }
 

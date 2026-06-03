@@ -10,6 +10,8 @@ import { UsersComponent }       from './pages/users/users.component';
 import { SalesComponent }       from './pages/sales/sales.component';
 import { ReportsComponent }     from './pages/reports/reports.component';
 import { SettingsComponent }    from './pages/settings/settings.component';
+import { SuppliersComponent }   from './pages/suppliers/suppliers.component';
+import { ReviewsComponent }     from './pages/reviews/reviews.component';
 
 export const ADMIN_ROUTES: Routes = [
   { path: '',             component: DashboardComponent },
@@ -25,6 +27,18 @@ export const ADMIN_ROUTES: Routes = [
   },
   { path: 'ventas',       component: SalesComponent },
   { path: 'reportes',     component: ReportsComponent },
+  {
+    path: 'proveedores',
+    component: SuppliersComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+  },
+  {
+    path: 'resenas',
+    component: ReviewsComponent,
+    canActivate: [roleGuard],
+    data: { roles: ['ADMIN'] },
+  },
   {
     path: 'configuracion',
     component: SettingsComponent,

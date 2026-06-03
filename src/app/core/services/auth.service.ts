@@ -99,7 +99,8 @@ export class AuthService {
       .subscribe({ error: () => { /* ignorar */ } });
 
     this.clear();
-    this.router.navigate(['/login']);
+    // Tras cerrar sesión vamos al home público, no al login.
+    this.router.navigate(['/']);
   }
 
   // ── Perfil ────────────────────────────────────────────────────────────────

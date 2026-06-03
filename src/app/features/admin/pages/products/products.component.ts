@@ -4,13 +4,23 @@ import { FormsModule }  from '@angular/forms';
 
 import { CatalogService }  from '../../../../core/services/catalog.service';
 import { UploadService }   from '../../../../core/services/upload.service';
+import { SupplierService } from '../../../../core/services/supplier.service';
 import {
   ApiProductListItem,
+  ApiProductDetail,
   ApiCategory,
+  ApiSupplier,
   CreateProductPayload,
   ApiProductAvailabilityStatus,
   ApiProductImage,
 } from '../../../../core/models/api.models';
+
+/** Proveedor asignado dentro del formulario de producto. */
+interface FormSupplier {
+  supplier: string;       // id del Supplier
+  deliveryTime: string;
+  speed: 'fast' | 'mid' | 'slow';
+}
 
 const MAX_IMAGES = 4;
 

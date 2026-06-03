@@ -2,6 +2,8 @@ import { Routes } from '@angular/router';
 import { PublicShellComponent } from './layouts/public-shell/public-shell.component';
 import { AdminShellComponent }  from './layouts/admin-shell/admin-shell.component';
 import { authGuard }            from './core/guards/auth.guard';
+import { roleGuard }            from './core/guards/role.guard';
+import { publicShellGuard }     from './core/guards/public-shell.guard';
 
 export const routes: Routes = [
   // ── Autenticación ─────────────────────────────────────────────────────────
@@ -35,9 +37,12 @@ export const routes: Routes = [
   },
 
   // ── Portal público ────────────────────────────────────────────────────────
+  // publicShellGuard: el ADMIN no puede navegar el portal (se va a /admin).
+  // Cotizador, proveedor, cliente y visitantes anónimos sí pueden.
   {
     path: '',
     component: PublicShellComponent,
+    canActivate: [publicShellGuard],
     children: [
       {
         path: '',
@@ -48,10 +53,12 @@ export const routes: Routes = [
   },
 
   // ── Panel de administración (protegido) ───────────────────────────────────
+  // authGuard: requiere sesión. roleGuard: solo personal interno (no CLIENTE).
   {
     path: 'admin',
     component: AdminShellComponent,
-    canActivate: [authGuard],
+    canActivate: [authGuard, roleGuard],
+    data: { roles: ['ADMIN', 'COTIZADOR', 'PROVEEDOR'] },
     children: [
       {
         path: '',

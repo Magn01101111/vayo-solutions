@@ -69,6 +69,14 @@ export interface ApiProductListItem {
   tags: string[];
 }
 
+export interface ApiProductSupplier {
+  id: string;
+  name?: string;
+  location?: string;
+  deliveryTime: string;
+  speed: 'fast' | 'mid' | 'slow';
+}
+
 export interface ApiProductDetail extends ApiProductListItem {
   category: {
     id: string;
@@ -79,8 +87,59 @@ export interface ApiProductDetail extends ApiProductListItem {
   dimensions?: ApiProductDimensions;
   compatibility: string[];
   documents: ApiProductDocument[];
+  suppliers?: ApiProductSupplier[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+// ── Suppliers (catálogo global) ────────────────────────────────────────────────
+export interface ApiSupplier {
+  id: string;
+  name: string;
+  location?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+  isActive: boolean;
+  createdAt?: string;
+}
+
+export interface SupplierPayload {
+  name: string;
+  location?: string;
+  email?: string;
+  phone?: string;
+  notes?: string;
+}
+
+// ── Reviews ────────────────────────────────────────────────────────────────────
+export type ApiReviewStatus = 'pending' | 'approved' | 'rejected';
+
+export interface ApiReview {
+  id: string;
+  productId: string;
+  authorName: string;
+  authorCompany?: string;
+  rating: number;
+  body: string;
+  tags: string[];
+  verified: boolean;
+  status: ApiReviewStatus;
+  createdAt?: string;
+  /** Solo presente en el listado admin. */
+  product?: { id: string; name: string; sku: string } | null;
+}
+
+export interface ApiReviewSummary {
+  count: number;
+  average: number;
+}
+
+export interface CreateReviewPayload {
+  rating: number;
+  body: string;
+  tags?: string[];
+  authorCompany?: string;
 }
 
 export interface CreateProductPayload {

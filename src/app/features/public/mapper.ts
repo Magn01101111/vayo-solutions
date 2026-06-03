@@ -8,6 +8,7 @@ import {
   ProductCardData,
   ProductDetailData,
   ProductDocument,
+  ProductProvider,
   ProductSpec,
   RelatedProduct,
 } from '../../core/models/ui.models';
@@ -191,7 +192,9 @@ export function mapApiProductToCardData(
         }
       : undefined);
 
-  const categoryName = resolvedCategory?.name ?? 'Sin categoría';
+  // Fallback: si no hay objeto category ni param, usar categoryName del list item.
+  const categoryName =
+    resolvedCategory?.name ?? product.categoryName ?? 'Sin categoría';
   const categorySlug = resolvedCategory?.slug ?? 'sin-categoria';
 
   const imageUrls = resolveImageUrls(product);
@@ -237,8 +240,9 @@ export function mapApiProductDetailToProductDetailData(
     brand: product.brand,
     model: product.model,
     tags: product.tags ?? [],
-    rating: 4.4,
-    reviewCount: 12,
+    // rating/reviewCount se cargan aparte desde el endpoint de reseñas.
+    rating: 0,
+    reviewCount: 0,
     specs: mapProductSpecs(product.specs),
     dimensions: {
       height: formatMm(product.dimensions?.heightMm),
@@ -250,8 +254,23 @@ export function mapApiProductDetailToProductDetailData(
     },
     compatibility: product.compatibility ?? [],
     documents: mapProductDocuments(product.documents),
+    suppliers: mapProductSuppliers(product),
   };
 }
+
+/** Mapea los proveedores asignados al producto (vienen poblados de la BD). */
+function mapProductSuppliers(product: ApiProductDetail): ProductProvider[] {
+  return (product.suppliers ?? [])
+    .filter((s) => s && (s.name || s.id))
+    .map((s) => ({
+      id: s.id,
+      name: s.name ?? 'Proveedor',
+      location: s.location ?? '',
+      deliveryTime: s.deliveryTime || 'Consultar',
+      speed: s.speed ?? 'mid',
+    }));
+}
+
 export function mapApiProductToRelatedProduct(
   product: ApiProductListItem,
   category?: { name: string; slug: string },
@@ -262,6 +281,10 @@ export function mapApiProductToRelatedProduct(
     id: mapped.id,
     name: mapped.name,
     sku: mapped.sku,
+    price: mapped.price,
+    imageUrl: mapped.imageUrl,
+    shortStatus: mapped.shortStatus,
+    category: mapped.category,
     icon: mapped.icon,
   };
 }

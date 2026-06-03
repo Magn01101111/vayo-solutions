@@ -1,0 +1,109 @@
+<div class="page-suppliers">
+
+  <div class="page-header">
+    <div>
+      <h2 class="page-title">Proveedores</h2>
+      <p class="page-subtitle">Distribuidores que abastecen los repuestos. Se asignan a cada producto.</p>
+    </div>
+    <button class="btn btn-primary" type="button" (click)="openCreate()">+ Nuevo proveedor</button>
+  </div>
+
+  @if (loading) {
+    <p class="state-msg">Cargando proveedores…</p>
+  } @else if (loadError) {
+    <p class="state-msg state-msg--error">{{ loadError }}</p>
+  } @else if (suppliers.length === 0) {
+    <p class="state-msg">No hay proveedores registrados.</p>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Nombre</th>
+            <th>Ubicación</th>
+            <th>Correo</th>
+            <th>Teléfono</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (s of suppliers; track s.id) {
+            <tr [class.row--inactive]="!s.isActive">
+              <td class="td--name">{{ s.name }}</td>
+              <td>{{ s.location || '—' }}</td>
+              <td>{{ s.email || '—' }}</td>
+              <td>{{ s.phone || '—' }}</td>
+              <td>
+                <span class="badge" [class.badge-success]="s.isActive" [class.badge-danger]="!s.isActive">
+                  {{ s.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="td--actions">
+                <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(s)">Editar</button>
+                @if (s.isActive) {
+                  @if (confirmingId === s.id) {
+                    <span class="confirm-inline">
+                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(s.id)">Confirmar</button>
+                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
+                    </span>
+                  } @else {
+                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(s.id)">Desactivar</button>
+                  }
+                } @else {
+                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(s)">Reactivar</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</div>
+
+@if (showModal) {
+  <div class="modal-backdrop" (click)="closeModal()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">{{ formMode === 'create' ? 'Nuevo proveedor' : 'Editar proveedor' }}</h3>
+        <button class="modal__close" type="button" (click)="closeModal()">✕</button>
+      </div>
+      <form (ngSubmit)="save()" novalidate>
+        <div class="modal__body">
+          <div class="form-group">
+            <label class="form-label" for="s-name">Nombre <span class="required">*</span></label>
+            <input id="s-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="s-loc">Ubicación</label>
+              <input id="s-loc" class="input" type="text" [(ngModel)]="form.location" name="location" placeholder="Santiago" />
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="s-phone">Teléfono</label>
+              <input id="s-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="s-email">Correo</label>
+            <input id="s-email" class="input" type="email" [(ngModel)]="form.email" name="email" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="s-notes">Notas</label>
+            <textarea id="s-notes" class="textarea" [(ngModel)]="form.notes" name="notes" rows="2"></textarea>
+          </div>
+          @if (formError) {
+            <p class="form-error">{{ formError }}</p>
+          }
+        </div>
+        <div class="modal__footer">
+          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
+          <button class="btn btn-primary" type="submit" [disabled]="saving">
+            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear' : 'Guardar') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}

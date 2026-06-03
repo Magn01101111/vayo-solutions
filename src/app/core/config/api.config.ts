@@ -43,5 +43,11 @@ export const API_CONFIG = {
     reportSales:   'reports/sales',
     reportQuotes:  'reports/quotes',
     reportClients: 'reports/clients',
+
+    // Suppliers (proveedores de catálogo)
+    suppliers: 'suppliers',
+
+    // Reviews (reseñas de productos)
+    reviews: 'reviews',
   },
 } as const;

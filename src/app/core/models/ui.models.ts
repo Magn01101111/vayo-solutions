@@ -64,16 +64,21 @@ export interface ProductReview {
 }
 
 export interface ProductProvider {
+  id?: string;
   name: string;
   location: string;
   deliveryTime: string;
-  speed: 'fast' | 'mid';
+  speed: 'fast' | 'mid' | 'slow';
 }
 
 export interface RelatedProduct {
   id: string;
   name: string;
   sku: string;
+  price: string;
+  imageUrl?: string;
+  shortStatus: string;
+  category: string;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
 }
 
@@ -133,4 +138,6 @@ export interface ProductDetailData {
   };
   compatibility: string[];
   documents: ProductDocument[];
+  /** Proveedores asignados al producto (vienen de la BD). */
+  suppliers: ProductProvider[];
 }
