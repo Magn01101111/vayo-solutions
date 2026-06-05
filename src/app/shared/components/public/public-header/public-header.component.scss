@@ -24,6 +24,12 @@
   flex-shrink: 0;
 }
 
+.public-header__logo {
+  display: block;
+  max-width: 100px;
+  height: auto;
+}
+
 .public-header__nav {
   display: flex;
   align-items: center;
