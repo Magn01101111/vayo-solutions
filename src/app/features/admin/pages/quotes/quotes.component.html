@@ -38,6 +38,12 @@
   @if (convertError) {
     <div class="alert alert--error">{{ convertError }}</div>
   }
+  @if (actionMsg) {
+    <div class="alert alert--success">{{ actionMsg }}</div>
+  }
+  @if (actionError) {
+    <div class="alert alert--error">{{ actionError }}</div>
+  }
 
   <!-- ── Lista ────────────────────────────────────────────────────────────── -->
   @if (loading) {
@@ -84,6 +90,20 @@
                 </select>
               </td>
               <td class="td--actions">
+                <button class="btn btn-sm btn-outline" type="button" (click)="openDetail(q)">
+                  Ver
+                </button>
+                <button class="btn btn-sm btn-outline" type="button"
+                        [disabled]="downloadingId === q._id"
+                        (click)="downloadPdf(q)">
+                  {{ downloadingId === q._id ? 'PDF…' : 'PDF' }}
+                </button>
+                <button class="btn btn-sm btn-outline" type="button"
+                        [disabled]="emailSendingId === q._id || !q.client?.email"
+                        [title]="q.client?.email ? 'Enviar a ' + q.client?.email : 'Sin email de cliente'"
+                        (click)="resendEmail(q)">
+                  {{ emailSendingId === q._id ? 'Enviando…' : 'Email' }}
+                </button>
                 @if (q.metadata?.status !== 'accepted') {
                   <button class="btn btn-sm btn-primary" type="button"
                           [disabled]="convertingId === q._id"
@@ -102,3 +122,72 @@
   }
 
 </div>
+
+<!-- ── Modal de detalle de cotización ─────────────────────────────────────── -->
+@if (showDetail && detailQuote; as dq) {
+  <div class="modal-backdrop" (click)="closeDetail()">
+    <div class="modal" (click)="$event.stopPropagation()">
+      <div class="modal__header">
+        <h3 class="modal__title">Cotización {{ dq.folio }}</h3>
+        <button class="modal__close" type="button" (click)="closeDetail()">✕</button>
+      </div>
+
+      <div class="modal__body">
+        <!-- Cliente -->
+        <div class="detail-section">
+          <h4 class="detail-section__title">Cliente</h4>
+          <p class="detail-line"><strong>{{ dq.client?.name || '—' }}</strong></p>
+          <p class="detail-line" *ngIf="dq.client?.email">{{ dq.client?.email }}</p>
+          <p class="detail-line" *ngIf="dq.client?.phone">{{ dq.client?.phone }}</p>
+        </div>
+
+        <!-- Estado + fecha -->
+        <div class="detail-meta">
+          <span class="badge" [class]="statusBadge(dq.metadata?.status)">{{ statusLabel(dq.metadata?.status) }}</span>
+          <span class="detail-meta__date">{{ formatDate(dq.createdAt) }}</span>
+        </div>
+
+        <!-- Items -->
+        <div class="detail-section">
+          <h4 class="detail-section__title">Productos ({{ dq.items?.length || 0 }})</h4>
+          <table class="detail-items">
+            <thead>
+              <tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Total</th></tr>
+            </thead>
+            <tbody>
+              @for (it of dq.items; track it.productId) {
+                <tr>
+                  <td>{{ it.name }}</td>
+                  <td class="td--center">{{ it.quantity }}</td>
+                  <td class="td--right">{{ formatCLP(it.price) }}</td>
+                  <td class="td--right">{{ formatCLP(it.total) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totales -->
+        <div class="detail-totals">
+          <div class="detail-totals__row"><span>Subtotal</span><span>{{ formatCLP(dq.totals?.subtotal) }}</span></div>
+          <div class="detail-totals__row"><span>IVA</span><span>{{ formatCLP(dq.totals?.iva) }}</span></div>
+          <div class="detail-totals__row detail-totals__row--grand">
+            <span>Total</span><span>{{ formatCLP(dq.totals?.total) }}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="btn btn-outline" type="button"
+                [disabled]="downloadingId === dq._id" (click)="downloadPdf(dq)">
+          {{ downloadingId === dq._id ? 'Descargando…' : 'Descargar PDF' }}
+        </button>
+        <button class="btn btn-primary" type="button"
+                [disabled]="emailSendingId === dq._id || !dq.client?.email"
+                (click)="resendEmail(dq)">
+          {{ emailSendingId === dq._id ? 'Enviando…' : 'Reenviar por email' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

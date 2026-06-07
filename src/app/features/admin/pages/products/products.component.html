@@ -52,6 +52,7 @@
             <th>Precio</th>
             <th>Stock</th>
             <th>Disponibilidad</th>
+            <th>Estado</th>
             <th>Acciones</th>
           </tr>
         </thead>
@@ -81,6 +82,11 @@
                   {{ statusLabel(product.availabilityStatus) }}
                 </span>
               </td>
+              <td>
+                <span class="badge" [class.badge-success]="product.isActive" [class.badge-danger]="!product.isActive">
+                  {{ product.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
               <td class="td--actions">
                 <button
                   class="btn btn-sm btn-outline"
@@ -108,6 +114,10 @@
                       Desactivar
                     </button>
                   }
+                } @else {
+                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(product.id)">
+                    Reactivar
+                  </button>
                 }
               </td>
             </tr>
@@ -283,6 +293,51 @@
 
             @if (imageError) {
               <p class="form-error form-error--inline">{{ imageError }}</p>
+            }
+          </div>
+
+          <!-- ── Proveedores asignados ─────────────────────────────────────── -->
+          <div class="form-group">
+            <label class="form-label">Proveedores</label>
+
+            @if (form.suppliers.length > 0) {
+              <div class="supplier-rows">
+                @for (s of form.suppliers; track s.supplier; let i = $index) {
+                  <div class="supplier-row">
+                    <span class="supplier-row__name">{{ supplierName(s.supplier) }}</span>
+                    <input
+                      class="input supplier-row__delivery"
+                      type="text"
+                      [(ngModel)]="s.deliveryTime"
+                      [name]="'sup-delivery-' + i"
+                      placeholder="Ej. 2-3 días"
+                    />
+                    <select class="select supplier-row__speed" [(ngModel)]="s.speed" [name]="'sup-speed-' + i">
+                      <option value="fast">Rápido</option>
+                      <option value="mid">Normal</option>
+                      <option value="slow">Lento</option>
+                    </select>
+                    <button type="button" class="btn btn-sm btn-ghost-danger" (click)="removeSupplier(i)">✕</button>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="supplier-empty">Sin proveedores asignados.</p>
+            }
+
+            @if (unassignedSuppliers.length > 0) {
+              <select
+                class="select supplier-add"
+                #supSel
+                (change)="addSupplier(supSel.value); supSel.value = ''"
+              >
+                <option value="">+ Agregar proveedor…</option>
+                @for (sup of unassignedSuppliers; track sup.id) {
+                  <option [value]="sup.id">{{ sup.name }}</option>
+                }
+              </select>
+            } @else if (availableSuppliers.length === 0) {
+              <p class="supplier-empty">No hay proveedores creados. Créalos en la sección Proveedores.</p>
             }
           </div>
 

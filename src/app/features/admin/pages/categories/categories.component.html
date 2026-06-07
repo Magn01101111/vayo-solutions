@@ -54,6 +54,10 @@
                       Desactivar
                     </button>
                   }
+                } @else {
+                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(cat)">
+                    Reactivar
+                  </button>
                 }
               </td>
             </tr>

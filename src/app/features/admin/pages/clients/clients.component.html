@@ -142,6 +142,10 @@
                       Desactivar
                     </button>
                   }
+                } @else {
+                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(client)">
+                    Reactivar
+                  </button>
                 }
               </td>
             </tr>

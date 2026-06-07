@@ -124,4 +124,11 @@ export class CategoriesComponent implements OnInit {
       },
     });
   }
+
+  /** Reactiva una categoría inactiva (update con isActive=true). */
+  reactivate(cat: ApiCategory): void {
+    this.catalogSvc.updateCategory(cat.id, { isActive: true }).subscribe({
+      next: () => this.load(),
+    });
+  }
 }

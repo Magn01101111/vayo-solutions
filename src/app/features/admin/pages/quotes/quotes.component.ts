@@ -38,6 +38,16 @@ export class QuotesComponent implements OnInit {
   // Cambio de estado
   updatingStatusId = '';
 
+  // Acciones de PDF / email
+  downloadingId = '';
+  emailSendingId = '';
+  actionMsg   = '';
+  actionError = '';
+
+  // Modal de detalle
+  detailQuote: ApiQuote | null = null;
+  showDetail  = false;
+
   readonly statusOptions: { value: QuoteStatus; label: string }[] = [
     { value: 'sent',     label: 'Enviada' },
     { value: 'accepted', label: 'Aceptada' },
@@ -112,6 +122,84 @@ export class QuotesComponent implements OnInit {
     this.clientIdQ    = '';
     this.filterClient = null;
     this.load();
+  }
+
+  // ── Ver detalle ─────────────────────────────────────────────────────────────
+
+  openDetail(quote: ApiQuote): void {
+    this.showDetail  = true;
+    this.detailQuote = quote;
+    // Recargar el detalle completo desde el backend (trae items completos).
+    this.quoteSvc.getQuoteById(quote._id).subscribe({
+      next: (res) => { this.detailQuote = res.data; },
+      error: () => { /* se queda con el resumen que ya tenía */ },
+    });
+  }
+
+  closeDetail(): void {
+    this.showDetail = false;
+    this.detailQuote = null;
+  }
+
+  // ── Descargar PDF ───────────────────────────────────────────────────────────
+
+  downloadPdf(quote: ApiQuote): void {
+    this.actionMsg = '';
+    this.actionError = '';
+    this.downloadingId = quote._id;
+
+    this.quoteSvc.downloadPDF(quote._id).subscribe({
+      next: (blob) => {
+        if (!(blob instanceof Blob) || blob.size === 0) {
+          this.actionError = 'El PDF vino vacío.';
+          this.downloadingId = '';
+          return;
+        }
+        const pdfBlob = blob.type?.includes('pdf') ? blob : new Blob([blob], { type: 'application/pdf' });
+        const url = window.URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${quote.folio || 'cotizacion'}.pdf`;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => window.URL.revokeObjectURL(url), 1000);
+        this.downloadingId = '';
+      },
+      error: (err) => {
+        this.downloadingId = '';
+        this.actionError = err?.error?.error ?? 'No se pudo descargar el PDF.';
+        setTimeout(() => (this.actionError = ''), 6000);
+      },
+    });
+  }
+
+  // ── Reenviar por email ──────────────────────────────────────────────────────
+
+  resendEmail(quote: ApiQuote): void {
+    const to = quote.client?.email;
+    if (!to) {
+      this.actionError = 'Esta cotización no tiene email de cliente.';
+      setTimeout(() => (this.actionError = ''), 5000);
+      return;
+    }
+    this.actionMsg = '';
+    this.actionError = '';
+    this.emailSendingId = quote._id;
+
+    this.quoteSvc.sendByEmail(quote._id, to).subscribe({
+      next: (res) => {
+        this.emailSendingId = '';
+        this.actionMsg = res.data?.message ?? `Cotización enviada a ${to}.`;
+        setTimeout(() => (this.actionMsg = ''), 6000);
+      },
+      error: (err) => {
+        this.emailSendingId = '';
+        this.actionError = err?.error?.error ?? 'No se pudo enviar el correo.';
+        setTimeout(() => (this.actionError = ''), 6000);
+      },
+    });
   }
 
   /** Cambia el estado de la cotización desde el <select>. */

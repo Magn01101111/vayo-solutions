@@ -40,6 +40,8 @@ interface ProductForm {
   isFeatured:         boolean;
   /** Galería: hasta 4 imágenes. images[0] es la principal. */
   images:             ApiProductImage[];
+  /** Proveedores asignados a este producto. */
+  suppliers:          FormSupplier[];
 }
 
 function emptyForm(): ProductForm {
@@ -56,6 +58,7 @@ function emptyForm(): ProductForm {
     tags:               '',
     isFeatured:         false,
     images:             [],
+    suppliers:          [],
   };
 }
 
@@ -67,12 +70,15 @@ function emptyForm(): ProductForm {
   styleUrl: './products.component.scss',
 })
 export class ProductsComponent implements OnInit {
-  private readonly catalogSvc = inject(CatalogService);
-  private readonly uploadSvc  = inject(UploadService);
+  private readonly catalogSvc  = inject(CatalogService);
+  private readonly uploadSvc   = inject(UploadService);
+  private readonly supplierSvc = inject(SupplierService);
 
   // ── List state ────────────────────────────────────────────────────────────
   products:   ApiProductListItem[] = [];
   categories: ApiCategory[]        = [];
+  /** Catálogo de proveedores disponibles para asignar. */
+  availableSuppliers: ApiSupplier[] = [];
   loading    = true;
   loadError  = '';
   searchQ    = '';
@@ -103,6 +109,7 @@ export class ProductsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCategories();
+    this.loadSuppliers();
     this.load();
   }
 
@@ -114,13 +121,24 @@ export class ProductsComponent implements OnInit {
     });
   }
 
+  loadSuppliers(): void {
+    this.supplierSvc.getSuppliers().subscribe({
+      next: (res) => {
+        this.availableSuppliers = res.data ?? [];
+      },
+    });
+  }
+
   load(): void {
     this.loading   = true;
     this.loadError = '';
 
+    // all=true → el panel admin ve también los productos inactivos
+    // (si no, al desactivar uno desaparecería y no se podría reactivar).
     this.catalogSvc.getProducts(
       this.filterCat  || undefined,
       this.searchQ.trim() || undefined,
+      true,
     ).subscribe({
       next: (res) => {
         this.products = res.data ?? [];
@@ -179,10 +197,47 @@ export class ProductsComponent implements OnInit {
       tags:               product.tags.join(', '),
       isFeatured:         product.isFeatured ?? false,
       images,
+      suppliers:          [],
     };
     this.formError  = '';
     this.imageError = '';
     this.showModal = true;
+
+    // Los proveedores asignados solo vienen en el detalle → cargarlos aparte.
+    this.catalogSvc.getProductById(product.id).subscribe({
+      next: (res) => {
+        this.form.suppliers = (res.data.suppliers ?? []).map((s) => ({
+          supplier: s.id,
+          deliveryTime: s.deliveryTime ?? '',
+          speed: s.speed ?? 'mid',
+        }));
+      },
+    });
+  }
+
+  // ── Asignación de proveedores ─────────────────────────────────────────────
+
+  /** Proveedores que aún no están asignados (para el <select> de agregar). */
+  get unassignedSuppliers(): ApiSupplier[] {
+    const assigned = new Set(this.form.suppliers.map((s) => s.supplier));
+    return this.availableSuppliers.filter((s) => !assigned.has(s.id));
+  }
+
+  addSupplier(supplierId: string): void {
+    if (!supplierId) return;
+    if (this.form.suppliers.some((s) => s.supplier === supplierId)) return;
+    this.form.suppliers = [
+      ...this.form.suppliers,
+      { supplier: supplierId, deliveryTime: '', speed: 'mid' },
+    ];
+  }
+
+  removeSupplier(index: number): void {
+    this.form.suppliers = this.form.suppliers.filter((_, i) => i !== index);
+  }
+
+  supplierName(id: string): string {
+    return this.availableSuppliers.find((s) => s.id === id)?.name ?? 'Proveedor';
   }
 
   closeModal(): void {
@@ -280,6 +335,11 @@ export class ProductsComponent implements OnInit {
       tags,
       isFeatured:         this.form.isFeatured,
       images:             this.form.images,  // backend deriva imageUrl/imagePublicId desde images[0]
+      suppliers:          this.form.suppliers.map((s) => ({
+        supplier: s.supplier,
+        deliveryTime: s.deliveryTime.trim() || undefined,
+        speed: s.speed,
+      })),
     };
 
     const obs$ = this.formMode === 'create'
@@ -318,6 +378,13 @@ export class ProductsComponent implements OnInit {
       error: () => {
         this.confirmingId = '';
       },
+    });
+  }
+
+  /** Reactiva un producto inactivo (update con isActive=true). */
+  reactivate(id: string): void {
+    this.catalogSvc.updateProduct(id, { isActive: true }).subscribe({
+      next: () => this.load(),
     });
   }
 

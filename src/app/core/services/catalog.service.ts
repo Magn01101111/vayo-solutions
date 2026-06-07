@@ -60,9 +60,12 @@ export class CatalogService {
       .pipe(tap(() => this.cache.invalidatePrefix(CACHE_PREFIX_CATEGORIES)));
   }
 
-  updateCategory(id: string, payload: { name?: string; description?: string }): Observable<ApiResponse<ApiCategory>> {
+  updateCategory(
+    id: string,
+    payload: { name?: string; description?: string; isActive?: boolean },
+  ): Observable<ApiResponse<ApiCategory>> {
     return this.api
-      .put<ApiResponse<ApiCategory>, { name?: string; description?: string }>(
+      .put<ApiResponse<ApiCategory>, { name?: string; description?: string; isActive?: boolean }>(
         `${API_CONFIG.endpoints.categories}/${id}`,
         payload,
       )

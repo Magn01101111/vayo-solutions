@@ -165,6 +165,8 @@ export interface CreateProductPayload {
   dimensions?: ApiProductDimensions;
   compatibility?: string[];
   documents?: ApiProductDocument[];
+  /** Proveedores asignados: ref al Supplier + tiempo de entrega. */
+  suppliers?: { supplier: string; deliveryTime?: string; speed?: 'fast' | 'mid' | 'slow' }[];
 }
 
 export type UpdateProductPayload = Partial<Omit<CreateProductPayload, 'sku'>>;
@@ -224,7 +226,7 @@ export interface CreateClientPayload {
   notes?: string;
 }
 
-export type UpdateClientPayload = Partial<CreateClientPayload>;
+export type UpdateClientPayload = Partial<CreateClientPayload> & { isActive?: boolean };
 
 // ── Users ─────────────────────────────────────────────────────────────────────
 

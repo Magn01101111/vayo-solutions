@@ -79,9 +79,10 @@ export class ClientsComponent implements OnInit {
     this.loading   = true;
     this.loadError = '';
 
-    const params = this.searchQ.trim()
-      ? { q: this.searchQ.trim() }
-      : undefined;
+    // active: 'all' → el panel admin ve también los clientes inactivos
+    // (si no, al desactivar uno desaparecería y no se podría reactivar).
+    const params: { q?: string; active: 'all' } = { active: 'all' };
+    if (this.searchQ.trim()) params.q = this.searchQ.trim();
 
     this.clientSvc.getClients(params).subscribe({
       next: (res) => {
@@ -199,6 +200,13 @@ export class ClientsComponent implements OnInit {
     this.clientSvc.deactivateClient(id).subscribe({
       next: () => { this.confirmingId = ''; this.load(); },
       error: () => { this.confirmingId = ''; },
+    });
+  }
+
+  /** Reactiva un cliente inactivo (update con isActive=true). */
+  reactivate(client: ApiClient): void {
+    this.clientSvc.updateClient(client.id, { isActive: true }).subscribe({
+      next: () => this.load(),
     });
   }
 
