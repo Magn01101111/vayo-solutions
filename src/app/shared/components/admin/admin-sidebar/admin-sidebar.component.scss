@@ -7,8 +7,12 @@
 
 .admin-sidebar__brand {
   margin-bottom: 1.5rem;
-  font-size: 1rem;
-  font-weight: 600;
+}
+
+.admin-sidebar__brand-icon {
+  display: block;
+  max-width: 220px;
+  height: auto;
 }
 
 .admin-sidebar__nav {
