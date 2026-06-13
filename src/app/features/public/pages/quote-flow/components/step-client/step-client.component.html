@@ -1,3 +1,39 @@
+<!-- ── Pantalla de elección: iniciar sesión o continuar como invitado ───────── -->
+@if (mode() === 'choosing') {
+  <div class="card checkout-choice">
+    <h2 class="checkout-choice__title">¿Cómo quieres continuar?</h2>
+    <p class="checkout-choice__sub">
+      Puedes iniciar sesión para autocompletar tus datos, o continuar como invitado.
+    </p>
+
+    <div class="checkout-choice__options">
+      <div class="choice-option">
+        <div class="choice-option__icon">👤</div>
+        <h3 class="choice-option__title">Ya tengo cuenta</h3>
+        <p class="choice-option__text">Inicia sesión y carga tus datos automáticamente.</p>
+        <button type="button" class="btn btn-primary btn-block" (click)="goToLogin()">
+          Iniciar sesión
+        </button>
+      </div>
+
+      <div class="choice-option choice-option--guest">
+        <div class="choice-option__icon">🛒</div>
+        <h3 class="choice-option__title">Continuar como invitado</h3>
+        <p class="choice-option__text">Compra sin crear cuenta. Solo necesitas tus datos de contacto y despacho.</p>
+        <button type="button" class="btn btn-outline btn-block" (click)="continueAsGuest()">
+          Continuar como invitado
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="link-btn checkout-choice__back" (click)="back()">
+      ← Volver a productos
+    </button>
+  </div>
+}
+
+<!-- ── Formulario de datos (modo invitado o usuario logueado) ──────────────── -->
+@if (mode() === 'guest') {
 <form class="step-client" [formGroup]="form" (ngSubmit)="submit()" novalidate>
 
   <div class="card step-client__card">
@@ -250,3 +286,4 @@
     </button>
   </div>
 </form>
+}

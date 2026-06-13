@@ -8,7 +8,10 @@ import {
   Validators,
 } from '@angular/forms';
 
+import { Router } from '@angular/router';
+
 import { QuotationService } from '../../../../../../core/services/quotation.service';
+import { AuthService } from '../../../../../../core/services/auth.service';
 import { CustomerType } from '../../../../../../core/models/app.models';
 
 /** Valida RUT chileno con dígito verificador (formato 12.345.678-K). */
@@ -58,10 +61,24 @@ const REGIONS = [
 })
 export class StepClientComponent implements OnInit {
   private fb = inject(FormBuilder);
+  private router = inject(Router);
   readonly qs = inject(QuotationService);
+  readonly auth = inject(AuthService);
 
   regions = REGIONS;
   customerType = signal<CustomerType>('person');
+
+  /**
+   * Controla si ya se eligió cómo continuar.
+   *   - 'choosing': muestra la pantalla "iniciar sesión / invitado" (solo anónimos)
+   *   - 'guest'   : muestra el formulario de datos
+   * Los usuarios logueados saltan directo a 'guest' con datos precargados.
+   */
+  mode = signal<'choosing' | 'guest'>('choosing');
+
+  get isLoggedIn(): boolean {
+    return this.auth.isAuthenticated;
+  }
 
   form = this.fb.nonNullable.group({
     customerType: this.fb.nonNullable.control<CustomerType>('person'),
@@ -96,6 +113,18 @@ export class StepClientComponent implements OnInit {
 
   ngOnInit(): void {
     const client = this.qs.client();
+
+    // Decidir el modo inicial:
+    //  - Si hay sesión → saltar la elección, precargar datos del usuario.
+    //  - Si ya completó datos antes (volvió atrás) → ir directo al formulario.
+    //  - Si es anónimo y aún no eligió → mostrar pantalla de elección.
+    if (this.isLoggedIn) {
+      this.mode.set('guest');
+      this.prefillFromAuthUser();
+    } else if (client) {
+      this.mode.set('guest');
+    }
+
     if (client) {
       this.customerType.set(client.customerType ?? 'person');
       this.form.patchValue({
@@ -131,6 +160,27 @@ export class StepClientComponent implements OnInit {
 
     this.form.controls.shippingSameAsBilling.valueChanges.subscribe((same) => {
       this.applyShippingValidators(!same);
+    });
+  }
+
+  /** El usuario eligió continuar sin cuenta. */
+  continueAsGuest(): void {
+    this.mode.set('guest');
+  }
+
+  /** Lleva al login, recordando volver a la cotización después. */
+  goToLogin(): void {
+    this.router.navigate(['/login'], { queryParams: { redirect: '/cotizacion' } });
+  }
+
+  /** Precarga nombre/email/teléfono del usuario logueado (el resto lo completa él). */
+  private prefillFromAuthUser(): void {
+    const u = this.auth.currentUser;
+    if (!u) return;
+    this.form.patchValue({
+      name: u.name ?? '',
+      email: u.email ?? '',
+      phone: u.phone ?? '',
     });
   }
 

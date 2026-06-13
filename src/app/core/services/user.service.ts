@@ -51,29 +51,8 @@ export class UserService {
     );
   }
 
-  // ── Proveedores ───────────────────────────────────────────────────────────
-
-  createProveedor(payload: CreateUserPayload): Observable<ApiResponse<ApiUser>> {
-    return this.api.post<ApiResponse<ApiUser>, CreateUserPayload>(
-      API_CONFIG.endpoints.proveedores,
-      payload,
-    );
-  }
-
-  updateProveedor(id: string, payload: UpdateUserPayload): Observable<ApiResponse<ApiUser>> {
-    return this.api.put<ApiResponse<ApiUser>, UpdateUserPayload>(
-      `${API_CONFIG.endpoints.proveedores}/${id}`,
-      payload,
-    );
-  }
-
-  deactivateProveedor(id: string): Observable<ApiResponse<{ message: string }>> {
-    return this.api.patch<ApiResponse<{ message: string }>, Record<string, never>>(
-      `${API_CONFIG.endpoints.proveedores}/${id}/deactivate`,
-      {},
-    );
-  }
-
   // NOTA: La gestión de CLIENTEs vive en ClientService porque un CLIENTE es
   // ante todo una entidad CRM. Su cuenta de portal es opcional.
+  // Los PROVEEDORES de catálogo (empresas) viven en SupplierService — no son
+  // usuarios con login.
 }

@@ -2,18 +2,17 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
-import { UserService }                   from '../../../../core/services/user.service';
-import { ApiUser, CreateUserPayload }    from '../../../../core/models/api.models';
+import { UserService }                 from '../../../../core/services/user.service';
+import { ApiUser, CreateUserPayload }  from '../../../../core/models/api.models';
 
 /**
- * Esta página gestiona SOLO el personal interno de VAYO:
- *  - COTIZADORES
- *  - PROVEEDORES
+ * Gestiona el personal interno de VAYO con acceso al panel: COTIZADORES.
  *
- * Los CLIENTES (rol CLIENTE) NO se gestionan aquí porque son entidades CRM.
- * Su gestión completa (incluyendo cuenta de portal) vive en /admin/clientes.
+ * Notas de diseño:
+ *  - Los CLIENTES (rol CLIENTE) se gestionan en /admin/clientes (entidad CRM).
+ *  - Los PROVEEDORES de catálogo (empresas con tiempo de entrega) se gestionan
+ *    en /admin/proveedores (entidad Supplier). NO son usuarios con login.
  */
-type TabType  = 'cotizadores' | 'proveedores';
 type FormMode = 'create' | 'edit';
 
 interface UserForm {
@@ -38,10 +37,7 @@ function emptyForm(): UserForm {
 export class UsersComponent implements OnInit {
   private readonly userSvc = inject(UserService);
 
-  activeTab: TabType = 'cotizadores';
-
   cotizadores: ApiUser[] = [];
-  proveedores: ApiUser[] = [];
   loading   = true;
   loadError = '';
 
@@ -66,7 +62,6 @@ export class UsersComponent implements OnInit {
       next: (res) => {
         const all = res.data ?? [];
         this.cotizadores = all.filter((u) => u.role === 'COTIZADOR');
-        this.proveedores = all.filter((u) => u.role === 'PROVEEDOR');
         this.loading     = false;
       },
       error: () => {
@@ -74,14 +69,6 @@ export class UsersComponent implements OnInit {
         this.loading   = false;
       },
     });
-  }
-
-  get currentList(): ApiUser[] {
-    return this.activeTab === 'cotizadores' ? this.cotizadores : this.proveedores;
-  }
-
-  setTab(tab: TabType): void {
-    this.activeTab = tab;
   }
 
   openCreate(): void {
@@ -124,8 +111,6 @@ export class UsersComponent implements OnInit {
     this.saving    = true;
     this.formError = '';
 
-    const isCotizador = this.activeTab === 'cotizadores';
-
     if (this.formMode === 'create') {
       const payload: CreateUserPayload = {
         name:     this.form.name.trim(),
@@ -135,11 +120,7 @@ export class UsersComponent implements OnInit {
         position: this.form.position.trim() || undefined,
       };
 
-      const obs$ = isCotizador
-        ? this.userSvc.createCotizador(payload)
-        : this.userSvc.createProveedor(payload);
-
-      obs$.subscribe({
+      this.userSvc.createCotizador(payload).subscribe({
         next: () => { this.saving = false; this.showModal = false; this.load(); },
         error: (err) => { this.saving = false; this.formError = err?.error?.error ?? 'Error al crear usuario.'; },
       });
@@ -152,11 +133,7 @@ export class UsersComponent implements OnInit {
         position: this.form.position.trim() || undefined,
       };
 
-      const obs$ = isCotizador
-        ? this.userSvc.updateCotizador(this.editingId, payload)
-        : this.userSvc.updateProveedor(this.editingId, payload);
-
-      obs$.subscribe({
+      this.userSvc.updateCotizador(this.editingId, payload).subscribe({
         next: () => { this.saving = false; this.showModal = false; this.load(); },
         error: (err) => { this.saving = false; this.formError = err?.error?.error ?? 'Error al actualizar usuario.'; },
       });
@@ -172,13 +149,16 @@ export class UsersComponent implements OnInit {
   }
 
   deactivate(id: string): void {
-    const obs$ = this.activeTab === 'cotizadores'
-      ? this.userSvc.deactivateCotizador(id)
-      : this.userSvc.deactivateProveedor(id);
-
-    obs$.subscribe({
+    this.userSvc.deactivateCotizador(id).subscribe({
       next: () => { this.confirmingId = ''; this.load(); },
       error: () => { this.confirmingId = ''; },
+    });
+  }
+
+  /** Reactiva un cotizador inactivo (update con isActive=true). */
+  reactivate(user: ApiUser): void {
+    this.userSvc.updateCotizador(user.id, { isActive: true }).subscribe({
+      next: () => this.load(),
     });
   }
 }

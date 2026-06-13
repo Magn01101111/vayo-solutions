@@ -283,3 +283,53 @@
     border-top: 1px solid var(--color-border-secondary);
   }
 }
+
+/* ── Crear cuenta tras compra de invitado ────────────────────────────────── */
+.create-account {
+  margin-top: 1.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--color-border-primary, #e2e8f0);
+  border-radius: 0.75rem;
+  background: var(--color-bg-soft, #f8fafc);
+  text-align: left;
+}
+
+.create-account__pitch {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+
+  strong { display: block; font-size: 0.9375rem; color: var(--color-text-primary, #0f172a); }
+  small  { color: var(--color-text-secondary, #64748b); font-size: 0.8125rem; }
+}
+
+.create-account__form h4 {
+  font-size: 0.9375rem;
+  margin-bottom: 0.25rem;
+}
+
+.create-account__email {
+  font-size: 0.8125rem;
+  color: var(--color-text-secondary, #64748b);
+  margin-bottom: 0.75rem;
+}
+
+.create-account__row {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+
+  .input { flex: 1; min-width: 12rem; }
+}
+
+.create-account--done {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #1e6e3f;
+  background: rgba(30, 110, 63, 0.08);
+  border-color: rgba(30, 110, 63, 0.25);
+  font-size: 0.875rem;
+}

@@ -144,6 +144,53 @@
         }
       </div>
 
+      <!-- Crear cuenta (solo invitados) -->
+      @if (isGuest && !accountCreated()) {
+        <div class="create-account">
+          @if (!showAccountForm()) {
+            <div class="create-account__pitch">
+              <div>
+                <strong>¿Quieres seguir tus cotizaciones?</strong>
+                <small>Crea una cuenta con los datos que ya ingresaste. Solo elige una contraseña.</small>
+              </div>
+              <button class="btn btn-secondary" (click)="toggleAccountForm()">Crear cuenta</button>
+            </div>
+          } @else {
+            <div class="create-account__form">
+              <h4>Crea tu cuenta</h4>
+              <p class="create-account__email">
+                Cuenta para <strong>{{ client()?.email }}</strong>
+              </p>
+              <div class="create-account__row">
+                <input
+                  class="input"
+                  type="password"
+                  placeholder="Contraseña (mínimo 8 caracteres)"
+                  [ngModel]="accountPassword()"
+                  (ngModelChange)="accountPassword.set($event)"
+                  autocomplete="new-password">
+                <button class="btn btn-primary" [disabled]="accountCreating()" (click)="createAccount()">
+                  {{ accountCreating() ? 'Creando…' : 'Crear' }}
+                </button>
+              </div>
+              @if (accountError()) {
+                <small class="text-danger">{{ accountError() }}</small>
+              }
+              <button class="link-btn" (click)="toggleAccountForm()">Cancelar</button>
+            </div>
+          }
+        </div>
+      }
+
+      @if (accountCreated()) {
+        <div class="create-account create-account--done">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+          <span>¡Cuenta creada! Ya puedes iniciar sesión para seguir tus cotizaciones.</span>
+        </div>
+      }
+
       <!-- Próximos pasos -->
       <div class="step-conf__next">
         <h4>¿Qué sigue?</h4>

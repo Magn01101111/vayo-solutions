@@ -2,30 +2,20 @@
 
   <div class="page-header">
     <div>
-      <h2 class="page-title">Usuarios</h2>
-      <p class="page-subtitle">Gestión del personal interno (cotizadores y proveedores)</p>
+      <h2 class="page-title">Cotizadores</h2>
+      <p class="page-subtitle">Personal interno con acceso al panel de gestión</p>
     </div>
     <button class="btn btn-primary" type="button" (click)="openCreate()">
-      + Nuevo usuario
-    </button>
-  </div>
-
-  <!-- Tabs -->
-  <div class="tabs">
-    <button class="tab" [class.tab--active]="activeTab === 'cotizadores'" type="button" (click)="setTab('cotizadores')">
-      Cotizadores ({{ cotizadores.length }})
-    </button>
-    <button class="tab" [class.tab--active]="activeTab === 'proveedores'" type="button" (click)="setTab('proveedores')">
-      Proveedores ({{ proveedores.length }})
+      + Nuevo cotizador
     </button>
   </div>
 
   @if (loading) {
-  <p class="state-msg">Cargando usuarios…</p>
+  <p class="state-msg">Cargando cotizadores…</p>
   } @else if (loadError) {
   <p class="state-msg state-msg--error">{{ loadError }}</p>
-  } @else if (currentList.length === 0) {
-  <p class="state-msg">No hay {{ activeTab }} registrados.</p>
+  } @else if (cotizadores.length === 0) {
+  <p class="state-msg">No hay cotizadores registrados.</p>
   } @else {
   <div class="table-wrap">
     <table class="data-table">
@@ -40,7 +30,7 @@
         </tr>
       </thead>
       <tbody>
-        @for (user of currentList; track user.id) {
+        @for (user of cotizadores; track user.id) {
         <tr [class.row--inactive]="!user.isActive">
           <td class="td--name">{{ user.name }}</td>
           <td>{{ user.email }}</td>
@@ -56,16 +46,20 @@
               Editar
             </button>
             @if (user.isActive) {
-            @if (confirmingId === user.id) {
-            <span class="confirm-inline">
-              <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(user.id)">Confirmar</button>
-              <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
-            </span>
+              @if (confirmingId === user.id) {
+              <span class="confirm-inline">
+                <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(user.id)">Confirmar</button>
+                <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
+              </span>
+              } @else {
+              <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(user.id)">
+                Desactivar
+              </button>
+              }
             } @else {
-            <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(user.id)">
-              Desactivar
-            </button>
-            }
+              <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(user)">
+                Reactivar
+              </button>
             }
           </td>
         </tr>
@@ -82,9 +76,7 @@
   <div class="modal" (click)="$event.stopPropagation()">
     <div class="modal__header">
       <h3 class="modal__title">
-        {{ formMode === 'create'
-          ? ('Nuevo ' + (activeTab === 'cotizadores' ? 'cotizador' : 'proveedor'))
-          : ('Editar ' + (activeTab === 'cotizadores' ? 'cotizador' : 'proveedor')) }}
+        {{ formMode === 'create' ? 'Nuevo cotizador' : 'Editar cotizador' }}
       </h3>
       <button class="modal__close" type="button" (click)="closeModal()">✕</button>
     </div>
@@ -123,7 +115,7 @@
       <div class="modal__footer">
         <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
         <button class="btn btn-primary" type="submit" [disabled]="saving">
-          {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear usuario' : 'Guardar cambios') }}
+          {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear cotizador' : 'Guardar cambios') }}
         </button>
       </div>
     </form>

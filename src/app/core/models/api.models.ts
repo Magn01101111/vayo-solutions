@@ -256,7 +256,7 @@ export interface CreateUserPayload {
   position?: string;
 }
 
-export type UpdateUserPayload = Partial<Omit<CreateUserPayload, 'password'>>;
+export type UpdateUserPayload = Partial<Omit<CreateUserPayload, 'password'>> & { isActive?: boolean };
 
 // ── Company ───────────────────────────────────────────────────────────────────
 

@@ -1,13 +1,16 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { QuotationService } from '../../../../../../core/services/quotation.service';
 import { QuotationApiService } from '../../../../../../core/services/quotation-api.service';
+import { AuthService } from '../../../../../../core/services/auth.service';
+import { normalizeChileanPhone } from '../../../../../../core/utils/validators';
 
 @Component({
   selector: 'app-step-confirmation',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './step-confirmation.component.html',
   styleUrl: './step-confirmation.component.scss',
 })
@@ -15,6 +18,16 @@ export class StepConfirmationComponent {
   private router = inject(Router);
   private qs = inject(QuotationService);
   private quoteApi = inject(QuotationApiService);
+  private auth = inject(AuthService);
+
+  // ── Oferta de crear cuenta (solo para invitados) ──────────────────────────
+  /** true si NO hay sesión → tiene sentido ofrecer crear cuenta. */
+  get isGuest(): boolean { return !this.auth.isAuthenticated; }
+  showAccountForm = signal(false);
+  accountPassword = signal('');
+  accountCreating = signal(false);
+  accountCreated  = signal(false);
+  accountError    = signal('');
 
   loading = signal(true);
   success = signal(false);
@@ -191,6 +204,57 @@ export class StepConfirmationComponent {
         this.emailSending.set(false);
         const msg = err?.error?.error ?? err?.message ?? 'No se pudo enviar el correo.';
         this.error.set(msg);
+      },
+    });
+  }
+
+  // ── Crear cuenta tras la compra (invitado → cliente registrado) ───────────
+
+  toggleAccountForm(): void {
+    this.showAccountForm.update((v) => !v);
+    this.accountError.set('');
+  }
+
+  /** Crea una cuenta usando los datos ya capturados en la cotización. */
+  createAccount(): void {
+    const c = this.qs.client();
+    if (!c) {
+      this.accountError.set('No hay datos de cliente para crear la cuenta.');
+      return;
+    }
+    if (this.accountPassword().length < 8) {
+      this.accountError.set('La contraseña debe tener al menos 8 caracteres.');
+      return;
+    }
+    if (!c.taxId) {
+      this.accountError.set('Falta el RUT para crear la cuenta.');
+      return;
+    }
+
+    const phone = normalizeChileanPhone(c.phone ?? '');
+    if (!phone) {
+      this.accountError.set('El teléfono registrado no es válido para crear la cuenta.');
+      return;
+    }
+
+    this.accountCreating.set(true);
+    this.accountError.set('');
+
+    this.auth.register({
+      name: c.name,
+      email: c.email,
+      password: this.accountPassword(),
+      rut: c.taxId,
+      phone,
+    }).subscribe({
+      next: () => {
+        this.accountCreating.set(false);
+        this.accountCreated.set(true);
+        this.showAccountForm.set(false);
+      },
+      error: (err) => {
+        this.accountCreating.set(false);
+        this.accountError.set(err?.error?.error ?? 'No se pudo crear la cuenta.');
       },
     });
   }
