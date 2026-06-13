@@ -3,22 +3,37 @@
   <div class="container public-header__inner">
 
     <!-- Brand -->
-    <a routerLink="/" class="public-header__brand">
-      <img src="assets/logo.ico" alt="VAYO Solutions" class="public-header__logo" />
+    <a routerLink="/" class="public-header__brand" [attr.aria-label]="companyName()">
+      @if (logoUrl()) {
+        <img [src]="logoUrl()!" [alt]="companyName()" class="public-header__logo" height="40" />
+      } @else {
+        <span class="public-header__logo-text">{{ companyName() }}</span>
+      }
     </a>
 
+    <!-- Hamburguesa móvil -->
+    <button
+      class="public-header__hamburger"
+      [class.open]="mobileMenuOpen"
+      (click)="mobileMenuOpen = !mobileMenuOpen"
+      [attr.aria-expanded]="mobileMenuOpen"
+      aria-label="Menú"
+    >
+      <span></span><span></span><span></span>
+    </button>
+
     <!-- Nav links -->
-    <nav class="public-header__nav">
-      <a routerLink="/catalogo" >Catálogo</a>
-      <a routerLink="/cotizacion">Cotización</a>
+    <nav class="public-header__nav" [class.open]="mobileMenuOpen">
+      <a routerLink="/catalogo" (click)="mobileMenuOpen = false">Catálogo</a>
+      <a routerLink="/cotizacion" (click)="mobileMenuOpen = false">Cotización</a>
 
       <!-- Carrito -->
       <app-cart-dropdown />
 
       <!-- ── Usuario NO autenticado ───────────────────────────────────── -->
       @if (!auth.isAuthenticated) {
-        <a routerLink="/login" class="ph-btn ph-btn--ghost">Ingresar</a>
-        <a routerLink="/registro" class="ph-btn ph-btn--primary">Crear cuenta</a>
+        <a routerLink="/login" class="ph-btn ph-btn--ghost" (click)="mobileMenuOpen = false">Ingresar</a>
+        <a routerLink="/registro" class="ph-btn ph-btn--primary" (click)="mobileMenuOpen = false">Crear cuenta</a>
       }
 
       <!-- ── Usuario autenticado ─────────────────────────────────────── -->

@@ -1,25 +1,21 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
-
-import {
-  mapApiCategoryToCatalogCategory,
-  mapApiProductToCardData,
-} from '../../mapper';
-import {
-  CatalogCategory,
-  ProductCardData,
-} from '../../../../core/models/ui.models';
+import { Subject, forkJoin, takeUntil, filter, debounceTime, distinctUntilChanged } from 'rxjs';
+import { ApiService } from '../../../../core/services/api.service';
+import { mapApiCategoryToCatalogCategory, mapApiProductToCardData } from '../../mapper';
+import { CatalogCategory, ProductCardData } from '../../../../core/models/ui.models';
 import { CatalogService }   from '../../../../core/services/catalog.service';
+import { FavoriteService }  from '../../../../core/services/favorite.service';
 import { CacheService }     from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { IconComponent }    from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
@@ -28,15 +24,14 @@ export class CatalogComponent implements OnInit, OnDestroy {
   private readonly cacheService   = inject(CacheService);
   private readonly route          = inject(ActivatedRoute);
   qs = inject(QuotationService);
+  favSvc = inject(FavoriteService);
 
   private readonly destroy$ = new Subject<void>();
+  private readonly search$  = new Subject<string>();
 
-  /** Slug de categoría pendiente de aplicar (viene de ?categoria= en la URL). */
   private pendingCategorySlug: string | null = null;
 
-  categories: CatalogCategory[] = [
-    { id: 'all', label: 'Todos', slug: 'all', active: true },
-  ];
+  categories: CatalogCategory[] = [{ id: 'all', label: 'Todos', slug: 'all', active: true }];
   products: ProductCardData[] = [];
   isLoading    = false;
   errorMessage = '';
@@ -44,15 +39,20 @@ export class CatalogComponent implements OnInit, OnDestroy {
   selectedCategory = 'Todos';
   searchQuery      = '';
 
-  ngOnInit(): void {
-    // Si llegamos desde el home con ?categoria=slug, lo recordamos para
-    // preseleccionar la categoría una vez cargadas.
-    this.pendingCategorySlug = this.route.snapshot.queryParamMap.get('categoria');
+  // Paginación
+  currentPage = signal(1);
+  totalPages  = signal(1);
+  totalProducts = signal(0);
+  readonly pageSize = 12;
 
+  // Orden y filtros
+  sortBy = signal<string>('newest');
+  onlyOffers = signal(false);
+
+  ngOnInit(): void {
+    this.pendingCategorySlug = this.route.snapshot.queryParamMap.get('categoria');
     this.loadCatalogData();
 
-    // Auto-refresh cuando admin hace cambios en productos/categorías (incluso
-    // desde otra pestaña — vía BroadcastChannel).
     this.cacheService.invalidations$
       .pipe(
         takeUntil(this.destroy$),
@@ -62,6 +62,14 @@ export class CatalogComponent implements OnInit, OnDestroy {
         ),
       )
       .subscribe(() => this.loadCatalogData());
+
+    this.search$
+      .pipe(
+        takeUntil(this.destroy$),
+        debounceTime(300),
+        distinctUntilChanged(),
+      )
+      .subscribe((q) => this.doServerSearch(q));
   }
 
   ngOnDestroy(): void {
@@ -69,34 +77,105 @@ export class CatalogComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  get filteredProducts(): ProductCardData[] {
-    const query = this.searchQuery.trim().toLowerCase();
-
-    return this.products.filter((p) => {
-      const categoryMatch =
-        this.selectedCategory === 'Todos' || p.category === this.selectedCategory;
-      if (!categoryMatch) return false;
-      if (!query) return true;
-      const haystack = [p.name, p.sku, p.description ?? '', p.category]
-        .join(' ').toLowerCase();
-      return haystack.includes(query);
-    });
+  onSearchInput(value: string): void {
+    this.searchQuery = value;
+    this.currentPage.set(1);
+    this.search$.next(value);
   }
 
   selectCategory(label: string): void {
     this.selectedCategory = label;
+    this.currentPage.set(1);
+    if (this.searchQuery.trim()) {
+      this.doServerSearch(this.searchQuery);
+    }
   }
+
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages()) return;
+    this.currentPage.set(page);
+    if (this.searchQuery.trim()) {
+      this.doServerSearch(this.searchQuery);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.currentPage.set(1);
+    this.loadCatalogData();
+  }
+
+  doSearch(): void {
+    if (this.searchQuery.trim()) {
+      this.doServerSearch(this.searchQuery);
+    } else {
+      this.loadCatalogData();
+    }
+  }
+
+  trackByLabel(_: number, item: CatalogCategory): string { return item.id; }
+  trackByProduct(_: number, item: ProductCardData): string { return item.id; }
 
   isCategoryActive(category: CatalogCategory): boolean {
     return category.label === this.selectedCategory;
   }
 
-  clearSearch(): void {
-    this.searchQuery = '';
+  /**
+   * Productos a mostrar en la grilla.
+   * - Si hay búsqueda activa, el backend ya filtró por texto + categoría → se
+   *   muestran tal cual `products`.
+   * - Si NO hay búsqueda, filtramos localmente por la categoría seleccionada
+   *   (el listado completo ya está en memoria desde `loadCatalogData`).
+   */
+  get filteredProducts(): ProductCardData[] {
+    if (this.searchQuery.trim() || this.selectedCategory === 'Todos') {
+      return this.products;
+    }
+    return this.products.filter((p) => p.category === this.selectedCategory);
   }
 
-  trackByLabel(_: number, item: CatalogCategory): string { return item.id; }
-  trackByProduct(_: number, item: ProductCardData): string { return item.id; }
+  private doServerSearch(q: string): void {
+    if (!q.trim()) {
+      this.loadCatalogData();
+      return;
+    }
+    this.isLoading = true;
+    this.errorMessage = '';
+
+    const categorySlug = this.selectedCategory !== 'Todos'
+      ? this.categories.find((c) => c.label === this.selectedCategory)?.slug
+      : undefined;
+
+    this.catalogService.searchProducts({
+      q: q.trim(),
+      category: categorySlug,
+      page: this.currentPage(),
+      limit: this.pageSize,
+      sort: this.sortBy(),
+      onOffer: this.onlyOffers() ? 'true' : undefined,
+    }).subscribe({
+      next: (res) => {
+        if (res.ok && res.data) {
+          const data = res.data;
+          this.products = (data.products || []).map((product) => {
+            const category = this.categories.find((c) => c.id === product.categoryId);
+            return mapApiProductToCardData(
+              product,
+              category ? { name: category.label, slug: category.slug } : undefined,
+            );
+          });
+          this.totalPages.set(data.pages || 1);
+          this.totalProducts.set(data.total || 0);
+        }
+        this.isLoading = false;
+      },
+      error: () => {
+        this.errorMessage = 'Error al buscar productos.';
+        this.isLoading = false;
+      },
+    });
+  }
 
   private loadCatalogData(): void {
     this.isLoading = true;
@@ -108,13 +187,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
     }).subscribe({
       next: ({ categoriesResponse, productsResponse }) => {
         const mapped = categoriesResponse.data.map(mapApiCategoryToCatalogCategory);
+        this.categories = [{ id: 'all', label: 'Todos', slug: 'all', active: true }, ...mapped];
 
-        this.categories = [
-          { id: 'all', label: 'Todos', slug: 'all', active: true },
-          ...mapped,
-        ];
-
-        // Aplicar la categoría que venía en la URL (?categoria=slug)
         if (this.pendingCategorySlug) {
           const match = this.categories.find((c) => c.slug === this.pendingCategorySlug);
           if (match) this.selectedCategory = match.label;
@@ -129,6 +203,8 @@ export class CatalogComponent implements OnInit, OnDestroy {
           );
         });
 
+        this.totalPages.set(1);
+        this.totalProducts.set(this.products.length);
         this.isLoading = false;
       },
       error: () => {

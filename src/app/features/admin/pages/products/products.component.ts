@@ -5,6 +5,7 @@ import { FormsModule }  from '@angular/forms';
 import { CatalogService }  from '../../../../core/services/catalog.service';
 import { UploadService }   from '../../../../core/services/upload.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
+import { IconComponent }   from '../../../../shared/components/icon/icon.component';
 import {
   ApiProductListItem,
   ApiProductDetail,
@@ -65,7 +66,7 @@ function emptyForm(): ProductForm {
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
 })

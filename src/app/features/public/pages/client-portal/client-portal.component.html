@@ -1,1 +1,342 @@
-<p>client-portal works!</p>
+<section class="portal">
+  <header class="portal-header">
+    <h1>Mi cuenta</h1>
+    <p class="portal-welcome" *ngIf="currentUser">
+      Bienvenido{{ currentUser.name ? ', ' + currentUser.name : '' }}
+      <span class="portal-email">({{ currentUser.email }})</span>
+    </p>
+  </header>
+
+  <nav class="portal-tabs" role="tablist">
+    <button
+      *ngFor="let tab of ['resumen', 'cotizaciones', 'compras', 'favoritos', 'datos']"
+      class="portal-tab"
+      [class.active]="activeTab() === tab"
+      [attr.aria-selected]="activeTab() === tab"
+      role="tab"
+      (click)="setTab($any(tab))"
+    >
+      {{ tab === 'resumen' ? 'Resumen' : tab === 'cotizaciones' ? 'Cotizaciones' : tab === 'compras' ? 'Compras' : tab === 'favoritos' ? 'Favoritos' : 'Mis datos' }}
+    </button>
+  </nav>
+
+  <!-- ═══════════ RESUMEN ═══════════ -->
+  @if (activeTab() === 'resumen') {
+    <div class="portal-content">
+      @if (error()) {
+        <p class="portal-error">{{ error() }}</p>
+      }
+      <div class="summary-cards">
+        <div class="summary-card">
+          <span class="summary-number">{{ totalQuotes() }}</span>
+          <span class="summary-label">Cotizaciones</span>
+        </div>
+        <div class="summary-card">
+          <span class="summary-number">{{ totalSales() }}</span>
+          <span class="summary-label">Compras</span>
+        </div>
+        @if (lastSale()) {
+          <div class="summary-card">
+            <span class="summary-label">Última compra</span>
+            <span class="summary-detail">{{ lastSale()?.folio }}</span>
+            <span class="summary-detail">{{ formatCLP(lastSale()?.total) }}</span>
+          </div>
+        }
+      </div>
+      @if (totalQuotes() === 0 && totalSales() === 0 && !loading()) {
+        <div class="portal-empty">
+          <p>Aún no tienes actividad en tu cuenta.</p>
+          <a routerLink="/catalogo" class="btn btn-primary">Explorar catálogo</a>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════ COTIZACIONES ═══════════ -->
+  @if (activeTab() === 'cotizaciones') {
+    <div class="portal-content">
+      @if (error()) {
+        <p class="portal-error">{{ error() }}</p>
+      }
+      @if (quotes().length === 0) {
+        <div class="portal-empty">
+          <p>Aún no tienes cotizaciones.</p>
+          <a routerLink="/catalogo" class="btn btn-primary">Ir al catálogo</a>
+        </div>
+      } @else {
+        @if (actionMsg()) {
+          <div class="portal-msg portal-msg--success">{{ actionMsg() }}</div>
+        }
+        @if (actionError()) {
+          <div class="portal-msg portal-msg--error">{{ actionError() }}</div>
+        }
+        <div class="portal-table-wrap">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let q of quotes()">
+                <td>{{ q.folio }}</td>
+                <td>{{ formatDate(q.createdAt) }}</td>
+                <td>
+                  <span [class]="statusClass(q.metadata?.status || '')">{{ statusLabel(q.metadata?.status || '') }}</span>
+                </td>
+                <td>{{ formatCLP(q.totals?.total) }}</td>
+                <td class="portal-actions">
+                  <button class="btn btn-sm btn-light" (click)="openQuoteDetail(q)">Ver</button>
+                  <button class="btn btn-sm btn-light" (click)="downloadPDF(q._id)">PDF</button>
+                  <button class="btn btn-sm btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
+                  @if (q.metadata?.status === 'sent') {
+                    <button class="btn btn-sm btn-success" (click)="acceptQuote(q)">Aceptar</button>
+                    <button class="btn btn-sm btn-danger" (click)="rejectQuote(q)">Rechazar</button>
+                  }
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════ COMPRAS ═══════════ -->
+  @if (activeTab() === 'compras') {
+    <div class="portal-content">
+      @if (sales().length === 0) {
+        <div class="portal-empty">
+          <p>Aún no tienes compras registradas.</p>
+        </div>
+      } @else {
+        <div class="portal-table-wrap">
+          <table class="portal-table">
+            <thead>
+              <tr>
+                <th>Folio</th>
+                <th>Fecha</th>
+                <th>Estado</th>
+                <th>Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let s of sales()">
+                <td>{{ s.folio }}</td>
+                <td>{{ formatDate(s.createdAt) }}</td>
+                <td>
+                  <span [class]="statusClass(s.status)">{{ statusLabel(s.status) }}</span>
+                </td>
+                <td>{{ formatCLP(s.totals?.total) }}</td>
+                <td class="portal-actions">
+                  <button class="btn btn-sm btn-light" (click)="openSaleDetail(s)">Ver</button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════ FAVORITOS ═══════════ -->
+  @if (activeTab() === 'favoritos') {
+    <div class="portal-content">
+      @if (favoritesLoading()) {
+        <p class="state-msg">Cargando favoritos…</p>
+      } @else if (favoriteProducts().length === 0) {
+        <div class="portal-empty">
+          <p>Aún no tienes productos favoritos.</p>
+          <a routerLink="/catalogo" class="btn btn-primary">Explorar catálogo</a>
+        </div>
+      } @else {
+        <div class="portal-fav-grid">
+          @for (p of favoriteProducts(); track p.id) {
+            <article class="portal-fav-card card">
+              <a [routerLink]="['/catalogo', p.id]" class="portal-fav-card__media">
+                @if (p.imageUrl) {
+                  <img [src]="p.imageUrl" [alt]="p.name" loading="lazy" width="120" height="90" />
+                } @else {
+                  <div class="portal-fav-card__placeholder"><app-icon name="box" [size]="40" /></div>
+                }
+              </a>
+              <div class="portal-fav-card__body">
+                <a [routerLink]="['/catalogo', p.id]" class="portal-fav-card__title">{{ p.name }}</a>
+                <span class="portal-fav-card__price">{{ p.offerPrice || p.price }}</span>
+                <div class="portal-fav-card__actions">
+                  <a [routerLink]="['/catalogo', p.id]" class="btn btn-sm btn-light">Ver ficha</a>
+                  <button class="btn btn-sm btn-ghost-danger" (click)="removeFavorite(p.id)">Quitar</button>
+                </div>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════ MIS DATOS ═══════════ -->
+  @if (activeTab() === 'datos') {
+    <div class="portal-content">
+
+      @if (profileSuccess()) {
+        <div class="portal-msg portal-msg--success">{{ profileSuccess() }}</div>
+      }
+      @if (profileError()) {
+        <div class="portal-msg portal-msg--error">{{ profileError() }}</div>
+      }
+
+      <!-- Foto de perfil -->
+      <div class="profile-photo-section card">
+        <div class="profile-photo-wrap">
+          @if (currentUser?.profileImage) {
+            <img [src]="currentUser!.profileImage" alt="Foto de perfil" class="profile-photo" />
+          } @else {
+            <div class="profile-photo-placeholder">{{ (currentUser?.name || 'U')[0].toUpperCase() }}</div>
+          }
+        </div>
+        <div class="profile-photo-actions">
+          <label class="btn btn-light btn-sm" [class.loading]="photoUploading()">
+            @if (photoUploading()) { Subiendo… } @else { Cambiar foto }
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              class="visually-hidden"
+              [disabled]="photoUploading()"
+              (change)="onPhotoSelected($event)"
+            />
+          </label>
+          <small class="profile-photo-hint">JPG, PNG o WEBP · máx. 2 MB</small>
+        </div>
+      </div>
+
+      <!-- Datos personales -->
+      <div class="portal-data card">
+        @if (!profileEditing()) {
+          <dl class="portal-data__list">
+            <div class="portal-data__row">
+              <dt>Nombre</dt><dd>{{ currentUser?.name || '—' }}</dd>
+            </div>
+            <div class="portal-data__row">
+              <dt>Email</dt><dd>{{ currentUser?.email || '—' }}</dd>
+            </div>
+            <div class="portal-data__row">
+              <dt>Teléfono</dt><dd>{{ currentUser?.phone || '—' }}</dd>
+            </div>
+          </dl>
+          <div class="portal-data__footer">
+            <button class="btn btn-primary btn-sm" (click)="startEditProfile()">Editar datos</button>
+          </div>
+        } @else {
+          <form class="profile-form" (ngSubmit)="saveProfile()">
+            <div class="form-group">
+              <label for="profileName">Nombre</label>
+              <input
+                id="profileName"
+                type="text"
+                class="form-control"
+                [value]="profileName()"
+                (input)="profileName.set($any($event.target).value)"
+                required
+                maxlength="80"
+              />
+            </div>
+            <div class="form-group">
+              <label for="profilePhone">Teléfono <small>(ej: 9 1234 5678)</small></label>
+              <input
+                id="profilePhone"
+                type="tel"
+                class="form-control"
+                [value]="profilePhone()"
+                (input)="profilePhone.set($any($event.target).value)"
+                maxlength="20"
+              />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <p class="form-static">{{ currentUser?.email }}</p>
+            </div>
+            <div class="profile-form__actions">
+              <button type="submit" class="btn btn-primary" [disabled]="profileSaving()">
+                {{ profileSaving() ? 'Guardando…' : 'Guardar cambios' }}
+              </button>
+              <button type="button" class="btn btn-ghost" [disabled]="profileSaving()" (click)="cancelEditProfile()">
+                Cancelar
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+
+    </div>
+  }
+</section>
+
+<!-- MODAL: detalle cotización -->
+@if (selectedQuote(); as q) {
+  <div class="modal-backdrop" (click)="closeQuoteDetail()">
+    <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h2>{{ q.folio }}</h2>
+        <button class="modal-close" (click)="closeQuoteDetail()" aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p><strong>Fecha:</strong> {{ formatDate(q.createdAt) }}</p>
+        <p><strong>Estado:</strong> <span [class]="statusClass(q.metadata?.status || '')">{{ statusLabel(q.metadata?.status || '') }}</span></p>
+        <table class="portal-table" *ngIf="q.items?.length">
+          <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let it of q.items">
+              <td>{{ it.name }}</td>
+              <td>{{ it.quantity }}</td>
+              <td>{{ formatCLP(it.price) }}</td>
+              <td>{{ formatCLP(it.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="portal-total"><strong>Total:</strong> {{ formatCLP(q.totals?.total) }}</p>
+        <div class="modal-actions">
+          <button class="btn btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
+          @if (q.metadata?.status === 'sent') {
+            <button class="btn btn-success" (click)="acceptQuote(q)">Aceptar cotización</button>
+            <button class="btn btn-danger" (click)="rejectQuote(q)">Rechazar cotización</button>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- MODAL: detalle venta -->
+@if (selectedSale(); as s) {
+  <div class="modal-backdrop" (click)="closeSaleDetail()">
+    <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h2>{{ s.folio }}</h2>
+        <button class="modal-close" (click)="closeSaleDetail()" aria-label="Cerrar">&times;</button>
+      </header>
+      <div class="modal-body">
+        <p><strong>Fecha:</strong> {{ formatDate(s.createdAt) }}</p>
+        <p><strong>Estado:</strong> <span [class]="statusClass(s.status)">{{ statusLabel(s.status) }}</span></p>
+        <p *ngIf="s.paymentMethod"><strong>Método de pago:</strong> {{ paymentLabel(s.paymentMethod) }}</p>
+        <table class="portal-table" *ngIf="s.items?.length">
+          <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
+          <tbody>
+            <tr *ngFor="let it of s.items">
+              <td>{{ it.name }}</td>
+              <td>{{ it.quantity }}</td>
+              <td>{{ formatCLP(it.price) }}</td>
+              <td>{{ formatCLP(it.total) }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <p class="portal-total"><strong>Total:</strong> {{ formatCLP(s.totals?.total) }}</p>
+      </div>
+    </div>
+  </div>
+}

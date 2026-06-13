@@ -12,23 +12,32 @@ import {
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { CacheService } from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { ApiService } from '../../../../core/services/api.service';
+import { API_CONFIG } from '../../../../core/config/api.config';
+import { ApiBanner } from '../../../../core/models/api.models';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
 export class HomeComponent implements OnInit, OnDestroy {
   private readonly catalogService = inject(CatalogService);
   private readonly cacheService   = inject(CacheService);
+  private readonly apiService     = inject(ApiService);
   qs = inject(QuotationService);
 
   private readonly destroy$ = new Subject<void>();
 
-  /** Productos destacados (marcados por el admin) que se muestran en la portada. */
+  /** Productos destacados (marcados por el admin). */
   featured: ProductCardData[] = [];
+  /** Productos en oferta vigente. */
+  offers: ProductCardData[] = [];
+  /** Banners promocionales activos. */
+  banners: ApiBanner[] = [];
   /** Categorías para la sección "explora por categoría". */
   categories: CatalogCategory[] = [];
 
@@ -95,8 +104,10 @@ export class HomeComponent implements OnInit, OnDestroy {
     forkJoin({
       categoriesResponse: this.catalogService.getCategories(),
       featuredResponse:   this.catalogService.getFeaturedProducts(),
+      offersResponse:     this.catalogService.getOffers(),
+      bannersResponse:    this.apiService.get<{ ok: boolean; data: ApiBanner[] }>(API_CONFIG.endpoints.banners),
     }).subscribe({
-      next: ({ categoriesResponse, featuredResponse }) => {
+      next: ({ categoriesResponse, featuredResponse, offersResponse, bannersResponse }) => {
         this.categories = categoriesResponse.data.map(mapApiCategoryToCatalogCategory);
 
         this.featured = featuredResponse.data.map((product) => {
@@ -106,6 +117,18 @@ export class HomeComponent implements OnInit, OnDestroy {
             category ? { name: category.label, slug: category.slug } : undefined,
           );
         });
+
+        this.offers = offersResponse.data.map((product) => {
+          const category = this.categories.find((c) => c.id === product.categoryId);
+          return mapApiProductToCardData(
+            product,
+            category ? { name: category.label, slug: category.slug } : undefined,
+          );
+        });
+
+        if (bannersResponse.ok && bannersResponse.data) {
+          this.banners = bannersResponse.data.filter((b) => b.isActive).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+        }
 
         this.isLoading = false;
       },

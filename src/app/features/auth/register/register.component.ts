@@ -11,11 +11,12 @@ import {
   normalizeChileanPhone,
   onlyDigits,
 } from '../../../core/utils/validators';
+import { IconComponent }  from '../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-register',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
   templateUrl: './register.component.html',
   styleUrl: './register.component.scss',
 })

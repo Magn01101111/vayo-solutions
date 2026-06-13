@@ -4,6 +4,7 @@ import { FormsModule }  from '@angular/forms';
 
 import { CatalogService }         from '../../../../core/services/catalog.service';
 import { ApiCategory }            from '../../../../core/models/api.models';
+import { IconComponent }          from '../../../../shared/components/icon/icon.component';
 
 type FormMode = 'create' | 'edit';
 
@@ -15,7 +16,7 @@ interface CategoryForm {
 @Component({
   selector: 'app-categories',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './categories.component.html',
   styleUrl: './categories.component.scss',
 })

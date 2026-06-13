@@ -4,4 +4,27 @@
   <main class="public-shell__content">
     <router-outlet></router-outlet>
   </main>
+
+  <footer class="public-footer">
+    <div class="container">
+      <div class="public-footer__grid">
+        <div class="public-footer__brand">
+          <strong>VAYO Solutions</strong>
+          <p>Repuestos para climatización industrial. Catálogo y cotización B2B.</p>
+        </div>
+        <div class="public-footer__links">
+          <a routerLink="/catalogo">Catálogo</a>
+          <a routerLink="/cotizacion">Cotizar</a>
+          <a routerLink="/terminos">Términos y condiciones</a>
+          <a routerLink="/privacidad">Política de privacidad</a>
+        </div>
+        <div class="public-footer__contact">
+          <a href="mailto:contacto&#64;vayo.cl">contacto&#64;vayo.cl</a>
+        </div>
+      </div>
+      <div class="public-footer__bottom">
+        <span>&copy; {{ currentYear }} VAYO Solutions. Todos los derechos reservados.</span>
+      </div>
+    </div>
+  </footer>
 </div>

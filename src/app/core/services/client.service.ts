@@ -16,7 +16,7 @@ import {
 export class ClientService {
   private readonly api = inject(ApiService);
 
-  getClients(params?: { q?: string; active?: 'true' | 'false' | 'all' }): Observable<ApiResponse<ApiClient[]>> {
+  getClients(params?: { q?: string; active?: 'true' | 'false' | 'all'; mine?: string }): Observable<ApiResponse<ApiClient[]>> {
     return this.api.get<ApiResponse<ApiClient[]>>(
       API_CONFIG.endpoints.clients,
       params,

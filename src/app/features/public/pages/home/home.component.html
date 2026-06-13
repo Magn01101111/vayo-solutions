@@ -35,32 +35,52 @@
 
       <div class="portal-hero__aside">
         <div class="app-card card">
-          <div class="app-card__title">IA móvil VAYO</div>
+          <div class="app-card__title">Cotización en línea</div>
           <div class="app-card__subtitle">
-            Identifica repuestos y acelera la cotización desde tu celular.
+            Arma tu cotización de repuestos industriales y recibe respuesta rápida.
           </div>
-
           <div class="app-card__features">
-            <span class="app-chip">Reconocimiento de imagen</span>
+            <span class="app-chip">Catálogo completo</span>
             <span class="app-chip">Cotización en segundos</span>
-            <span class="app-chip">Gratis</span>
+            <span class="app-chip">Sin compromiso</span>
           </div>
         </div>
 
         <div class="store-links">
-          <div class="store-card">
-            <div class="store-card__meta">Disponible en</div>
-            <div class="store-card__name">App Store</div>
-          </div>
-          <div class="store-card">
-            <div class="store-card__meta">Disponible en</div>
-            <div class="store-card__name">Google Play</div>
-          </div>
+          <a routerLink="/catalogo" class="btn btn-primary">Ver catálogo</a>
+          <a href="mailto:contacto@vayo.cl" class="btn btn-hero-outline">Contactar</a>
         </div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ── BANNERS PROMOCIONALES ──────────────────────────────────────────────── -->
+@if (banners.length > 0) {
+  <section class="section portal-banners">
+    <div class="container">
+      <div class="banners-strip">
+        <a
+          *ngFor="let banner of banners"
+          class="banner-card"
+          [href]="banner.link || undefined"
+          [target]="banner.link ? '_blank' : undefined"
+          [rel]="banner.link ? 'noopener' : undefined"
+        >
+          <img [src]="banner.imageUrl" [alt]="banner.title" loading="lazy" />
+          @if (banner.title) {
+            <div class="banner-card__text">
+              <strong>{{ banner.title }}</strong>
+              @if (banner.subtitle) {
+                <span>{{ banner.subtitle }}</span>
+              }
+            </div>
+          }
+        </a>
+      </div>
+    </div>
+  </section>
+}
 
 <!-- ── EXPLORA POR CATEGORÍA ─────────────────────────────────────────────── -->
 <section class="section portal-categories">
@@ -120,7 +140,7 @@
             loading="lazy"
           />
           <ng-template #featIcon>
-            <div class="portal-product__placeholder">📦</div>
+            <div class="portal-product__placeholder"><app-icon name="box" [size]="40" /></div>
           </ng-template>
         </div>
 
@@ -130,7 +150,15 @@
           <p class="portal-product__reference">Ref: {{ product.sku }}</p>
 
           <div class="portal-product__footer">
-            <span class="portal-product__price">{{ product.price }}</span>
+            <div class="portal-product__price">
+              @if (product.offerPrice) {
+                <span class="portal-product__price--old">{{ product.price }}</span>
+                <span class="portal-product__price--offer">{{ product.offerPrice }}</span>
+                <span class="badge badge-offer">−{{ product.offerDiscountPercent }}%</span>
+              } @else {
+                {{ product.price }}
+              }
+            </div>
             <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
               Agregar
             </button>
@@ -147,6 +175,60 @@
       <h3>Aún no hay productos destacados</h3>
       <p>Explora todo nuestro catálogo de repuestos disponibles.</p>
       <a routerLink="/catalogo" class="btn btn-primary">Ir al catálogo</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── OFERTAS ────────────────────────────────────────────────────────────── -->
+<section class="section portal-offers" *ngIf="offers.length > 0">
+  <div class="container">
+    <div class="portal-section-header">
+      <div>
+        <h2 class="portal-section-title">Ofertas</h2>
+        <p class="portal-section-subtitle">Productos con descuento por tiempo limitado.</p>
+      </div>
+      <a routerLink="/catalogo" class="portal-section-link">Ver todas →</a>
+    </div>
+
+    <div class="portal-products">
+      <article class="portal-product card" *ngFor="let product of offers; trackBy: trackByProduct">
+        <div class="portal-product__media">
+          <img
+            *ngIf="product.imageUrl; else offerIcon"
+            [src]="product.imageUrl"
+            [alt]="product.name"
+            class="portal-product__image"
+            loading="lazy"
+          />
+          <ng-template #offerIcon>
+            <div class="portal-product__placeholder"><app-icon name="box" [size]="40" /></div>
+          </ng-template>
+        </div>
+
+        <div class="portal-product__body">
+          <span class="badge badge-brand">{{ product.category }}</span>
+          <h3 class="portal-product__title">{{ product.name }}</h3>
+          <p class="portal-product__reference">Ref: {{ product.sku }}</p>
+
+          <div class="portal-product__footer">
+            <div class="portal-product__price">
+              @if (product.offerPrice) {
+                <span class="portal-product__price--old">{{ product.price }}</span>
+                <span class="portal-product__price--offer">{{ product.offerPrice }}</span>
+                <span class="badge badge-offer">−{{ product.offerDiscountPercent }}%</span>
+              } @else {
+                {{ product.price }}
+              }
+            </div>
+            <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
+              Agregar
+            </button>
+            <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
+              Ver ficha
+            </a>
+          </div>
+        </div>
+      </article>
     </div>
   </div>
 </section>

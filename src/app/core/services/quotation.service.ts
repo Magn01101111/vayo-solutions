@@ -1,4 +1,4 @@
-import { Injectable, computed, effect, signal } from '@angular/core';
+import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { ProductCardData } from '../../core/models/ui.models';
 import {
   QuotationItem,
@@ -11,18 +11,14 @@ import {
   DeliveryTerms,
 } from '../../core/models/app.models';
 import { StorageService } from './storage.service';
+import { CompanyService } from './company.service';
+import { ApiService } from './api.service';
+import { API_CONFIG } from '../config/api.config';
 
 const STORAGE_KEY = 'vayo_quote';
 
 const MAX_QTY_DEFAULT = 999;
 const RESERVATION_MINUTES = 15;
-
-const AVAILABLE_COUPONS: Coupon[] = [
-  { code: 'VAYO5', type: 'percentage', value: 5, description: '5% de descuento' },
-  { code: 'VAYO10', type: 'percentage', value: 10, minSubtotal: 100000, description: '10% sobre $100.000+' },
-  { code: 'VAYO15', type: 'percentage', value: 15, minSubtotal: 500000, description: '15% sobre $500.000+' },
-  { code: 'BIENVENIDO', type: 'fixed', value: 10000, description: '$10.000 de descuento' },
-];
 
 export const SHIPPING_METHODS: ShippingMethod[] = [
   { id: 'pickup', label: 'Retiro en tienda', description: 'Sin costo, retira en sucursal', cost: 0, estimatedDays: 'Mismo día' },
@@ -49,7 +45,9 @@ export class QuotationService {
   private _validityDays = signal<number>(30);
   private _generalNotes = signal<string>('');
   private _reservationStartedAt = signal<string | null>(null);
+  private _ivaPercent = signal<number>(19);
   private _lastRemoved = signal<{ item: QuotationItem; index: number } | null>(null);
+  private apiService!: ApiService;
 
   // ─────────────── SELECTORS (readonly) ───────────────
   items = this._items.asReadonly();
@@ -66,11 +64,23 @@ export class QuotationService {
   generalNotes = this._generalNotes.asReadonly();
   reservationStartedAt = this._reservationStartedAt.asReadonly();
   lastRemoved = this._lastRemoved.asReadonly();
+  ivaPercent = this._ivaPercent.asReadonly();
 
-  availableCoupons = AVAILABLE_COUPONS;
   shippingMethods = SHIPPING_METHODS;
 
   constructor(private storageService: StorageService) {
+    const companyService = inject(CompanyService);
+    const apiService = inject(ApiService);
+
+    companyService.getPublicCompany().subscribe({
+      next: (res) => {
+        if (res.ok && res.data) {
+          this._ivaPercent.set(res.data.ivaPercent ?? 19);
+        }
+      },
+    });
+
+    this.apiService = apiService;
     this.loadFromStorage();
 
     effect(() => {
@@ -121,6 +131,13 @@ export class QuotationService {
 
   // ─────────────── CART ACTIONS ───────────────
   addItem(product: ProductCardData) {
+    const priceNum = this.parsePrice(product.price);
+    if (priceNum <= 0 || product.price === 'Consultar') {
+      this._couponError.set(`"${product.name}" no tiene precio definido. Solicita una cotización personalizada.`);
+      return;
+    }
+    this._couponError.set(null);
+
     const items = this._items();
     const existing = items.find((i) => i.id === product.id);
 
@@ -220,6 +237,40 @@ export class QuotationService {
     this._reservationStartedAt.set(null);
   }
 
+  /** Agrega ítems desde una cotización previa al carrito actual. Omite productos con precio nulo. */
+  repeatFromQuote(items: { productId: string; name: string; price: number; quantity: number; sku?: string }[]): void {
+    const current = this._items();
+    const newItems = items
+      .filter((it) => it.price > 0 && it.productId)
+      .map((it) => ({
+        id: it.productId,
+        name: it.name,
+        sku: it.sku || '',
+        price: String(it.price),
+        category: '',
+        categorySlug: '',
+        shortStatus: '',
+        stockLabel: '',
+        tags: [] as string[],
+        qty: Math.max(1, it.quantity),
+        notes: '',
+        addedAt: new Date().toISOString(),
+        maxQty: MAX_QTY_DEFAULT,
+      }));
+
+    for (const item of newItems) {
+      const existing = current.find((i) => i.id === item.id);
+      if (existing) {
+        const max = existing.maxQty ?? MAX_QTY_DEFAULT;
+        existing.qty = Math.min(existing.qty + item.qty, max);
+      } else {
+        current.push(item);
+      }
+    }
+
+    this._items.set([...current]);
+  }
+
   clearAll() {
     this._items.set([]);
     this._savedItems.set([]);
@@ -270,20 +321,33 @@ export class QuotationService {
       this._couponError.set('Ingresa un código');
       return false;
     }
-    const found = AVAILABLE_COUPONS.find((c) => c.code === normalized);
-    if (!found) {
-      this._couponError.set('Código no válido');
-      return false;
-    }
-    if (found.minSubtotal && this.subtotal() < found.minSubtotal) {
-      this._couponError.set(
-        `Requiere subtotal mínimo de $${found.minSubtotal.toLocaleString('es-CL')}`,
-      );
-      return false;
-    }
-    this._coupon.set(found);
-    this._couponError.set(null);
-    return true;
+
+    this.apiService
+      .post<{ ok: boolean; data?: { code: string; type: string; value: number; description: string; discount: number }; error?: string }>(
+        API_CONFIG.endpoints.couponsValidate,
+        { code: normalized, subtotal: this.subtotal() },
+      )
+      .subscribe({
+        next: (res) => {
+          if (res.ok && res.data) {
+            this._coupon.set({
+              code: res.data.code,
+              type: res.data.type as 'percentage' | 'fixed',
+              value: res.data.value,
+              description: res.data.description,
+              discount: res.data.discount,
+            });
+            this._couponError.set(null);
+          } else {
+            this._couponError.set(res.error || 'Cupón no válido');
+          }
+        },
+        error: () => {
+          this._couponError.set('Error al validar cupón');
+        },
+      });
+
+    return true; // optimistic, el error se muestra vía couponError
   }
 
   removeCoupon() {
@@ -378,7 +442,7 @@ export class QuotationService {
 
   taxableBase = computed(() => Math.max(0, this.subtotal() - this.discount()));
 
-  iva = computed(() => Math.round(this.taxableBase() * 0.19));
+  iva = computed(() => Math.round(this.taxableBase() * this.ivaPercent() / 100));
 
   shippingCost = computed(() => this.shippingMethod().cost);
 

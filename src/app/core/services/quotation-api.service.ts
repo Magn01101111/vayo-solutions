@@ -8,6 +8,7 @@ export interface ApiQuote {
   _id: string;
   folio: string;
   clientId?: string | null;
+  createdBy?: string | null;
   client?: { name?: string; email?: string; phone?: string };
   items?: Array<{
     productId: string;
@@ -17,7 +18,8 @@ export interface ApiQuote {
     total: number;
   }>;
   totals?: { subtotal?: number; iva?: number; total?: number };
-  metadata?: { status?: 'sent' | 'accepted' | 'rejected' | 'expired' };
+  metadata?: { status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' };
+  viewedAt?: string | null;
   createdAt?: string;
 }
 
@@ -32,7 +34,7 @@ export class QuotationApiService {
   }
 
   /** Lista cotizaciones con filtros opcionales (folio, clientId, status). */
-  getQuotes(params?: { folio?: string; clientId?: string; status?: string }): Observable<ApiResponse<ApiQuote[]>> {
+  getQuotes(params?: { folio?: string; clientId?: string; status?: string; mine?: string; createdBy?: string }): Observable<ApiResponse<ApiQuote[]>> {
     return this.api.get<ApiResponse<ApiQuote[]>>(API_CONFIG.endpoints.quotes, params);
   }
 
@@ -73,5 +75,17 @@ export class QuotationApiService {
       ? `${API_CONFIG.endpoints.quotes}/${id}/pdf?token=${encodeURIComponent(token)}`
       : `${API_CONFIG.endpoints.quotes}/${id}/pdf`;
     return this.api.getBlob(path);
+  }
+
+  duplicateQuote(id: string): Observable<ApiResponse<ApiQuote>> {
+    return this.api.post<ApiResponse<ApiQuote>>(`${API_CONFIG.endpoints.quotes}/${id}/duplicate`, {});
+  }
+
+  /** Marca la cotización como vista por el cliente (primera apertura). */
+  markViewed(id: string): Observable<ApiResponse<{ viewedAt: string }>> {
+    return this.api.patch<ApiResponse<{ viewedAt: string }>, object>(
+      `${API_CONFIG.endpoints.quotes}/${id}/mark-viewed`,
+      {},
+    );
   }
 }

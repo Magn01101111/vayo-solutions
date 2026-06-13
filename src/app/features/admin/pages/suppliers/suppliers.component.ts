@@ -4,6 +4,7 @@ import { FormsModule }  from '@angular/forms';
 
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { ApiSupplier, SupplierPayload } from '../../../../core/models/api.models';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 type FormMode = 'create' | 'edit';
 
@@ -22,7 +23,7 @@ function emptyForm(): SupplierForm {
 @Component({
   selector: 'app-suppliers',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './suppliers.component.html',
   styleUrl: './suppliers.component.scss',
 })

@@ -222,9 +222,15 @@
                   <p>{{ doc.meta }}</p>
                 </div>
 
-                <button type="button" class="btn btn-secondary btn-sm">
-                  Descargar
-                </button>
+                <a
+                  [href]="doc.url"
+                  target="_blank"
+                  rel="noopener"
+                  class="btn btn-secondary btn-sm"
+                  [class.btn-disabled]="!doc.url"
+                >
+                  {{ doc.url ? 'Descargar' : 'No disponible' }}
+                </a>
               </div>
             </div>
           </div>
@@ -320,7 +326,7 @@
                 <img *ngIf="item.imageUrl; else relIcon" [src]="item.imageUrl" [alt]="item.name"
                   class="related-card__img" loading="lazy" />
                 <ng-template #relIcon>
-                  <span class="related-card__placeholder">📦</span>
+                  <span class="related-card__placeholder"><app-icon name="box" [size]="40" /></span>
                 </ng-template>
               </a>
 
@@ -351,7 +357,7 @@
           @if (isInCart()) {
           <div class="cart-status">
             <div class="cart-status__info">
-              <span class="badge badge-success">✓ En tu carrito</span>
+              <span class="badge badge-success"><app-icon name="check" [size]="13" /> En tu carrito</span>
               <span class="cart-status__qty">{{ currentCartQty() }} unidades</span>
             </div>
 
@@ -385,7 +391,7 @@
             </div>
 
             <div class="totals-row">
-              <span>IVA (19%)</span>
+              <span>IVA ({{ ivaPercent() }}%)</span>
               <strong>{{ formatCurrency(iva()) }}</strong>
             </div>
 
@@ -437,9 +443,9 @@
             Nuestro equipo técnico puede verificar compatibilidad antes de cotizar.
           </p>
 
-          <button type="button" class="btn btn-secondary">
+          <a href="mailto:contacto@vayo.cl?subject=Consulta técnica: {{ product()?.name }}" class="btn btn-secondary">
             Consultar al equipo técnico
-          </button>
+          </a>
         </section>
       </aside>
     </div>

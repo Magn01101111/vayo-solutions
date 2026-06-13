@@ -109,6 +109,18 @@ export class CatalogService {
     );
   }
 
+  /** Búsqueda paginada server-side. Retorna metadata de paginación. */
+  searchProducts(params: { q?: string; category?: string; page?: number; limit?: number; sort?: string; onOffer?: string }): Observable<
+    ApiResponse<{ products: ApiProductListItem[]; total: number; page: number; limit: number; pages: number }>
+  > {
+    const queryParams: Record<string, string> = { page: String(params.page || 1), limit: String(params.limit || 12) };
+    if (params.q) queryParams['q'] = params.q;
+    if (params.category) queryParams['category'] = params.category;
+    if (params.sort) queryParams['sort'] = params.sort;
+    if (params.onOffer) queryParams['onOffer'] = params.onOffer;
+    return this.api.get(API_CONFIG.endpoints.products, queryParams);
+  }
+
   /** Productos destacados para el home de ofertas. Sin cache persistente. */
   getFeaturedProducts(): Observable<ApiResponse<ApiProductListItem[]>> {
     return this.cache.dedupe(
@@ -116,6 +128,17 @@ export class CatalogService {
       () => this.api.get<ApiResponse<ApiProductListItem[]>>(
         API_CONFIG.endpoints.products,
         { featured: 'true' },
+      ),
+    );
+  }
+
+  /** Productos en oferta vigente para sección de ofertas en home. */
+  getOffers(): Observable<ApiResponse<ApiProductListItem[]>> {
+    return this.cache.dedupe(
+      `${CACHE_PREFIX_PRODUCTS}offers`,
+      () => this.api.get<ApiResponse<ApiProductListItem[]>>(
+        API_CONFIG.endpoints.products,
+        { onOffer: 'true' },
       ),
     );
   }

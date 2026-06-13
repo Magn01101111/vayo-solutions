@@ -4,6 +4,7 @@ import { FormsModule }  from '@angular/forms';
 
 import { UserService }                 from '../../../../core/services/user.service';
 import { ApiUser, CreateUserPayload }  from '../../../../core/models/api.models';
+import { IconComponent }               from '../../../../shared/components/icon/icon.component';
 
 /**
  * Gestiona el personal interno de VAYO con acceso al panel: COTIZADORES.
@@ -30,7 +31,7 @@ function emptyForm(): UserForm {
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss',
 })

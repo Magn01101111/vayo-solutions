@@ -10,6 +10,7 @@ export const API_CONFIG = {
     logout: 'auth/logout',
     me: 'auth/me',
     changePassword: 'auth/me/password',
+    mePhoto: 'auth/me/photo',
     passwordResetRequest: 'auth/password-reset/request',
     passwordResetConfirm: 'auth/password-reset/confirm',
 
@@ -30,6 +31,7 @@ export const API_CONFIG = {
 
     // Company
     company: 'company',
+    companyPublic: 'company/public',
 
     // Quotes / Sales (Sprint 3+)
     quotes: 'quotes',
@@ -49,5 +51,15 @@ export const API_CONFIG = {
 
     // Reviews (reseñas de productos)
     reviews: 'reviews',
+
+    // Coupons
+    coupons: 'coupons',
+    couponsValidate: 'coupons/validate',
+
+    // Favorites
+    favorites: 'favorites',
+
+    // Banners
+    banners: 'banners',
   },
 } as const;

@@ -15,6 +15,7 @@ import { QuotationService } from '../../../../core/services/quotation.service';
 import { StepClientComponent } from './components/step-client/step-client.component';
 import { StepDocumentComponent } from './components/step-document/step-document.component';
 import { StepConfirmationComponent } from './components/step-confirmation/step-confirmation.component';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 @Component({
   selector: 'app-quote-flow',
@@ -26,6 +27,7 @@ import { StepConfirmationComponent } from './components/step-confirmation/step-c
     StepClientComponent,
     StepDocumentComponent,
     StepConfirmationComponent,
+    IconComponent,
   ],
   templateUrl: './quote-flow.component.html',
   styleUrl: './quote-flow.component.scss',

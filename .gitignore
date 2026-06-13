@@ -40,3 +40,6 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Contexto/memoria del equipo de IA (no se sube a git — ver vayo-context/00_REGLAS_IA.md)
+vayo-context/

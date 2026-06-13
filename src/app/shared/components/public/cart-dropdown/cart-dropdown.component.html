@@ -45,7 +45,7 @@
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
-          <span>Reservado por <strong>{{ remainingLabel() }}</strong></span>
+          <span>Carrito activo · {{ remainingLabel() }}</span>
         </div>
       }
 
@@ -54,7 +54,7 @@
           <span><strong>{{ removed.item.name }}</strong> eliminado</span>
           <div class="cart-dropdown__undo-actions">
             <button type="button" (click)="undoRemove()">Deshacer</button>
-            <button type="button" class="cart-dropdown__undo-close" aria-label="Cerrar" (click)="dismissUndo()">×</button>
+            <button type="button" class="cart-dropdown__undo-close" aria-label="Cerrar" (click)="dismissUndo()"><app-icon name="close" [size]="14" /></button>
           </div>
         </div>
       }
@@ -190,7 +190,7 @@
                       type="button"
                       class="saved-item__remove"
                       aria-label="Eliminar guardado"
-                      (click)="removeSavedItem(s.id)">×</button>
+                      (click)="removeSavedItem(s.id)"><app-icon name="close" [size]="14" /></button>
                   </div>
                 </li>
               }
@@ -247,7 +247,7 @@
                 </div>
               }
               <div class="summary-line">
-                <span>IVA (19%)</span>
+                <span>IVA ({{ ivaPercent() }}%)</span>
                 <span>{{ formatPrice(iva()) }}</span>
               </div>
               <div class="summary-line summary-line--total">

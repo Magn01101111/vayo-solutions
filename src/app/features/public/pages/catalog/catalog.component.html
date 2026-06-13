@@ -14,7 +14,8 @@
       <input
         type="search"
         class="input catalog-search__input"
-        [(ngModel)]="searchQuery"
+        [ngModel]="searchQuery"
+        (ngModelChange)="onSearchInput($event)"
         placeholder="Buscar por nombre, SKU o marca…"
         autocomplete="off"
       />
@@ -24,7 +25,19 @@
         *ngIf="searchQuery"
         (click)="clearSearch()"
         aria-label="Limpiar búsqueda"
-      >✕</button>
+      ><app-icon name="close" [size]="16" /></button>
+
+      <select class="catalog-sort" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event); currentPage.set(1); doSearch()">
+        <option value="newest">Más recientes</option>
+        <option value="price_asc">Precio: menor a mayor</option>
+        <option value="price_desc">Precio: mayor a menor</option>
+        <option value="name">Nombre A-Z</option>
+      </select>
+
+      <label class="catalog-filter-toggle">
+        <input type="checkbox" [ngModel]="onlyOffers()" (ngModelChange)="onlyOffers.set($event); currentPage.set(1); doSearch()" />
+        Solo ofertas
+      </label>
     </div>
 
     <!-- ── Filtro por categoría ───────────────────────────────────────────── -->
@@ -42,8 +55,8 @@
 
     <!-- ── Resultado ──────────────────────────────────────────────────────── -->
     <p class="catalog-count">
-      {{ filteredProducts.length }}
-      {{ filteredProducts.length === 1 ? 'producto encontrado' : 'productos encontrados' }}
+      {{ searchQuery ? totalProducts() : filteredProducts.length }}
+      {{ (searchQuery ? totalProducts() : filteredProducts.length) === 1 ? 'producto encontrado' : 'productos encontrados' }}
     </p>
 
     @if (isLoading) {
@@ -58,16 +71,32 @@
     } @else {
       <div class="catalog-grid">
         <article class="catalog-card card" *ngFor="let product of filteredProducts; trackBy: trackByProduct">
+          <button
+            class="catalog-card__fav"
+            [class.active]="favSvc.isFavorite(product.id)"
+            (click)="favSvc.toggle(product.id); $event.stopPropagation()"
+            [attr.aria-label]="favSvc.isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+          >
+            {{ favSvc.isFavorite(product.id) ? '♥' : '♡' }}
+          </button>
           <div class="catalog-card__media">
-            <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
-            <div *ngIf="!product.imageUrl" class="catalog-card__placeholder">📦</div>
+            <img *ngIf="product.imageUrl" [src]="product.imageUrl" [alt]="product.name" loading="lazy" width="280" height="200" />
+            <div *ngIf="!product.imageUrl" class="catalog-card__placeholder"><app-icon name="box" [size]="40" /></div>
           </div>
 
           <div class="catalog-card__body">
             <span class="badge badge-brand">{{ product.category }}</span>
             <h3 class="catalog-card__title">{{ product.name }}</h3>
             <p class="catalog-card__sku">Ref: {{ product.sku }}</p>
-            <p class="catalog-card__price">{{ product.price }}</p>
+            <div class="catalog-card__price">
+              @if (product.offerPrice) {
+                <span class="catalog-card__price--old">{{ product.price }}</span>
+                <span class="catalog-card__price--offer">{{ product.offerPrice }}</span>
+                <span class="badge badge-offer">−{{ product.offerDiscountPercent }}%</span>
+              } @else {
+                {{ product.price }}
+              }
+            </div>
 
             <div class="catalog-card__actions">
               <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
@@ -79,6 +108,25 @@
             </div>
           </div>
         </article>
+      </div>
+    }
+
+    @if (searchQuery && totalPages() > 1) {
+      <div class="catalog-pagination">
+        <button
+          class="btn btn-outline btn-sm"
+          [disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)"
+        >← Anterior</button>
+        <span class="catalog-pagination__info">
+          Página {{ currentPage() }} de {{ totalPages() }}
+          ({{ totalProducts() }} resultados)
+        </span>
+        <button
+          class="btn btn-outline btn-sm"
+          [disabled]="currentPage() >= totalPages()"
+          (click)="goToPage(currentPage() + 1)"
+        >Siguiente →</button>
       </div>
     }
 

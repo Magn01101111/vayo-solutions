@@ -106,6 +106,14 @@ export interface ProductCardData {
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
   /** Producto destacado (home de ofertas). */
   isFeatured?: boolean;
+  /** Precio de oferta vigente como string formateado. null = sin oferta. */
+  offerPrice?: string | null;
+  /** Precio de oferta numérico para cálculos. */
+  offerPriceRaw?: number | null;
+  /** Fecha de término de la oferta (ISO). */
+  offerEndsAt?: string | null;
+  /** Porcentaje de descuento calculado. */
+  offerDiscountPercent?: number;
   tags: string[];
 }
 

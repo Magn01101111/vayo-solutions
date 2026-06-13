@@ -8,7 +8,7 @@
 
     <div class="checkout-choice__options">
       <div class="choice-option">
-        <div class="choice-option__icon">👤</div>
+        <div class="choice-option__icon"><app-icon name="user" [size]="32" /></div>
         <h3 class="choice-option__title">Ya tengo cuenta</h3>
         <p class="choice-option__text">Inicia sesión y carga tus datos automáticamente.</p>
         <button type="button" class="btn btn-primary btn-block" (click)="goToLogin()">
@@ -17,7 +17,7 @@
       </div>
 
       <div class="choice-option choice-option--guest">
-        <div class="choice-option__icon">🛒</div>
+        <div class="choice-option__icon"><app-icon name="cart" [size]="32" /></div>
         <h3 class="choice-option__title">Continuar como invitado</h3>
         <p class="choice-option__text">Compra sin crear cuenta. Solo necesitas tus datos de contacto y despacho.</p>
         <button type="button" class="btn btn-outline btn-block" (click)="continueAsGuest()">

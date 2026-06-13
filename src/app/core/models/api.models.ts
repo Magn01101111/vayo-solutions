@@ -66,7 +66,28 @@ export interface ApiProductListItem {
   isActive: boolean;
   /** Producto destacado: aparece en el home de ofertas. */
   isFeatured?: boolean;
+  /** Precio de oferta vigente (null = sin oferta). */
+  offerPrice?: number | null;
+  /** Inicio de vigencia de la oferta. */
+  offerStartsAt?: string | null;
+  /** Término de vigencia de la oferta. */
+  offerEndsAt?: string | null;
   tags: string[];
+}
+
+export interface ApiBanner {
+  _id: string;
+  title: string;
+  subtitle?: string;
+  imageUrl: string;
+  link?: string;
+  order: number;
+  isActive: boolean;
+}
+
+export interface ApiFavorite {
+  _id?: string;
+  productId: string;
 }
 
 export interface ApiProductSupplier {

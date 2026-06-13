@@ -17,6 +17,7 @@ import {
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ReviewService } from '../../../../core/services/review.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ROLES } from '../../../../core/constants/roles';
@@ -25,7 +26,7 @@ import { ApiReview, CreateReviewPayload } from '../../../../core/models/api.mode
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -36,6 +37,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly reviewService = inject(ReviewService);
   private readonly auth = inject(AuthService);
   private qs = inject(QuotationService);
+  ivaPercent = this.qs.ivaPercent;
 
   activeTab: ProductTab = 'specs';
   quantity = signal(1);
@@ -80,7 +82,7 @@ export class ProductDetailComponent implements OnInit {
   });
 
   subtotal = computed(() => this.unitPrice() * this.quantity());
-  iva = computed(() => Math.round(this.subtotal() * 0.19));
+  iva = computed(() => Math.round(this.subtotal() * this.ivaPercent() / 100));
   total = computed(() => this.subtotal() + this.iva());
 
   // Verificar si el producto ya está en el carrito

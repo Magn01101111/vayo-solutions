@@ -15,11 +15,12 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { IconComponent }    from '../../icon/icon.component';
 
 @Component({
   selector: 'app-cart-dropdown',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, IconComponent],
   templateUrl: './cart-dropdown.component.html',
   styleUrls: ['./cart-dropdown.component.scss'],
 })
@@ -42,6 +43,7 @@ export class CartDropdownComponent {
   subtotal = this.qs.subtotal;
   discount = this.qs.discount;
   iva = this.qs.iva;
+  ivaPercent = this.qs.ivaPercent;
   shippingCost = this.qs.shippingCost;
   total = this.qs.total;
   coupon = this.qs.coupon;

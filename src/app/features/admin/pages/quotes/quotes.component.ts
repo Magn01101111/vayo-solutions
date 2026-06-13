@@ -4,14 +4,16 @@ import { FormsModule }  from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { QuotationApiService, ApiQuote, QuoteStatus } from '../../../../core/services/quotation-api.service';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { ClientService } from '../../../../core/services/client.service';
 import { SaleService }   from '../../../../core/services/sale.service';
+import { AuthService }   from '../../../../core/services/auth.service';
 import { ApiClient }     from '../../../../core/models/api.models';
 
 @Component({
   selector: 'app-quotes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
   templateUrl: './quotes.component.html',
   styleUrl: './quotes.component.scss',
 })
@@ -20,6 +22,7 @@ export class QuotesComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
   private readonly saleSvc   = inject(SaleService);
   private readonly route     = inject(ActivatedRoute);
+  private readonly authSvc   = inject(AuthService);
 
   quotes: ApiQuote[] = [];
   loading   = true;
@@ -28,6 +31,7 @@ export class QuotesComponent implements OnInit {
   // Filtros
   folioQ      = '';
   clientIdQ   = '';
+  mineOnly    = false;
   filterClient: ApiClient | null = null; // si llegamos con ?clientId=...
 
   // Conversión a venta
@@ -76,9 +80,10 @@ export class QuotesComponent implements OnInit {
     this.loading   = true;
     this.loadError = '';
 
-    const params: { folio?: string; clientId?: string } = {};
+    const params: { folio?: string; clientId?: string; mine?: string } = {};
     if (this.folioQ.trim())    params.folio    = this.folioQ.trim().toUpperCase();
     if (this.clientIdQ.trim()) params.clientId = this.clientIdQ.trim();
+    if (this.mineOnly)         params.mine     = 'true';
 
     this.quoteSvc.getQuotes(params).subscribe({
       next: (res) => {
@@ -198,6 +203,22 @@ export class QuotesComponent implements OnInit {
         this.emailSendingId = '';
         this.actionError = err?.error?.error ?? 'No se pudo enviar el correo.';
         setTimeout(() => (this.actionError = ''), 6000);
+      },
+    });
+  }
+
+  duplicateQuote(quote: ApiQuote): void {
+    this.quoteSvc.duplicateQuote(quote._id).subscribe({
+      next: (res) => {
+        if (res.ok) {
+          this.actionMsg = `Cotización duplicada como ${res.data.folio}`;
+          setTimeout(() => (this.actionMsg = ''), 5000);
+          this.load();
+        }
+      },
+      error: (err) => {
+        this.actionError = err?.error?.error ?? 'No se pudo duplicar la cotización.';
+        setTimeout(() => (this.actionError = ''), 5000);
       },
     });
   }

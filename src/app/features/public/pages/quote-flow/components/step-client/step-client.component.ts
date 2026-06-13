@@ -13,6 +13,7 @@ import { Router } from '@angular/router';
 import { QuotationService } from '../../../../../../core/services/quotation.service';
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { CustomerType } from '../../../../../../core/models/app.models';
+import { IconComponent } from '../../../../../../shared/components/icon/icon.component';
 
 /** Valida RUT chileno con dígito verificador (formato 12.345.678-K). */
 function rutValidator(ctrl: AbstractControl): ValidationErrors | null {
@@ -55,7 +56,7 @@ const REGIONS = [
 @Component({
   selector: 'app-step-client',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, IconComponent],
   templateUrl: './step-client.component.html',
   styleUrl: './step-client.component.scss',
 })

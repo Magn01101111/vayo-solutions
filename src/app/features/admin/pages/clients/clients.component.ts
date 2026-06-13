@@ -1,10 +1,12 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, HostListener } from '@angular/core';
 import { CommonModule }  from '@angular/common';
 import { FormsModule }   from '@angular/forms';
 import { Router }        from '@angular/router';
 
 import { ClientService }                   from '../../../../core/services/client.service';
+import { QuotationService }                from '../../../../core/services/quotation.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
+import { IconComponent }                   from '../../../../shared/components/icon/icon.component';
 import {
   formatRut,
   formatRutInput,
@@ -31,12 +33,13 @@ function emptyForm(): ClientForm {
 @Component({
   selector: 'app-clients',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })
 export class ClientsComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
+  private readonly quoteSvc  = inject(QuotationService);
   private readonly router    = inject(Router);
 
   /** Navega a /admin/cotizaciones?clientId=... para ver el historial */
@@ -44,11 +47,25 @@ export class ClientsComponent implements OnInit {
     this.router.navigate(['/admin/cotizaciones'], { queryParams: { clientId } });
   }
 
+  cotizarParaCliente(client: ApiClient): void {
+    this.quoteSvc.setClient({
+      customerType: client.company ? 'company' : 'person',
+      name: client.name || '',
+      email: client.email || '',
+      phone: client.phone || '',
+      company: client.company || '',
+      taxId: client.rut || '',
+    });
+    this.quoteSvc.setStep(2);
+    this.router.navigate(['/cotizacion']);
+  }
+
   // ── List state ────────────────────────────────────────────────────────────
   clients: ApiClient[] = [];
   loading   = true;
   searchQ   = '';
   loadError = '';
+  mineOnly  = false;
 
   // ── Modal create/edit ─────────────────────────────────────────────────────
   showModal  = false;
@@ -60,6 +77,17 @@ export class ClientsComponent implements OnInit {
 
   // ── Confirm deactivate ────────────────────────────────────────────────────
   confirmingId = '';
+
+  // ── Menú contextual ────────────────────────────────────────────────────────
+  openMenuId = '';
+
+  toggleActionMenu(id: string): void {
+    this.openMenuId = this.openMenuId === id ? '' : id;
+  }
+
+  closeActionMenu(): void {
+    this.openMenuId = '';
+  }
 
   // ── Modal invitar al portal ───────────────────────────────────────────────
   showInviteModal = false;
@@ -81,8 +109,9 @@ export class ClientsComponent implements OnInit {
 
     // active: 'all' → el panel admin ve también los clientes inactivos
     // (si no, al desactivar uno desaparecería y no se podría reactivar).
-    const params: { q?: string; active: 'all' } = { active: 'all' };
+    const params: { q?: string; active: 'all'; mine?: string } = { active: 'all' };
     if (this.searchQ.trim()) params.q = this.searchQ.trim();
+    if (this.mineOnly) params.mine = 'true';
 
     this.clientSvc.getClients(params).subscribe({
       next: (res) => {
@@ -145,6 +174,15 @@ export class ClientsComponent implements OnInit {
 
   closeModal(): void {
     this.showModal = false;
+  }
+
+  @HostListener('document:keydown.escape', ['$event'])
+  onEscape(): void {
+    if (this.showModal) this.closeModal();
+    if (this.showInviteModal) this.showInviteModal = false;
+    if (this.openMenuId) this.openMenuId = '';
+    if (this.confirmingId) this.confirmingId = '';
+    if (this.revokingId) this.revokingId = '';
   }
 
   save(): void {

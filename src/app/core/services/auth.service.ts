@@ -115,6 +115,30 @@ export class AuthService {
     );
   }
 
+  /** Actualiza nombre y/o teléfono del propio usuario. */
+  updateProfile(payload: { name?: string; phone?: string }): Observable<ApiResponse<AuthUser>> {
+    return this.api
+      .patch<ApiResponse<AuthUser>, typeof payload>(API_CONFIG.endpoints.me, payload)
+      .pipe(
+        tap((res) => {
+          if (res.ok && res.data) this.updateUser(res.data);
+        }),
+      );
+  }
+
+  /** Sube una foto de perfil a Cloudinary vía el backend. */
+  uploadProfilePhoto(file: File): Observable<ApiResponse<AuthUser>> {
+    const formData = new FormData();
+    formData.append('photo', file);
+    return this.api
+      .patch<ApiResponse<AuthUser>, FormData>(API_CONFIG.endpoints.mePhoto, formData)
+      .pipe(
+        tap((res) => {
+          if (res.ok && res.data) this.updateUser(res.data);
+        }),
+      );
+  }
+
   // ── Contraseña ────────────────────────────────────────────────────────────
 
   changePassword(
@@ -157,7 +181,7 @@ export class AuthService {
     this._user$.next(user);
   }
 
-  private clear(): void {
+  clear(): void {
     this.storage.removeItem(TOKEN_KEY);
     this.storage.removeItem(USER_KEY);
     // Limpiar todo el caché de la sesión — el siguiente usuario podría tener

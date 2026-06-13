@@ -198,6 +198,25 @@ export function mapApiProductToCardData(
   const categorySlug = resolvedCategory?.slug ?? 'sin-categoria';
 
   const imageUrls = resolveImageUrls(product);
+
+  // Una oferta solo cuenta como vigente si el precio es menor Y estamos dentro
+  // del rango de fechas (si están definidas). Sin esto, una oferta expirada o
+  // futura se mostraría como activa en catálogo/home/ficha (rompe N02).
+  const now = Date.now();
+  const offerStarted =
+    !product.offerStartsAt || new Date(product.offerStartsAt).getTime() <= now;
+  const offerNotEnded =
+    !product.offerEndsAt || new Date(product.offerEndsAt).getTime() >= now;
+  const hasOffer =
+    product.offerPrice != null &&
+    product.offerPrice > 0 &&
+    (product.price == null || product.offerPrice < product.price) &&
+    offerStarted &&
+    offerNotEnded;
+  const offerDiscountPercent = hasOffer && product.price
+    ? Math.round(((product.price - product.offerPrice!) / product.price) * 100)
+    : undefined;
+
   return {
     id: product.id,
     category: categoryName,
@@ -214,6 +233,11 @@ export function mapApiProductToCardData(
       product.stock,
     ),
     icon: mapCategorySlugToIcon(categorySlug),
+    isFeatured: product.isFeatured,
+    offerPrice: hasOffer ? formatCurrency(product.offerPrice!, product.currency) : null,
+    offerPriceRaw: hasOffer ? product.offerPrice! : null,
+    offerEndsAt: product.offerEndsAt ?? undefined,
+    offerDiscountPercent,
     tags: product.tags ?? [],
   };
 }

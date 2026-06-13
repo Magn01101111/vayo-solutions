@@ -70,6 +70,8 @@ export interface Coupon {
   minSubtotal?: number;
   /** Descripción legible. */
   description?: string;
+  /** Descuento calculado en CLP. */
+  discount?: number;
 }
 
 export interface ShippingMethod {

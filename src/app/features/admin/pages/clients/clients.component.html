@@ -24,6 +24,10 @@
     <button class="btn btn-secondary" type="button" (click)="onSearch()">
       Buscar
     </button>
+    <label class="search-bar__mine">
+      <input type="checkbox" [(ngModel)]="mineOnly" (change)="load()" />
+      Mi cartera
+    </label>
   </div>
 
   <!-- Table -->
@@ -61,7 +65,7 @@
               <td>
                 @if (client.hasPortalAccount) {
                   <span class="badge badge-portal" title="El cliente tiene acceso al portal">
-                    ✓ Activo
+                    <app-icon name="check" [size]="12" /> Activo
                   </span>
                 } @else {
                   <span class="badge badge-muted" title="Solo CRM, sin acceso al portal">
@@ -81,71 +85,55 @@
                   Editar
                 </button>
 
-                <!-- Ver historial de cotizaciones del cliente -->
                 <button
-                  class="btn btn-sm btn-outline"
+                  class="btn btn-sm btn-primary"
                   type="button"
-                  (click)="viewQuoteHistory(client.id)"
-                  title="Ver cotizaciones de este cliente"
+                  (click)="cotizarParaCliente(client)"
+                  title="Crear cotización a nombre de este cliente"
                 >
-                  Historial
+                  Cotizar
                 </button>
 
-                <!-- Botón invitar al portal (solo si NO tiene cuenta y tiene email) -->
-                @if (canInvite(client)) {
-                  <button
-                    class="btn btn-sm btn-portal"
-                    type="button"
-                    (click)="openInvite(client)"
-                    title="Crear cuenta de portal con email {{ client.email }}"
-                  >
-                    Invitar al portal
-                  </button>
+                <div class="action-menu" tabindex="0" (blur)="closeActionMenu()">
+                  <button class="btn btn-sm btn-light action-menu__trigger" type="button" (click)="toggleActionMenu(client.id)" aria-label="Más acciones"><app-icon name="dots-h" [size]="18" /></button>
+                  <div class="action-menu__dropdown" *ngIf="openMenuId === client.id">
+                    <button type="button" (click)="viewQuoteHistory(client.id); closeActionMenu()">Historial</button>
+                    @if (canInvite(client)) {
+                      <button type="button" (click)="openInvite(client); closeActionMenu()">Invitar al portal</button>
+                    }
+                    @if (client.hasPortalAccount && client.isActive) {
+                      <button type="button" (click)="revokePortal(client.id); closeActionMenu()">Revocar portal</button>
+                    }
+                    @if (client.isActive) {
+                      <button type="button" class="action-menu__danger" (click)="confirmDeactivate(client.id); closeActionMenu()">Desactivar</button>
+                    } @else {
+                      <button type="button" (click)="reactivate(client); closeActionMenu()">Reactivar</button>
+                    }
+                  </div>
+                </div>
+
+                <!-- Confirmación inline para revocar -->
+                @if (revokingId === client.id) {
+                  <span class="confirm-inline">
+                    <button class="btn btn-sm btn-danger" type="button" (click)="revokePortal(client.id)">
+                      Confirmar
+                    </button>
+                    <button class="btn btn-sm btn-secondary" type="button" (click)="cancelRevoke()">
+                      Cancelar
+                    </button>
+                  </span>
                 }
 
-                <!-- Botón revocar portal -->
-                @if (client.hasPortalAccount && client.isActive) {
-                  @if (revokingId === client.id) {
-                    <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="revokePortal(client.id)">
-                        Revocar
-                      </button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelRevoke()">
-                        Cancelar
-                      </button>
-                    </span>
-                  } @else {
-                    <button
-                      class="btn btn-sm btn-ghost-danger"
-                      type="button"
-                      (click)="confirmRevoke(client.id)"
-                      title="Eliminar cuenta de portal (el CRM se mantiene)"
-                    >
-                      Revocar portal
+                <!-- Confirmación inline para desactivar -->
+                @if (confirmingId === client.id) {
+                  <span class="confirm-inline">
+                    <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(client.id)">
+                      Confirmar
                     </button>
-                  }
-                }
-
-                <!-- Botón desactivar cliente -->
-                @if (client.isActive) {
-                  @if (confirmingId === client.id) {
-                    <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(client.id)">
-                        Confirmar
-                      </button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">
-                        Cancelar
-                      </button>
-                    </span>
-                  } @else {
-                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(client.id)">
-                      Desactivar
+                    <button class="btn btn-sm btn-secondary" type="button" (click)="confirmingId = ''">
+                      Cancelar
                     </button>
-                  }
-                } @else {
-                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(client)">
-                    Reactivar
-                  </button>
+                  </span>
                 }
               </td>
             </tr>
@@ -160,12 +148,12 @@
 <!-- ── Modal crear/editar cliente CRM ─────────────────────────────────────── -->
 @if (showModal) {
   <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
+    <div class="modal" (click)="$event.stopPropagation()" role="dialog" aria-modal="true" aria-labelledby="client-modal-title">
       <div class="modal__header">
         <h3 class="modal__title">
           {{ formMode === 'create' ? 'Nuevo cliente' : 'Editar cliente' }}
         </h3>
-        <button class="modal__close" type="button" (click)="closeModal()">✕</button>
+        <button class="modal__close" type="button" (click)="closeModal()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
       </div>
 
       <form (ngSubmit)="save()" novalidate>
@@ -257,7 +245,7 @@
     <div class="modal modal--small" (click)="$event.stopPropagation()">
       <div class="modal__header">
         <h3 class="modal__title">Invitar al portal</h3>
-        <button class="modal__close" type="button" (click)="closeInvite()">✕</button>
+        <button class="modal__close" type="button" (click)="closeInvite()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
       </div>
 
       <form (ngSubmit)="sendInvite()" novalidate>

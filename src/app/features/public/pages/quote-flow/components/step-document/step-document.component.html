@@ -203,7 +203,7 @@
           </div>
         }
         <div class="total-line">
-          <span>IVA (19%)</span>
+          <span>IVA ({{ qs.ivaPercent() }}%)</span>
           <span>{{ formatCurrency(qs.iva()) }}</span>
         </div>
         <div class="total-line">

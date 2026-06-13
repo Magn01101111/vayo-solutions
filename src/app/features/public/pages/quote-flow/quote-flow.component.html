@@ -10,7 +10,7 @@
 
     @if (qs.reservationExpiresAt() && qs.hasItems() && qs.step() === 1) {
       <div class="quote-flow__reservation badge badge-warning">
-        Productos reservados · 15 min
+        Tu carrito · 15 min
       </div>
     }
   </header>
@@ -273,7 +273,7 @@
                 @if (qs.coupon(); as c) {
                   <div class="coupon-applied">
                     <div>
-                      <span class="badge badge-success">✓ {{ c.code }}</span>
+                      <span class="badge badge-success"><app-icon name="check" [size]="13" /> {{ c.code }}</span>
                       <small class="text-muted">{{ c.description }}</small>
                     </div>
                     <button type="button" class="link-btn link-btn--danger" (click)="removeCoupon()">
@@ -322,7 +322,7 @@
                   </div>
                 }
                 <div class="total-line">
-                  <span>IVA (19%)</span>
+                  <span>IVA ({{ qs.ivaPercent() }}%)</span>
                   <span>{{ formatCLP(qs.iva()) }}</span>
                 </div>
                 <div class="total-line">
