@@ -1,11 +1,11 @@
-<div class="page-reviews">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Reseñas</h2>
-      <p class="page-subtitle">Modera las reseñas que dejan los clientes en los productos.</p>
+      <h2 class="block-head__title">Reseñas</h2>
+      <p class="block-head__sub mono">Modera las reseñas que dejan los clientes en los productos</p>
     </div>
-    <select class="select" [(ngModel)]="statusFilter" (change)="load()">
+    <select class="form-control rv-filter" [(ngModel)]="statusFilter" (change)="load()">
       <option value="">Todas</option>
       <option value="pending">Pendientes</option>
       <option value="approved">Aprobadas</option>
@@ -14,50 +14,69 @@
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando reseñas…</p>
+    <p class="state-txt">Cargando reseñas…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (reviews.length === 0) {
-    <p class="state-msg">No hay reseñas{{ statusFilter ? ' con ese estado' : '' }}.</p>
+    <p class="state-txt">No hay reseñas{{ statusFilter ? ' con ese estado' : '' }}.</p>
   } @else {
-    <div class="review-list">
+    <div class="rv-list">
       @for (r of reviews; track r.id) {
-        <article class="review-card" [class.is-pending]="r.status === 'pending'">
-          <div class="review-card__top">
-            <div class="review-card__author">
+        <article class="rv-card" [class.rv-card--pending]="r.status === 'pending'">
+
+          <div class="rv-card__top">
+            <div class="rv-card__author">
               <strong>{{ r.authorName }}</strong>
-              <span *ngIf="r.authorCompany" class="review-card__company">· {{ r.authorCompany }}</span>
-              <span class="review-card__stars">{{ stars(r.rating) }}</span>
+              @if (r.authorCompany) {
+                <span class="rv-card__company">· {{ r.authorCompany }}</span>
+              }
+              <span class="rv-card__stars mono">{{ stars(r.rating) }}</span>
               @if (r.verified) {
-                <span class="badge badge-success">Compra verificada</span>
+                <span class="badge badge--ok">Compra verificada</span>
               }
             </div>
-            <span class="badge" [class]="statusBadge(r.status)">{{ statusLabel(r.status) }}</span>
+            <span class="badge" [class.badge--warn]="r.status === 'pending'"
+                  [class.badge--ok]="r.status === 'approved'"
+                  [class.badge--soft]="r.status === 'rejected'">
+              <span class="dot" aria-hidden="true"></span>
+              {{ statusLabel(r.status) }}
+            </span>
           </div>
 
-          <p class="review-card__product" *ngIf="r.product">
-            Producto: <strong>{{ r.product.name }}</strong> ({{ r.product.sku }})
-          </p>
+          @if (r.product) {
+            <p class="rv-card__product">
+              Producto: <strong>{{ r.product.name }}</strong>
+              <span class="mono">({{ r.product.sku }})</span>
+            </p>
+          }
 
-          <p class="review-card__body">{{ r.body }}</p>
+          <p class="rv-card__body">{{ r.body }}</p>
 
-          <div class="review-card__meta">
+          <div class="rv-card__meta">
             <span>{{ formatDate(r.createdAt) }}</span>
           </div>
 
-          <div class="review-card__actions">
+          <div class="rv-card__actions">
             @if (r.status !== 'approved') {
-              <button class="btn btn-sm btn-success" type="button"
-                [disabled]="updatingId === r.id" (click)="moderate(r, 'approved')">Aprobar</button>
+              <button class="btn btn--success btn--xs" type="button"
+                [disabled]="updatingId === r.id" (click)="moderate(r, 'approved')">
+                Aprobar
+              </button>
             }
             @if (r.status !== 'rejected') {
-              <button class="btn btn-sm btn-outline" type="button"
-                [disabled]="updatingId === r.id" (click)="moderate(r, 'rejected')">Rechazar</button>
+              <button class="btn btn--outline btn--xs" type="button"
+                [disabled]="updatingId === r.id" (click)="moderate(r, 'rejected')">
+                Rechazar
+              </button>
             }
-            <button class="btn btn-sm btn-ghost-danger" type="button" (click)="remove(r)">Eliminar</button>
+            <button class="btn btn--ghost-danger btn--xs" type="button" (click)="remove(r)">
+              Eliminar
+            </button>
           </div>
+
         </article>
       }
     </div>
   }
+
 </div>

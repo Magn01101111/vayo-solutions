@@ -1,92 +1,91 @@
-<div class="page-settings">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Configuración de la empresa</h2>
-      <p class="page-subtitle">Datos comerciales que aparecen en cotizaciones y facturas</p>
+      <h2 class="block-head__title">Configuración</h2>
+      <p class="block-head__sub mono">Datos comerciales que aparecen en cotizaciones y facturas</p>
     </div>
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando configuración…</p>
+    <p class="state-txt">Cargando configuración…</p>
   } @else {
-    <form class="settings-form" (ngSubmit)="save()" novalidate>
+    <form class="st-form" (ngSubmit)="save()" novalidate>
 
-      <!-- ── IVA (lo más importante) ─────────────────────────────────────── -->
-      <section class="settings-section">
-        <h3 class="settings-section__title">Impuestos</h3>
-        <p class="settings-section__hint">
+      <section class="panel panel--pad">
+        <h3 class="st-form__sec-title">Impuestos</h3>
+        <p class="st-form__sec-hint">
           El IVA configurado se aplica automáticamente en todas las cotizaciones nuevas.
         </p>
 
-        <div class="form-group form-group--narrow">
-          <label class="form-label" for="iva">
-            IVA (%) <span class="required">*</span>
-          </label>
-          <input
-            id="iva"
-            class="input"
-            type="number"
-            min="0"
-            max="100"
-            step="0.01"
-            [(ngModel)]="ivaPercent"
-            name="ivaPercent"
-            required
-          />
-          <p class="form-hint">Valor actual en Chile: 19%.</p>
+        <div class="st-form__narrow">
+          <div class="form-field">
+            <label class="form-label" for="st-iva">
+              IVA (%) <span class="st-req">*</span>
+            </label>
+            <input
+              id="st-iva"
+              class="form-control mono"
+              type="number"
+              min="0"
+              max="100"
+              step="0.01"
+              [(ngModel)]="ivaPercent"
+              name="ivaPercent"
+              required
+            />
+            <span class="form-hint">Valor actual en Chile: 19%.</span>
+          </div>
         </div>
       </section>
 
-      <!-- ── Datos de la empresa ─────────────────────────────────────────── -->
-      <section class="settings-section">
-        <h3 class="settings-section__title">Datos de la empresa</h3>
+      <section class="panel panel--pad">
+        <h3 class="st-form__sec-title">Datos de la empresa</h3>
 
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="name">Razón social</label>
-            <input id="name" class="input" type="text" [(ngModel)]="name" name="name" />
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="st-name">Razón social</label>
+            <input id="st-name" class="form-control" type="text" [(ngModel)]="name" name="name" />
           </div>
-          <div class="form-group">
-            <label class="form-label" for="rut">RUT</label>
-            <input id="rut" class="input" type="text" [(ngModel)]="rut" name="rut" placeholder="76.000.000-0" />
-          </div>
-        </div>
-
-        <div class="form-group">
-          <label class="form-label" for="address">Dirección</label>
-          <input id="address" class="input" type="text" [(ngModel)]="address" name="address" />
-        </div>
-
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="phone">Teléfono</label>
-            <input id="phone" class="input" type="tel" [(ngModel)]="phone" name="phone" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="email">Correo</label>
-            <input id="email" class="input" type="email" [(ngModel)]="email" name="email" />
+          <div class="form-field">
+            <label class="form-label" for="st-rut">RUT</label>
+            <input id="st-rut" class="form-control mono" type="text" [(ngModel)]="rut" name="rut" placeholder="76.000.000-0" />
           </div>
         </div>
 
-        <div class="form-group">
-          <label class="form-label" for="website">Sitio web</label>
-          <input id="website" class="input" type="url" [(ngModel)]="website" name="website" placeholder="https://..." />
+        <div class="form-field">
+          <label class="form-label" for="st-addr">Dirección</label>
+          <input id="st-addr" class="form-control" type="text" [(ngModel)]="address" name="address" />
+        </div>
+
+        <div class="form-grid">
+          <div class="form-field">
+            <label class="form-label" for="st-phone">Teléfono</label>
+            <input id="st-phone" class="form-control" type="tel" [(ngModel)]="phone" name="phone" />
+          </div>
+          <div class="form-field">
+            <label class="form-label" for="st-email">Correo</label>
+            <input id="st-email" class="form-control" type="email" [(ngModel)]="email" name="email" />
+          </div>
+        </div>
+
+        <div class="form-field">
+          <label class="form-label" for="st-web">Sitio web</label>
+          <input id="st-web" class="form-control" type="url" [(ngModel)]="website" name="website" placeholder="https://..." />
         </div>
       </section>
 
-      <!-- ── Términos de factura ─────────────────────────────────────────── -->
-      <section class="settings-section">
-        <h3 class="settings-section__title">Términos comerciales</h3>
-        <p class="settings-section__hint">
+      <section class="panel panel--pad">
+        <h3 class="st-form__sec-title">Términos comerciales</h3>
+        <p class="st-form__sec-hint">
           Aparecen al pie de cada cotización (condiciones de pago, validez, etc.).
         </p>
 
-        <div class="form-group">
-          <label class="form-label" for="terms">Términos para cotizaciones</label>
+        <div class="form-field">
+          <label class="form-label" for="st-terms">Términos para cotizaciones</label>
           <textarea
-            id="terms"
-            class="textarea"
+            id="st-terms"
+            class="form-control"
             [(ngModel)]="invoiceTerms"
             name="invoiceTerms"
             rows="4"
@@ -95,17 +94,15 @@
         </div>
       </section>
 
-      <!-- ── Mensajes ──────────────────────────────────────────────────────── -->
       @if (error) {
-        <div class="settings-alert settings-alert--error">{{ error }}</div>
+        <p class="st-alert st-alert--err" role="alert">{{ error }}</p>
       }
       @if (success) {
-        <div class="settings-alert settings-alert--success">{{ success }}</div>
+        <p class="st-alert st-alert--ok" role="status">{{ success }}</p>
       }
 
-      <!-- ── Acciones ──────────────────────────────────────────────────────── -->
-      <div class="settings-actions">
-        <button type="submit" class="btn btn-primary" [disabled]="saving">
+      <div class="st-actions">
+        <button type="submit" class="btn btn--primary" [disabled]="saving">
           {{ saving ? 'Guardando…' : 'Guardar cambios' }}
         </button>
       </div>

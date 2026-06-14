@@ -1,88 +1,89 @@
-<!-- public-header.component.html -->
-<header class="public-header">
-  <div class="container public-header__inner">
+<!-- public-header → .hdr Industrial Marcado -->
+<header class="hdr" role="banner">
+  <!-- Trust strip -->
+  <div class="trust" aria-hidden="true">
+    <div class="container trust__in">
+      <span class="trust__i">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Despacho a todo Chile
+      </span>
+      <span class="trust__i">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Cotización B2B en línea
+      </span>
+      <span class="trust__i">
+        <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        Productos originales OEM
+      </span>
+    </div>
+  </div>
+
+  <!-- Barra principal -->
+  <div class="container hdr__in">
 
     <!-- Brand -->
-    <a routerLink="/" class="public-header__brand" [attr.aria-label]="companyName()">
-      @if (logoUrl()) {
-        <img [src]="logoUrl()!" [alt]="companyName()" class="public-header__logo" height="40" />
-      } @else {
-        <span class="public-header__logo-text">{{ companyName() }}</span>
-      }
+    <a routerLink="/" class="brand" [attr.aria-label]="companyName()">
+      <div class="brand__logo" aria-hidden="true">
+        <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10 2L3 7v10h14V7L10 2z"/><line x1="10" y1="17" x2="10" y2="11"/><line x1="7" y1="11" x2="13" y2="11"/>
+        </svg>
+      </div>
+      <div class="brand__txt">
+        <b>{{ companyName() }}</b>
+        <span>Repuestos HVAC Industrial</span>
+      </div>
     </a>
 
-    <!-- Hamburguesa móvil -->
-    <button
-      class="public-header__hamburger"
-      [class.open]="mobileMenuOpen"
-      (click)="mobileMenuOpen = !mobileMenuOpen"
-      [attr.aria-expanded]="mobileMenuOpen"
-      aria-label="Menú"
-    >
-      <span></span><span></span><span></span>
-    </button>
-
-    <!-- Nav links -->
-    <nav class="public-header__nav" [class.open]="mobileMenuOpen">
-      <a routerLink="/catalogo" (click)="mobileMenuOpen = false">Catálogo</a>
-      <a routerLink="/cotizacion" (click)="mobileMenuOpen = false">Cotización</a>
+    <!-- Nav principal (desktop) -->
+    <nav class="nav" aria-label="Navegación principal" [class.nav--open]="mobileMenuOpen">
+      <a routerLink="/catalogo" routerLinkActive="is-on" class="nav__link"
+         (click)="mobileMenuOpen = false">Catálogo</a>
+      <a routerLink="/cotizacion" routerLinkActive="is-on" class="nav__link"
+         (click)="mobileMenuOpen = false">Cotización</a>
 
       <!-- Carrito -->
       <app-cart-dropdown />
 
-      <!-- ── Usuario NO autenticado ───────────────────────────────────── -->
+      <!-- No autenticado -->
       @if (!auth.isAuthenticated) {
-        <a routerLink="/login" class="ph-btn ph-btn--ghost" (click)="mobileMenuOpen = false">Ingresar</a>
-        <a routerLink="/registro" class="ph-btn ph-btn--primary" (click)="mobileMenuOpen = false">Crear cuenta</a>
+        <a routerLink="/login" class="nav__btn nav__btn--ghost"
+           (click)="mobileMenuOpen = false">Ingresar</a>
+        <a routerLink="/registro" class="nav__btn nav__btn--amber"
+           (click)="mobileMenuOpen = false">Crear cuenta</a>
       }
 
-      <!-- ── Usuario autenticado ─────────────────────────────────────── -->
+      <!-- Autenticado -->
       @if (auth.isAuthenticated && user) {
-        <div class="ph-user-menu">
+        <div class="ph-user-menu" (click)="$event.stopPropagation()">
           <button
-            class="ph-user-menu__trigger"
+            class="nav__user"
+            type="button"
             (click)="toggleUserMenu()"
             [attr.aria-expanded]="userMenuOpen"
             aria-haspopup="true"
           >
-            <!-- Avatar con iniciales -->
-            <span class="ph-user-menu__avatar">{{ initials }}</span>
-            <!-- Nombre (oculto en móvil) -->
-            <span class="ph-user-menu__name">{{ user.name }}</span>
-            <!-- Chevron -->
-            <svg
-              class="ph-user-menu__chevron"
-              [class.ph-user-menu__chevron--open]="userMenuOpen"
-              width="12" height="12" viewBox="0 0 12 12"
-              fill="none" aria-hidden="true"
-            >
-              <path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5"
-                    stroke-linecap="round" stroke-linejoin="round"/>
+            <span class="nav__avatar" aria-hidden="true">{{ initials }}</span>
+            <span class="nav__uname">{{ user.name }}</span>
+            <svg width="11" height="11" viewBox="0 0 12 12" fill="none" stroke="currentColor"
+                 stroke-width="1.8" aria-hidden="true"
+                 [style.transform]="userMenuOpen ? 'rotate(180deg)' : 'none'"
+                 style="transition:transform var(--t-fast)">
+              <path d="M2 4l4 4 4-4" stroke-linecap="round" stroke-linejoin="round"/>
             </svg>
           </button>
 
-          <!-- Dropdown -->
           @if (userMenuOpen) {
-            <div class="ph-user-menu__dropdown" role="menu">
+            <div class="ph-user-menu__dropdown" role="menu" aria-label="Menú de usuario">
               <div class="ph-user-menu__header">
                 <span class="ph-user-menu__header-name">{{ user.name }}</span>
                 <span class="ph-user-menu__header-email">{{ user.email }}</span>
               </div>
               <div class="ph-user-menu__divider"></div>
-              <a
-                routerLink="/portal-cliente"
-                class="ph-user-menu__item"
-                role="menuitem"
-                (click)="closeUserMenu()"
-              >
-                Mi cuenta
-              </a>
+              <a routerLink="/portal-cliente" class="ph-user-menu__item" role="menuitem"
+                 (click)="closeUserMenu()">Mi cuenta</a>
               <div class="ph-user-menu__divider"></div>
-              <button
-                class="ph-user-menu__item ph-user-menu__item--danger"
-                role="menuitem"
-                (click)="logout()"
-              >
+              <button class="ph-user-menu__item ph-user-menu__item--danger"
+                      role="menuitem" type="button" (click)="logout()">
                 Cerrar sesión
               </button>
             </div>
@@ -90,6 +91,18 @@
         </div>
       }
     </nav>
+
+    <!-- Hamburguesa (móvil) -->
+    <button
+      class="hdr__hamburger"
+      type="button"
+      [class.is-open]="mobileMenuOpen"
+      (click)="mobileMenuOpen = !mobileMenuOpen"
+      [attr.aria-expanded]="mobileMenuOpen"
+      aria-label="Abrir menú"
+    >
+      <span></span><span></span><span></span>
+    </button>
 
   </div>
 </header>

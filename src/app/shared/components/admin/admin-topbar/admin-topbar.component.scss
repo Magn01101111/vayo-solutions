@@ -1,55 +1,70 @@
-.admin-topbar {
+.topbar {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem 1.5rem;
-  background: var(--color-white);
-  border-bottom: 1px solid var(--color-border-primary);
+  gap: var(--space-4);
+  padding: 16px 28px;
+  background: var(--paper);
+  border-bottom: var(--bw) solid var(--line);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
 
-.admin-topbar__left {
-  min-width: 0;
+.topbar__left { min-width: 0; }
+
+.topbar__title {
+  font-size: 17px;
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  line-height: 1.2;
 }
 
-.admin-topbar__title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.topbar__sub {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
+  margin-top: 3px;
+  letter-spacing: .02em;
 }
 
-.admin-topbar__subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.admin-topbar__user {
+.topbar__user {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 12px;
   flex-shrink: 0;
 }
 
-.admin-topbar__user-info {
+.topbar__info {
+  text-align: right;
+}
+
+.topbar__name {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  display: block;
+}
+
+.topbar__role {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+  color: var(--ink-3);
+  display: block;
+}
+
+.topbar__avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r);
+  background: var(--blue);
+  color: #fff;
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 0.125rem;
-}
-
-.admin-topbar__user-name {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-  white-space: nowrap;
-}
-
-.admin-topbar__user-role {
-  font-size: 0.75rem;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
+  align-items: center;
+  justify-content: center;
 }

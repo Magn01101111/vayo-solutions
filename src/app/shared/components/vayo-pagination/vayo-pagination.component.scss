@@ -1,0 +1,62 @@
+.vpag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.vpag__btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-xs);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: background var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+
+  &:hover:not(:disabled):not(.vpag__btn--active) {
+    background: var(--blue-50);
+    border-color: var(--blue-100);
+    color: var(--blue);
+  }
+
+  &:disabled {
+    opacity: .4;
+    cursor: not-allowed;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--focus-shadow);
+  }
+
+  &--active {
+    background: var(--blue);
+    border-color: var(--blue);
+    color: #fff;
+    font-weight: var(--fw-bold);
+    cursor: default;
+  }
+
+  &--nav {
+    color: var(--ink-3);
+    svg { display: block; }
+  }
+}
+
+.vpag__ellipsis {
+  min-width: 28px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--ink-4);
+  user-select: none;
+}

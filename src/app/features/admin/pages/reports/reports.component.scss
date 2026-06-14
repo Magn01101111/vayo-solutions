@@ -1,118 +1,80 @@
-.page-reports {
+// ── reports.component.scss ─────────────────────────────────────────────────
+// Admin reports page — Industrial Marcado design system
+
+:host { display: block; }
+
+.admin-page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.page-subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-// ── Filtro de fechas ──────────────────────────────────────────────────────────
-
-.date-filter {
+.rp-dates {
   display: flex;
   align-items: flex-end;
-  gap: 1rem;
+  gap: var(--space-4);
   flex-wrap: wrap;
-  padding: 1.125rem 1.25rem;
-  background: var(--color-white);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-lg);
+  padding: var(--space-4) var(--space-5);
+  background: var(--paper);
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-sm);
+
+  .form-field { margin: 0; }
+
+  .form-control { min-width: 10rem; }
 }
 
-.date-filter__field {
-  display: flex;
-  flex-direction: column;
-  gap: 0.35rem;
-
-  .input { min-width: 10rem; }
-}
-
-.date-filter__hint {
+.rp-dates__hint {
   flex-basis: 100%;
-  font-size: 0.75rem;
-  color: var(--color-text-muted);
-  margin-top: 0.25rem;
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  margin: 0;
 }
 
-// ── Alerta ────────────────────────────────────────────────────────────────────
-
-.reports-alert {
-  padding: 0.75rem 1rem;
-  background: var(--color-danger-bg);
-  border: 1px solid rgba(153, 60, 29, 0.2);
-  border-radius: var(--radius-sm);
-  color: var(--color-danger);
-  font-size: 0.875rem;
+.rp-alert {
+  font-size: var(--fs-sm);
+  padding: var(--space-3) var(--space-4);
+  background: var(--danger-bg);
+  color: var(--danger);
+  border: var(--bw) solid var(--danger-line);
+  border-radius: var(--r-xs);
 }
 
-// ── Tarjetas de reporte ───────────────────────────────────────────────────────
-
-.reports-grid {
-  display: grid;
-  gap: 1rem;
-  grid-template-columns: 1fr;
-
-  @media (min-width: 40rem) { grid-template-columns: repeat(2, 1fr); }
-  @media (min-width: 64rem) { grid-template-columns: repeat(3, 1fr); }
-}
-
-.report-card {
+.rp-card {
   display: flex;
   flex-direction: column;
-  gap: 0.875rem;
-  background: var(--color-white);
-  border: 1px solid var(--color-border-primary);
-  border-radius: var(--radius-lg);
-  padding: 1.5rem;
+  gap: var(--space-3);
 }
 
-.report-card__head {
+.rp-card__head {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
+  gap: var(--space-3);
 }
 
-.report-card__icon {
-  font-size: 1.5rem;
+.rp-card__icon {
+  display: inline-flex;
+  align-items: center;
+  color: var(--blue);
   line-height: 1;
 }
 
-.report-card__title {
-  font-size: 1.0625rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
+.rp-card__title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-body);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  margin: 0;
 }
 
-.report-card__desc {
-  font-size: 0.8125rem;
-  color: var(--color-text-secondary);
+.rp-card__desc {
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
   line-height: 1.5;
   flex: 1;
+  margin: 0;
 }
 
-.report-card__status {
+.rp-card__sel {
   width: 100%;
-}
-
-.report-card__btn {
-  width: 100%;
-  justify-content: center;
 }

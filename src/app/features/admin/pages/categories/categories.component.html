@@ -1,61 +1,67 @@
-<div class="page-categories">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Categorías</h2>
-      <p class="page-subtitle">Organización del catálogo de productos</p>
+      <h2 class="block-head__title">Categorías</h2>
+      <p class="block-head__sub mono">Organización del catálogo de productos</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="openCreate()">
+    <button class="btn btn--primary" type="button" (click)="openCreate()">
       + Nueva categoría
     </button>
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando categorías…</p>
+    <p class="state-txt">Cargando categorías…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (categories.length === 0) {
-    <p class="state-msg">No hay categorías registradas.</p>
+    <div class="empty-state">
+      <p class="empty-state__msg">No hay categorías registradas.</p>
+      <button class="btn btn--primary btn--sm" type="button" (click)="openCreate()">
+        Crear primera categoría
+      </button>
+    </div>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de categorías">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Slug</th>
-            <th>Descripción</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Slug</th>
+            <th scope="col">Descripción</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (cat of categories; track cat.id) {
             <tr [class.row--inactive]="!cat.isActive">
               <td class="td--name">{{ cat.name }}</td>
-              <td class="td--slug">{{ cat.slug }}</td>
-              <td>{{ cat.description || '—' }}</td>
+              <td class="mono td--slug">{{ cat.slug }}</td>
+              <td class="td--desc">{{ cat.description || '—' }}</td>
               <td>
-                <span class="badge" [class.badge-success]="cat.isActive" [class.badge-danger]="!cat.isActive">
+                <span class="badge" [class.badge--ok]="cat.isActive" [class.badge--soft]="!cat.isActive">
+                  <span class="dot" aria-hidden="true"></span>
                   {{ cat.isActive ? 'Activa' : 'Inactiva' }}
                 </span>
               </td>
               <td class="td--actions">
-                <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(cat)">
+                <button class="btn btn--outline btn--xs" type="button" (click)="openEdit(cat)">
                   Editar
                 </button>
                 @if (cat.isActive) {
                   @if (confirmingId === cat.id) {
                     <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(cat.id)">Confirmar</button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
+                      <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(cat.id)">Confirmar</button>
+                      <button class="btn btn--ghost btn--xs" type="button" (click)="cancelDeactivate()">Cancelar</button>
                     </span>
                   } @else {
-                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(cat.id)">
+                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(cat.id)">
                       Desactivar
                     </button>
                   }
                 } @else {
-                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(cat)">
+                  <button class="btn btn--outline btn--xs" type="button" (click)="reactivate(cat)">
                     Reactivar
                   </button>
                 }
@@ -69,34 +75,38 @@
 
 </div>
 
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <h3 class="modal__title">{{ formMode === 'create' ? 'Nueva categoría' : 'Editar categoría' }}</h3>
-        <button class="modal__close" type="button" (click)="closeModal()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
-      </div>
-      <form (ngSubmit)="save()" novalidate>
-        <div class="modal__body">
-          <div class="form-group">
-            <label class="form-label" for="cat-name">Nombre <span class="required">*</span></label>
-            <input id="cat-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="cat-desc">Descripción</label>
-            <textarea id="cat-desc" class="textarea" [(ngModel)]="form.description" name="description" rows="3"></textarea>
-          </div>
-          @if (formError) {
-            <p class="form-error">{{ formError }}</p>
-          }
-        </div>
-        <div class="modal__footer">
-          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
-          <button class="btn btn-primary" type="submit" [disabled]="saving">
-            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear' : 'Guardar') }}
-          </button>
-        </div>
-      </form>
+<vayo-modal
+  [open]="showModal"
+  [title]="formMode === 'create' ? 'Nueva categoría' : 'Editar categoría'"
+  size="md"
+  (close)="closeModal()"
+>
+  <form id="cat-form" (ngSubmit)="save()" novalidate>
+
+    <div class="form-field">
+      <label class="form-label" for="cat-name">Nombre <span class="cat-req">*</span></label>
+      <input id="cat-name" class="form-control" type="text"
+             [(ngModel)]="form.name" name="name" required />
     </div>
+
+    <div class="form-field">
+      <label class="form-label" for="cat-desc">Descripción</label>
+      <textarea id="cat-desc" class="form-control" [(ngModel)]="form.description"
+                name="description" rows="3"></textarea>
+    </div>
+
+    @if (formError) {
+      <p class="cat-form-err" role="alert">{{ formError }}</p>
+    }
+
+  </form>
+
+  <div slot="footer">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="closeModal()" [disabled]="saving">
+      Cancelar
+    </button>
+    <button class="btn btn--primary btn--sm" type="submit" form="cat-form" [disabled]="saving">
+      {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear categoría' : 'Guardar cambios') }}
+    </button>
   </div>
-}
+</vayo-modal>

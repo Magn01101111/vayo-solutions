@@ -6,7 +6,8 @@ import { Router }        from '@angular/router';
 import { ClientService }                   from '../../../../core/services/client.service';
 import { QuotationService }                from '../../../../core/services/quotation.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
-import { IconComponent }                   from '../../../../shared/components/icon/icon.component';
+import { IconComponent }       from '../../../../shared/components/icon/icon.component';
+import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
 import {
   formatRut,
   formatRutInput,
@@ -33,7 +34,7 @@ function emptyForm(): ClientForm {
 @Component({
   selector: 'app-clients',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent],
+  imports: [CommonModule, FormsModule, IconComponent, VayoModalComponent],
   templateUrl: './clients.component.html',
   styleUrl: './clients.component.scss',
 })

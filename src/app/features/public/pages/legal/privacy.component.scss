@@ -1,0 +1,48 @@
+// ── privacy.component.scss ─────────────────────────────────────────────────
+// Legal typographic page — Industrial Marcado design system
+
+.legal-page {
+  padding: var(--space-12) var(--gutter, var(--space-4));
+  display: flex;
+  justify-content: center;
+}
+
+.legal-page__inner {
+  max-width: 720px;
+  width: 100%;
+}
+
+.legal-page__title {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h1);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  letter-spacing: -0.02em;
+  margin: 0 0 var(--space-1);
+}
+
+.legal-page__date {
+  font-family: var(--font-mono);
+  font-size: var(--fs-sm);
+  color: var(--ink-3);
+  margin: 0 0 var(--space-8);
+}
+
+.legal-page__section {
+  margin-bottom: var(--space-6);
+
+  p {
+    font-size: var(--fs-body);
+    color: var(--ink-2);
+    line-height: 1.7;
+    margin: 0;
+  }
+}
+
+.legal-page__subtitle {
+  font-family: var(--font-sans);
+  font-size: var(--fs-h3);
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+  margin: 0 0 var(--space-2);
+}

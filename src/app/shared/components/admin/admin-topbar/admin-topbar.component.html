@@ -1,20 +1,23 @@
-<header class="admin-topbar">
-  <div class="admin-topbar__left">
-    <h1 class="admin-topbar__title">Panel de administración</h1>
-    <p class="admin-topbar__subtitle">Gestión interna de VAYO Solutions</p>
+<header class="topbar" role="banner">
+  <div class="topbar__left">
+    <h1 class="topbar__title">Panel de administración</h1>
+    <p class="topbar__sub">Gestión interna VAYO Solutions</p>
   </div>
 
   @if (user) {
-    <div class="admin-topbar__user">
-      <div class="admin-topbar__user-info">
-        <span class="admin-topbar__user-name">{{ user.name }}</span>
-        <span class="admin-topbar__user-role">{{ roleLabel }}</span>
+    <div class="topbar__user">
+      <div class="topbar__info" aria-label="Usuario actual">
+        <span class="topbar__name">{{ user.name }}</span>
+        <span class="topbar__role">{{ roleLabel }}</span>
+      </div>
+      <div class="topbar__avatar" aria-hidden="true">
+        {{ user.name.charAt(0).toUpperCase() }}
       </div>
       <button
-        class="btn btn-outline btn-sm"
         type="button"
+        class="btn btn--ghost btn--sm"
         (click)="logout()"
-        title="Cerrar sesión"
+        aria-label="Cerrar sesión"
       >
         Salir
       </button>

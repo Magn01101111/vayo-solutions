@@ -17,7 +17,10 @@ import {
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
-import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { IconComponent }                from '../../../../shared/components/icon/icon.component';
+import { VayoPriceComponent }          from '../../../../shared/components/vayo-price/vayo-price.component';
+import { VayoStockIndicatorComponent } from '../../../../shared/components/vayo-stock-indicator/vayo-stock-indicator.component';
+import { VayoQuantityStepperComponent } from '../../../../shared/components/vayo-quantity-stepper/vayo-quantity-stepper.component';
 import { ReviewService } from '../../../../core/services/review.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { ROLES } from '../../../../core/constants/roles';
@@ -26,7 +29,8 @@ import { ApiReview, CreateReviewPayload } from '../../../../core/models/api.mode
 @Component({
   selector: 'app-product-detail',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent,
+            VayoPriceComponent, VayoStockIndicatorComponent, VayoQuantityStepperComponent],
   templateUrl: './product-detail.component.html',
   styleUrl: './product-detail.component.scss',
 })
@@ -404,6 +408,13 @@ export class ProductDetailComponent implements OnInit {
 
   trackByDoc(_: number, item: { title: string }): string {
     return item.title;
+  }
+
+  stockBadgeClass(shortStatus: string): string {
+    if (shortStatus === 'En stock')    return 'badge badge--ok';
+    if (shortStatus === 'A pedido')    return 'badge badge--warn';
+    if (shortStatus === 'Sin stock')   return 'badge badge--danger';
+    return 'badge badge--soft';
   }
 
   private loadProduct(id: string): void {

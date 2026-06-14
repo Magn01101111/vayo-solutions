@@ -6,6 +6,7 @@ import { CatalogService }  from '../../../../core/services/catalog.service';
 import { UploadService }   from '../../../../core/services/upload.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { IconComponent }   from '../../../../shared/components/icon/icon.component';
+import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
 import {
   ApiProductListItem,
   ApiProductDetail,
@@ -66,7 +67,7 @@ function emptyForm(): ProductForm {
 @Component({
   selector: 'app-products',
   standalone: true,
-  imports: [CommonModule, FormsModule, IconComponent],
+  imports: [CommonModule, FormsModule, IconComponent, VayoModalComponent],
   templateUrl: './products.component.html',
   styleUrl: './products.component.scss',
 })

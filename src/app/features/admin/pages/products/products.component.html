@@ -1,59 +1,57 @@
-<div class="page-products">
+<div class="admin-page">
 
-  <!-- Header -->
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Productos</h2>
-      <p class="page-subtitle">Catálogo completo de repuestos HVAC</p>
+      <h2 class="block-head__title">Productos</h2>
+      <p class="block-head__sub mono">Catálogo completo de repuestos HVAC</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="openCreate()">
+    <button class="btn btn--primary" type="button" (click)="openCreate()">
       + Nuevo producto
     </button>
   </div>
 
-  <!-- Filters -->
-  <div class="filters">
+  <div class="pr-toolbar">
     <input
-      class="input filters__search"
+      class="form-control pr-toolbar__search"
       type="search"
       placeholder="Buscar por nombre, SKU, marca…"
       [(ngModel)]="searchQ"
+      name="searchQ"
       (keyup.enter)="onSearch()"
       (search)="clearSearch()"
     />
-    <select class="select filters__cat" [(ngModel)]="filterCat" (change)="onSearch()">
+    <select class="form-control pr-toolbar__cat" [(ngModel)]="filterCat" (change)="onSearch()">
       <option value="">Todas las categorías</option>
       @for (cat of categories; track cat.id) {
         <option [value]="cat.slug">{{ cat.name }}</option>
       }
     </select>
-    <button class="btn btn-secondary" type="button" (click)="onSearch()">
+    <button class="btn btn--outline btn--sm" type="button" (click)="onSearch()">
       Buscar
     </button>
   </div>
 
-  <!-- Table -->
   @if (loading) {
-    <p class="state-msg">Cargando productos…</p>
+    <p class="state-txt">Cargando productos…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (products.length === 0) {
-    <p class="state-msg">No se encontraron productos.</p>
+    <p class="state-txt">No se encontraron productos.</p>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de productos">
         <thead>
           <tr>
-            <th class="th--thumb"></th>
-            <th>SKU</th>
-            <th>Nombre</th>
-            <th>Categoría</th>
-            <th>Marca</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Disponibilidad</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col" class="td--thumb-h"></th>
+            <th scope="col">SKU</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Categoría</th>
+            <th scope="col">Marca</th>
+            <th scope="col">Precio</th>
+            <th scope="col">Stock</th>
+            <th scope="col">Disponibilidad</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -61,61 +59,55 @@
             <tr [class.row--inactive]="!product.isActive">
               <td class="td--thumb">
                 @if (product.imageUrl) {
-                  <img [src]="product.imageUrl" [alt]="product.name" class="product-thumb" loading="lazy" />
+                  <img [src]="product.imageUrl" [alt]="product.name" class="pr-thumb" loading="lazy" />
                 } @else {
-                  <div class="product-thumb product-thumb--empty"><app-icon name="box" [size]="28" /></div>
+                  <div class="pr-thumb pr-thumb--empty">
+                    <app-icon name="box" [size]="20" />
+                  </div>
                 }
               </td>
-              <td class="td--sku">{{ product.sku }}</td>
+              <td class="td--sku mono">{{ product.sku }}</td>
               <td class="td--name">
                 {{ product.name }}
                 @if (product.isFeatured) {
-                  <span class="featured-star" title="Producto destacado">★</span>
+                  <span class="pr-feat" title="Producto destacado">★</span>
                 }
               </td>
               <td>{{ product.categoryName || categoryName(product.categoryId) }}</td>
               <td>{{ product.brand }}</td>
-              <td class="td--price">{{ formatPrice(product.price) }}</td>
-              <td class="td--stock">{{ product.stock }}</td>
+              <td class="td--price mono">{{ formatPrice(product.price) }}</td>
+              <td class="td--num mono">{{ product.stock }}</td>
               <td>
-                <span class="badge" [class]="statusBadge(product.availabilityStatus)">
+                <span class="badge" [class.badge--ok]="product.availabilityStatus === 'in_stock'"
+                      [class.badge--warn]="product.availabilityStatus === 'on_request'"
+                      [class.badge--danger]="product.availabilityStatus === 'out_of_stock' || product.availabilityStatus === 'discontinued'">
+                  <span class="dot" aria-hidden="true"></span>
                   {{ statusLabel(product.availabilityStatus) }}
                 </span>
               </td>
               <td>
-                <span class="badge" [class.badge-success]="product.isActive" [class.badge-danger]="!product.isActive">
+                <span class="badge" [class.badge--ok]="product.isActive" [class.badge--soft]="!product.isActive">
+                  <span class="dot" aria-hidden="true"></span>
                   {{ product.isActive ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
               <td class="td--actions">
-                <button
-                  class="btn btn-sm btn-outline"
-                  type="button"
-                  (click)="openEdit(product)"
-                >
+                <button class="btn btn--outline btn--xs" type="button" (click)="openEdit(product)">
                   Editar
                 </button>
                 @if (product.isActive) {
                   @if (confirmingId === product.id) {
                     <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(product.id)">
-                        Confirmar
-                      </button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">
-                        Cancelar
-                      </button>
+                      <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(product.id)">Confirmar</button>
+                      <button class="btn btn--ghost btn--xs" type="button" (click)="cancelDeactivate()">Cancelar</button>
                     </span>
                   } @else {
-                    <button
-                      class="btn btn-sm btn-ghost-danger"
-                      type="button"
-                      (click)="confirmDeactivate(product.id)"
-                    >
+                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(product.id)">
                       Desactivar
                     </button>
                   }
                 } @else {
-                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(product.id)">
+                  <button class="btn btn--outline btn--xs" type="button" (click)="reactivate(product.id)">
                     Reactivar
                   </button>
                 }
@@ -129,233 +121,200 @@
 
 </div>
 
-<!-- ── Modal crear/editar ──────────────────────────────────────────────────── -->
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <h3 class="modal__title">
-          {{ formMode === 'create' ? 'Nuevo producto' : 'Editar producto' }}
-        </h3>
-        <button class="modal__close" type="button" (click)="closeModal()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
+<vayo-modal
+  [open]="showModal"
+  [title]="formMode === 'create' ? 'Nuevo producto' : 'Editar producto'"
+  size="lg"
+  (close)="closeModal()"
+>
+  <form id="pr-form" (ngSubmit)="save()" novalidate>
+
+    <div class="form-field">
+      <label class="form-label" for="pr-cat">Categoría <span class="pr-req">*</span></label>
+      <select id="pr-cat" class="form-control" [(ngModel)]="form.categoryId" name="categoryId" required>
+        <option value="">Seleccionar categoría</option>
+        @for (cat of categories; track cat.id) {
+          <option [value]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="pr-name">Nombre <span class="pr-req">*</span></label>
+        <input id="pr-name" class="form-control" type="text" [(ngModel)]="form.name" name="name" required />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pr-sku">SKU <span class="pr-req">*</span></label>
+        <input id="pr-sku" class="form-control mono" type="text"
+               [(ngModel)]="form.sku" name="sku"
+               [disabled]="formMode === 'edit'" required />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="pr-brand">Marca <span class="pr-req">*</span></label>
+        <input id="pr-brand" class="form-control" type="text" [(ngModel)]="form.brand" name="brand" required />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pr-model">Modelo</label>
+        <input id="pr-model" class="form-control" type="text" [(ngModel)]="form.model" name="model" />
+      </div>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="pr-price">Precio (CLP)</label>
+        <input id="pr-price" class="form-control mono" type="number" min="0"
+               [(ngModel)]="form.price" name="price" placeholder="Sin precio = Consultar" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="pr-stock">Stock</label>
+        <input id="pr-stock" class="form-control mono" type="number" min="0"
+               [(ngModel)]="form.stock" name="stock" />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="pr-avail">Disponibilidad</label>
+      <select id="pr-avail" class="form-control" [(ngModel)]="form.availabilityStatus" name="availabilityStatus">
+        @for (opt of statusOptions; track opt.value) {
+          <option [value]="opt.value">{{ opt.label }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="pr-desc">Descripción</label>
+      <textarea id="pr-desc" class="form-control" [(ngModel)]="form.description"
+                name="description" rows="3"></textarea>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="pr-tags">Etiquetas (separadas por coma)</label>
+      <input id="pr-tags" class="form-control" type="text" [(ngModel)]="form.tags"
+             name="tags" placeholder="compresor, scroll, 5ton" />
+    </div>
+
+    <div class="form-field">
+      <label class="pr-feat-toggle">
+        <input type="checkbox" [(ngModel)]="form.isFeatured" name="isFeatured" />
+        <span>
+          <strong>Producto destacado</strong>
+          <small>Aparecerá en la portada de ofertas del sitio público.</small>
+        </span>
+      </label>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label">
+        Galería de imágenes
+        <span class="pr-gallery-count">({{ form.images.length }}/{{ maxImages }} — la primera es la principal)</span>
+      </label>
+
+      <div class="pr-gallery">
+        @for (img of form.images; track img.publicId; let i = $index) {
+          <div class="pr-gallery__slot" [class.pr-gallery__slot--main]="i === 0">
+            <img [src]="img.url" [alt]="'Imagen ' + (i + 1)" class="pr-gallery__img" />
+            @if (i === 0) {
+              <span class="pr-gallery__badge">Principal</span>
+            }
+            <div class="pr-gallery__actions">
+              @if (i !== 0) {
+                <button type="button" class="pr-gallery__btn pr-gallery__btn--star"
+                        (click)="makePrimary(i)" title="Hacer principal">★</button>
+              }
+              <button type="button" class="pr-gallery__btn pr-gallery__btn--x"
+                      (click)="removeImageAt(i)" [disabled]="uploadingImage"
+                      title="Quitar">
+                <app-icon name="close" [size]="12" />
+              </button>
+            </div>
+          </div>
+        }
+
+        @if (canAddMoreImages) {
+          <label class="pr-gallery__slot pr-gallery__slot--add" [class.disabled]="uploadingImage">
+            @if (uploadingImage) {
+              <div class="pr-gallery__spin"></div>
+              <span class="pr-gallery__add-txt">Subiendo…</span>
+            } @else {
+              <div class="pr-gallery__plus">+</div>
+              <span class="pr-gallery__add-txt">Agregar imagen</span>
+            }
+            <input type="file" accept="image/jpeg,image/png,image/webp"
+                   (change)="onImageSelected($event)" [disabled]="uploadingImage" hidden />
+          </label>
+        }
       </div>
 
-      <form (ngSubmit)="save()" novalidate>
-        <div class="modal__body">
+      <p class="pr-gallery__hint">
+        JPG, PNG o WEBP. Máximo 5 MB por imagen.
+        @if (form.images.length > 1) {
+          Click ★ para hacer principal · ✕ para quitar.
+        }
+      </p>
 
-          <div class="form-group">
-            <label class="form-label" for="p-category">Categoría <span class="required">*</span></label>
-            <select id="p-category" class="select" [(ngModel)]="form.categoryId" name="categoryId" required>
-              <option value="">Seleccionar categoría</option>
-              @for (cat of categories; track cat.id) {
-                <option [value]="cat.id">{{ cat.name }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="p-name">Nombre <span class="required">*</span></label>
-              <input id="p-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-sku">SKU <span class="required">*</span></label>
-              <input
-                id="p-sku"
-                class="input"
-                type="text"
-                [(ngModel)]="form.sku"
-                name="sku"
-                [disabled]="formMode === 'edit'"
-                required
-              />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="p-brand">Marca <span class="required">*</span></label>
-              <input id="p-brand" class="input" type="text" [(ngModel)]="form.brand" name="brand" required />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-model">Modelo</label>
-              <input id="p-model" class="input" type="text" [(ngModel)]="form.model" name="model" />
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="p-price">Precio (CLP)</label>
-              <input id="p-price" class="input" type="number" min="0" [(ngModel)]="form.price" name="price" placeholder="Sin precio = Consultar" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="p-stock">Stock</label>
-              <input id="p-stock" class="input" type="number" min="0" [(ngModel)]="form.stock" name="stock" />
-            </div>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="p-status">Disponibilidad</label>
-            <select id="p-status" class="select" [(ngModel)]="form.availabilityStatus" name="availabilityStatus">
-              @for (opt of statusOptions; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="p-desc">Descripción</label>
-            <textarea id="p-desc" class="textarea" [(ngModel)]="form.description" name="description" rows="3"></textarea>
-          </div>
-
-          <div class="form-group">
-            <label class="form-label" for="p-tags">Etiquetas (separadas por coma)</label>
-            <input id="p-tags" class="input" type="text" [(ngModel)]="form.tags" name="tags" placeholder="compresor, scroll, 5ton" />
-          </div>
-
-          <!-- ── Destacado (aparece en el home de ofertas) ─────────────────── -->
-          <div class="form-group">
-            <label class="featured-toggle">
-              <input type="checkbox" [(ngModel)]="form.isFeatured" name="isFeatured" />
-              <span>
-                <strong>Producto destacado</strong>
-                <small>Aparecerá en la portada de ofertas del sitio público.</small>
-              </span>
-            </label>
-          </div>
-
-          <!-- ── Galería de imágenes (hasta 4) ────────────────────────────── -->
-          <div class="form-group">
-            <label class="form-label">
-              Galería de imágenes
-              <span class="form-label__hint">
-                ({{ form.images.length }}/{{ maxImages }} — la primera es la principal)
-              </span>
-            </label>
-
-            <div class="gallery">
-              <!-- Imágenes ya cargadas -->
-              @for (img of form.images; track img.publicId; let i = $index) {
-                <div class="gallery__slot" [class.gallery__slot--primary]="i === 0">
-                  <img [src]="img.url" [alt]="'Imagen ' + (i + 1)" class="gallery__img" />
-
-                  @if (i === 0) {
-                    <span class="gallery__badge">Principal</span>
-                  }
-
-                  <div class="gallery__actions">
-                    @if (i !== 0) {
-                      <button
-                        type="button"
-                        class="gallery__btn gallery__btn--primary"
-                        (click)="makePrimary(i)"
-                        title="Hacer principal"
-                      >★</button>
-                    }
-                    <button
-                      type="button"
-                      class="gallery__btn gallery__btn--danger"
-                      (click)="removeImageAt(i)"
-                      [disabled]="uploadingImage"
-                      title="Quitar"
-                    ><app-icon name="close" [size]="14" /></button>
-                  </div>
-                </div>
-              }
-
-              <!-- Slot para agregar (solo si hay espacio) -->
-              @if (canAddMoreImages) {
-                <label class="gallery__slot gallery__slot--add" [class.disabled]="uploadingImage">
-                  @if (uploadingImage) {
-                    <div class="gallery__spinner"></div>
-                    <span class="gallery__add-text">Subiendo…</span>
-                  } @else {
-                    <div class="gallery__add-icon">+</div>
-                    <span class="gallery__add-text">Agregar imagen</span>
-                  }
-                  <input
-                    type="file"
-                    accept="image/jpeg,image/png,image/webp"
-                    (change)="onImageSelected($event)"
-                    [disabled]="uploadingImage"
-                    hidden
-                  />
-                </label>
-              }
-            </div>
-
-            <p class="gallery__hint">
-              JPG, PNG o WEBP. Máximo 5 MB por imagen.
-              @if (form.images.length > 1) {
-                Click ★ para hacer principal · ✕ para quitar.
-              }
-            </p>
-
-            @if (imageError) {
-              <p class="form-error form-error--inline">{{ imageError }}</p>
-            }
-          </div>
-
-          <!-- ── Proveedores asignados ─────────────────────────────────────── -->
-          <div class="form-group">
-            <label class="form-label">Proveedores</label>
-
-            @if (form.suppliers.length > 0) {
-              <div class="supplier-rows">
-                @for (s of form.suppliers; track s.supplier; let i = $index) {
-                  <div class="supplier-row">
-                    <span class="supplier-row__name">{{ supplierName(s.supplier) }}</span>
-                    <input
-                      class="input supplier-row__delivery"
-                      type="text"
-                      [(ngModel)]="s.deliveryTime"
-                      [name]="'sup-delivery-' + i"
-                      placeholder="Ej. 2-3 días"
-                    />
-                    <select class="select supplier-row__speed" [(ngModel)]="s.speed" [name]="'sup-speed-' + i">
-                      <option value="fast">Rápido</option>
-                      <option value="mid">Normal</option>
-                      <option value="slow">Lento</option>
-                    </select>
-                    <button type="button" class="btn btn-sm btn-ghost-danger" (click)="removeSupplier(i)" aria-label="Quitar proveedor"><app-icon name="close" [size]="14" /></button>
-                  </div>
-                }
-              </div>
-            } @else {
-              <p class="supplier-empty">Sin proveedores asignados.</p>
-            }
-
-            @if (unassignedSuppliers.length > 0) {
-              <select
-                class="select supplier-add"
-                #supSel
-                (change)="addSupplier(supSel.value); supSel.value = ''"
-              >
-                <option value="">+ Agregar proveedor…</option>
-                @for (sup of unassignedSuppliers; track sup.id) {
-                  <option [value]="sup.id">{{ sup.name }}</option>
-                }
-              </select>
-            } @else if (availableSuppliers.length === 0) {
-              <p class="supplier-empty">No hay proveedores creados. Créalos en la sección Proveedores.</p>
-            }
-          </div>
-
-          @if (formError) {
-            <p class="form-error">{{ formError }}</p>
-          }
-
-        </div>
-
-        <div class="modal__footer">
-          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">
-            Cancelar
-          </button>
-          <button class="btn btn-primary" type="submit" [disabled]="saving">
-            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear producto' : 'Guardar cambios') }}
-          </button>
-        </div>
-      </form>
+      @if (imageError) {
+        <p class="pr-form-err">{{ imageError }}</p>
+      }
     </div>
+
+    <div class="form-field">
+      <label class="form-label">Proveedores</label>
+
+      @if (form.suppliers.length > 0) {
+        <div class="pr-sup-rows">
+          @for (s of form.suppliers; track s.supplier; let i = $index) {
+            <div class="pr-sup-row">
+              <span class="pr-sup-row__name">{{ supplierName(s.supplier) }}</span>
+              <input class="form-control pr-sup-row__delivery mono"
+                     type="text" [(ngModel)]="s.deliveryTime"
+                     [name]="'sup-delivery-' + i" placeholder="Ej. 2-3 días" />
+              <select class="form-control pr-sup-row__speed"
+                      [(ngModel)]="s.speed" [name]="'sup-speed-' + i">
+                <option value="fast">Rápido</option>
+                <option value="mid">Normal</option>
+                <option value="slow">Lento</option>
+              </select>
+              <button type="button" class="btn btn--ghost-danger btn--xs"
+                      (click)="removeSupplier(i)" aria-label="Quitar proveedor">
+                <app-icon name="close" [size]="14" />
+              </button>
+            </div>
+          }
+        </div>
+      } @else {
+        <p class="pr-sup-empty">Sin proveedores asignados.</p>
+      }
+
+      @if (unassignedSuppliers.length > 0) {
+        <select class="form-control pr-sup-add"
+                #supSel
+                (change)="addSupplier(supSel.value); supSel.value = ''">
+          <option value="">+ Agregar proveedor…</option>
+          @for (sup of unassignedSuppliers; track sup.id) {
+            <option [value]="sup.id">{{ sup.name }}</option>
+          }
+        </select>
+      } @else if (availableSuppliers.length === 0) {
+        <p class="pr-sup-empty">No hay proveedores creados. Créalos en la sección Proveedores.</p>
+      }
+    </div>
+
+    @if (formError) {
+      <p class="pr-form-err">{{ formError }}</p>
+    }
+
+  </form>
+
+  <div slot="footer">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="closeModal()" [disabled]="saving">
+      Cancelar
+    </button>
+    <button class="btn btn--primary btn--sm" type="submit" form="pr-form" [disabled]="saving">
+      {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear producto' : 'Guardar cambios') }}
+    </button>
   </div>
-}
+</vayo-modal>

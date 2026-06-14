@@ -5,6 +5,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 
 import { QuotationApiService, ApiQuote, QuoteStatus } from '../../../../core/services/quotation-api.service';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
 import { ClientService } from '../../../../core/services/client.service';
 import { SaleService }   from '../../../../core/services/sale.service';
 import { AuthService }   from '../../../../core/services/auth.service';
@@ -13,7 +14,7 @@ import { ApiClient }     from '../../../../core/models/api.models';
 @Component({
   selector: 'app-quotes',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent, VayoModalComponent],
   templateUrl: './quotes.component.html',
   styleUrl: './quotes.component.scss',
 })

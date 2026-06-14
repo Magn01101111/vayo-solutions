@@ -1,30 +1,37 @@
-<div class="page-suppliers">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Proveedores</h2>
-      <p class="page-subtitle">Distribuidores que abastecen los repuestos. Se asignan a cada producto.</p>
+      <h2 class="block-head__title">Proveedores</h2>
+      <p class="block-head__sub mono">Distribuidores que abastecen los repuestos. Se asignan a cada producto.</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="openCreate()">+ Nuevo proveedor</button>
+    <button class="btn btn--primary" type="button" (click)="openCreate()">
+      + Nuevo proveedor
+    </button>
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando proveedores…</p>
+    <p class="state-txt">Cargando proveedores…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (suppliers.length === 0) {
-    <p class="state-msg">No hay proveedores registrados.</p>
+    <div class="empty-state">
+      <p class="empty-state__msg">No hay proveedores registrados.</p>
+      <button class="btn btn--primary btn--sm" type="button" (click)="openCreate()">
+        Registrar primer proveedor
+      </button>
+    </div>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de proveedores">
         <thead>
           <tr>
-            <th>Nombre</th>
-            <th>Ubicación</th>
-            <th>Correo</th>
-            <th>Teléfono</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Nombre</th>
+            <th scope="col">Ubicación</th>
+            <th scope="col">Correo</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
           </tr>
         </thead>
         <tbody>
@@ -33,25 +40,32 @@
               <td class="td--name">{{ s.name }}</td>
               <td>{{ s.location || '—' }}</td>
               <td>{{ s.email || '—' }}</td>
-              <td>{{ s.phone || '—' }}</td>
+              <td class="mono">{{ s.phone || '—' }}</td>
               <td>
-                <span class="badge" [class.badge-success]="s.isActive" [class.badge-danger]="!s.isActive">
+                <span class="badge" [class.badge--ok]="s.isActive" [class.badge--soft]="!s.isActive">
+                  <span class="dot" aria-hidden="true"></span>
                   {{ s.isActive ? 'Activo' : 'Inactivo' }}
                 </span>
               </td>
               <td class="td--actions">
-                <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(s)">Editar</button>
+                <button class="btn btn--outline btn--xs" type="button" (click)="openEdit(s)">
+                  Editar
+                </button>
                 @if (s.isActive) {
                   @if (confirmingId === s.id) {
                     <span class="confirm-inline">
-                      <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(s.id)">Confirmar</button>
-                      <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
+                      <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(s.id)">Confirmar</button>
+                      <button class="btn btn--ghost btn--xs" type="button" (click)="cancelDeactivate()">Cancelar</button>
                     </span>
                   } @else {
-                    <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(s.id)">Desactivar</button>
+                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(s.id)">
+                      Desactivar
+                    </button>
                   }
                 } @else {
-                  <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(s)">Reactivar</button>
+                  <button class="btn btn--outline btn--xs" type="button" (click)="reactivate(s)">
+                    Reactivar
+                  </button>
                 }
               </td>
             </tr>
@@ -60,50 +74,60 @@
       </table>
     </div>
   }
+
 </div>
 
-@if (showModal) {
-  <div class="modal-backdrop" (click)="closeModal()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <h3 class="modal__title">{{ formMode === 'create' ? 'Nuevo proveedor' : 'Editar proveedor' }}</h3>
-        <button class="modal__close" type="button" (click)="closeModal()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
-      </div>
-      <form (ngSubmit)="save()" novalidate>
-        <div class="modal__body">
-          <div class="form-group">
-            <label class="form-label" for="s-name">Nombre <span class="required">*</span></label>
-            <input id="s-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label class="form-label" for="s-loc">Ubicación</label>
-              <input id="s-loc" class="input" type="text" [(ngModel)]="form.location" name="location" placeholder="Santiago" />
-            </div>
-            <div class="form-group">
-              <label class="form-label" for="s-phone">Teléfono</label>
-              <input id="s-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
-            </div>
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="s-email">Correo</label>
-            <input id="s-email" class="input" type="email" [(ngModel)]="form.email" name="email" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="s-notes">Notas</label>
-            <textarea id="s-notes" class="textarea" [(ngModel)]="form.notes" name="notes" rows="2"></textarea>
-          </div>
-          @if (formError) {
-            <p class="form-error">{{ formError }}</p>
-          }
-        </div>
-        <div class="modal__footer">
-          <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
-          <button class="btn btn-primary" type="submit" [disabled]="saving">
-            {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear' : 'Guardar') }}
-          </button>
-        </div>
-      </form>
+<vayo-modal
+  [open]="showModal"
+  [title]="formMode === 'create' ? 'Nuevo proveedor' : 'Editar proveedor'"
+  size="md"
+  (close)="closeModal()"
+>
+  <form id="sup-form" (ngSubmit)="save()" novalidate>
+
+    <div class="form-field">
+      <label class="form-label" for="sup-name">Nombre <span class="sup-req">*</span></label>
+      <input id="sup-name" class="form-control" type="text"
+             [(ngModel)]="form.name" name="name" required />
     </div>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="sup-loc">Ubicación</label>
+        <input id="sup-loc" class="form-control" type="text"
+               [(ngModel)]="form.location" name="location" placeholder="Santiago" />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="sup-phone">Teléfono</label>
+        <input id="sup-phone" class="form-control" type="tel"
+               [(ngModel)]="form.phone" name="phone" />
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="sup-email">Correo</label>
+      <input id="sup-email" class="form-control" type="email"
+             [(ngModel)]="form.email" name="email" />
+    </div>
+
+    <div class="form-field">
+      <label class="form-label" for="sup-notes">Notas</label>
+      <textarea id="sup-notes" class="form-control" [(ngModel)]="form.notes"
+                name="notes" rows="2"></textarea>
+    </div>
+
+    @if (formError) {
+      <p class="sup-form-err" role="alert">{{ formError }}</p>
+    }
+
+  </form>
+
+  <div slot="footer">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="closeModal()" [disabled]="saving">
+      Cancelar
+    </button>
+    <button class="btn btn--primary btn--sm" type="submit" form="sup-form" [disabled]="saving">
+      {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear proveedor' : 'Guardar cambios') }}
+    </button>
   </div>
-}
+</vayo-modal>

@@ -1,9 +1,9 @@
-<div class="page-quotes">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Cotizaciones</h2>
-      <p class="page-subtitle">
+      <h2 class="block-head__title">Cotizaciones</h2>
+      <p class="block-head__sub mono">
         Listado de cotizaciones generadas
         @if (filterClient) {
           <span> · filtradas por <strong>{{ filterClient.name }}</strong></span>
@@ -12,78 +12,79 @@
     </div>
   </div>
 
-  <!-- ── Filtros ─────────────────────────────────────────────────────────── -->
-  <div class="filters">
+  <div class="qt-toolbar">
     <input
-      class="input filters__folio"
+      class="form-control qt-toolbar__folio"
       type="search"
       placeholder="Buscar por folio (ej. Q-2026-0001)…"
       [(ngModel)]="folioQ"
+      name="folioQ"
       (keyup.enter)="searchByFolio()"
     />
-    <button class="btn btn-secondary" type="button" (click)="searchByFolio()">
+    <button class="btn btn--outline btn--sm" type="button" (click)="searchByFolio()">
       Buscar
     </button>
-    <label class="filters__mine">
-      <input type="checkbox" [(ngModel)]="mineOnly" (change)="load()" />
-      Solo mis cotizaciones
+    <label class="qt-toolbar__mine">
+      <input type="checkbox" [(ngModel)]="mineOnly" name="mineOnly" (change)="load()" />
+      <span>Solo mis cotizaciones</span>
     </label>
     @if (folioQ || clientIdQ) {
-      <button class="btn btn-outline" type="button" (click)="clearFilters()">
+      <button class="btn btn--ghost btn--sm" type="button" (click)="clearFilters()">
         Limpiar filtros
       </button>
     }
   </div>
 
-  <!-- Mensajes de conversión a venta -->
   @if (convertMsg) {
-    <div class="alert alert--success">{{ convertMsg }}</div>
+    <p class="qt-alert qt-alert--ok">{{ convertMsg }}</p>
   }
   @if (convertError) {
-    <div class="alert alert--error">{{ convertError }}</div>
+    <p class="qt-alert qt-alert--err">{{ convertError }}</p>
   }
   @if (actionMsg) {
-    <div class="alert alert--success">{{ actionMsg }}</div>
+    <p class="qt-alert qt-alert--ok">{{ actionMsg }}</p>
   }
   @if (actionError) {
-    <div class="alert alert--error">{{ actionError }}</div>
+    <p class="qt-alert qt-alert--err">{{ actionError }}</p>
   }
 
-  <!-- ── Lista ────────────────────────────────────────────────────────────── -->
   @if (loading) {
-    <p class="state-msg">Cargando cotizaciones…</p>
+    <p class="state-txt">Cargando cotizaciones…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (quotes.length === 0) {
-    <p class="state-msg">No se encontraron cotizaciones.</p>
+    <p class="state-txt">No se encontraron cotizaciones.</p>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de cotizaciones">
         <thead>
           <tr>
-            <th>Folio</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Email</th>
-            <th>Items</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Folio</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Email</th>
+            <th scope="col" class="td--num">Items</th>
+            <th scope="col">Total</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (q of quotes; track q._id) {
             <tr>
-              <td class="td--folio">{{ q.folio || '—' }}</td>
+              <td class="td--folio mono">{{ q.folio || '—' }}</td>
               <td>{{ formatDate(q.createdAt) }}</td>
               <td class="td--name">{{ q.client?.name || '—' }}</td>
-              <td>{{ q.client?.email || '—' }}</td>
-              <td class="td--center">{{ q.items?.length || 0 }}</td>
-              <td class="td--price">{{ formatCLP(q.totals?.total) }}</td>
+              <td class="mono td--email">{{ q.client?.email || '—' }}</td>
+              <td class="td--num">{{ q.items?.length || 0 }}</td>
+              <td class="td--price mono">{{ formatCLP(q.totals?.total) }}</td>
               <td>
                 <select
-                  class="status-select"
-                  [class]="statusBadge(q.metadata?.status)"
+                  class="qt-stsel"
+                  [class.qt-stsel--sent]="q.metadata?.status === 'sent'"
+                  [class.qt-stsel--accepted]="q.metadata?.status === 'accepted'"
+                  [class.qt-stsel--rejected]="q.metadata?.status === 'rejected'"
+                  [class.qt-stsel--expired]="q.metadata?.status === 'expired'"
                   [value]="q.metadata?.status || 'sent'"
                   [disabled]="updatingStatusId === q._id"
                   (change)="onStatusChange(q, $any($event.target).value)"
@@ -94,32 +95,32 @@
                 </select>
               </td>
               <td class="td--actions">
-                <button class="btn btn-sm btn-outline" type="button" (click)="openDetail(q)">
+                <button class="btn btn--ghost btn--xs" type="button" (click)="openDetail(q)">
                   Ver
                 </button>
-                <button class="btn btn-sm btn-outline" type="button"
+                <button class="btn btn--ghost btn--xs" type="button"
                         [disabled]="downloadingId === q._id"
                         (click)="downloadPdf(q)">
                   {{ downloadingId === q._id ? 'PDF…' : 'PDF' }}
                 </button>
-                <button class="btn btn-sm btn-outline" type="button"
+                <button class="btn btn--ghost btn--xs" type="button"
                         [disabled]="emailSendingId === q._id || !q.client?.email"
                         [title]="q.client?.email ? 'Enviar a ' + q.client?.email : 'Sin email de cliente'"
                         (click)="resendEmail(q)">
                   {{ emailSendingId === q._id ? 'Enviando…' : 'Email' }}
                 </button>
-                <button class="btn btn-sm btn-outline" type="button"
+                <button class="btn btn--ghost btn--xs" type="button"
                         (click)="duplicateQuote(q)">
                   Duplicar
                 </button>
                 @if (q.metadata?.status !== 'accepted') {
-                  <button class="btn btn-sm btn-primary" type="button"
+                  <button class="btn btn--primary btn--xs" type="button"
                           [disabled]="convertingId === q._id"
                           (click)="convertToSale(q)">
-                    {{ convertingId === q._id ? 'Convirtiendo…' : 'Convertir a venta' }}
+                    {{ convertingId === q._id ? 'Convirtiendo…' : 'Convertir' }}
                   </button>
                 } @else {
-                  <span class="muted-text">Convertida</span>
+                  <span class="qt-muted">Convertida</span>
                 }
               </td>
             </tr>
@@ -131,71 +132,91 @@
 
 </div>
 
-<!-- ── Modal de detalle de cotización ─────────────────────────────────────── -->
-@if (showDetail && detailQuote; as dq) {
-  <div class="modal-backdrop" (click)="closeDetail()">
-    <div class="modal" (click)="$event.stopPropagation()">
-      <div class="modal__header">
-        <h3 class="modal__title">Cotización {{ dq.folio }}</h3>
-        <button class="modal__close" type="button" (click)="closeDetail()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
-      </div>
+<vayo-modal
+  [open]="showDetail && !!detailQuote"
+  [title]="'Cotización ' + (detailQuote?.folio ?? '')"
+  size="lg"
+  (close)="closeDetail()"
+>
+  @if (detailQuote; as dq) {
+    <div class="qt-detail">
 
-      <div class="modal__body">
-        <!-- Cliente -->
-        <div class="detail-section">
-          <h4 class="detail-section__title">Cliente</h4>
-          <p class="detail-line"><strong>{{ dq.client?.name || '—' }}</strong></p>
-          <p class="detail-line" *ngIf="dq.client?.email">{{ dq.client?.email }}</p>
-          <p class="detail-line" *ngIf="dq.client?.phone">{{ dq.client?.phone }}</p>
+      <div class="qt-detail__row">
+        <div>
+          <span class="qt-detail__label mono">CLIENTE</span>
+          <p class="qt-detail__val"><strong>{{ dq.client?.name || '—' }}</strong></p>
+          @if (dq.client?.email) {
+            <p class="qt-detail__sub mono">{{ dq.client?.email }}</p>
+          }
+          @if (dq.client?.phone) {
+            <p class="qt-detail__sub mono">{{ dq.client?.phone }}</p>
+          }
         </div>
-
-        <!-- Estado + fecha -->
-        <div class="detail-meta">
-          <span class="badge" [class]="statusBadge(dq.metadata?.status)">{{ statusLabel(dq.metadata?.status) }}</span>
-          <span class="detail-meta__date">{{ formatDate(dq.createdAt) }}</span>
+        <div>
+          <span class="qt-detail__label mono">ESTADO</span>
+          <span class="badge" [class.badge--warn]="dq.metadata?.status === 'sent'"
+                [class.badge--ok]="dq.metadata?.status === 'accepted'"
+                [class.badge--danger]="dq.metadata?.status === 'rejected'"
+                [class.badge--soft]="dq.metadata?.status === 'expired'">
+            <span class="dot" aria-hidden="true"></span>
+            {{ statusLabel(dq.metadata?.status) }}
+          </span>
         </div>
-
-        <!-- Items -->
-        <div class="detail-section">
-          <h4 class="detail-section__title">Productos ({{ dq.items?.length || 0 }})</h4>
-          <table class="detail-items">
-            <thead>
-              <tr><th>Producto</th><th>Cant.</th><th>P. unit.</th><th>Total</th></tr>
-            </thead>
-            <tbody>
-              @for (it of dq.items; track it.productId) {
-                <tr>
-                  <td>{{ it.name }}</td>
-                  <td class="td--center">{{ it.quantity }}</td>
-                  <td class="td--right">{{ formatCLP(it.price) }}</td>
-                  <td class="td--right">{{ formatCLP(it.total) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-
-        <!-- Totales -->
-        <div class="detail-totals">
-          <div class="detail-totals__row"><span>Subtotal</span><span>{{ formatCLP(dq.totals?.subtotal) }}</span></div>
-          <div class="detail-totals__row"><span>IVA</span><span>{{ formatCLP(dq.totals?.iva) }}</span></div>
-          <div class="detail-totals__row detail-totals__row--grand">
-            <span>Total</span><span>{{ formatCLP(dq.totals?.total) }}</span>
-          </div>
+        <div>
+          <span class="qt-detail__label mono">FECHA</span>
+          <p class="qt-detail__val">{{ formatDate(dq.createdAt) }}</p>
         </div>
       </div>
 
-      <div class="modal__footer">
-        <button class="btn btn-outline" type="button"
-                [disabled]="downloadingId === dq._id" (click)="downloadPdf(dq)">
-          {{ downloadingId === dq._id ? 'Descargando…' : 'Descargar PDF' }}
-        </button>
-        <button class="btn btn-primary" type="button"
-                [disabled]="emailSendingId === dq._id || !dq.client?.email"
-                (click)="resendEmail(dq)">
-          {{ emailSendingId === dq._id ? 'Enviando…' : 'Reenviar por email' }}
-        </button>
+      <span class="qt-detail__label mono">PRODUCTOS ({{ dq.items?.length || 0 }})</span>
+      <table class="data-table data-table--compact qt-detail__items">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th class="td--num">Cant.</th>
+            <th class="td--right">P. unit.</th>
+            <th class="td--right">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (it of dq.items; track it.productId) {
+            <tr>
+              <td>{{ it.name }}</td>
+              <td class="td--num mono">{{ it.quantity }}</td>
+              <td class="td--right mono">{{ formatCLP(it.price) }}</td>
+              <td class="td--right mono">{{ formatCLP(it.total) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      <div class="qt-detail__totals">
+        <div class="qt-detail__tot-row">
+          <span>Subtotal</span>
+          <span class="mono">{{ formatCLP(dq.totals?.subtotal) }}</span>
+        </div>
+        <div class="qt-detail__tot-row">
+          <span>IVA</span>
+          <span class="mono">{{ formatCLP(dq.totals?.iva) }}</span>
+        </div>
+        <div class="qt-detail__tot-row qt-detail__tot-row--grand">
+          <span>Total</span>
+          <span class="mono">{{ formatCLP(dq.totals?.total) }}</span>
+        </div>
       </div>
+
     </div>
+  }
+
+  <div slot="footer">
+    <button class="btn btn--outline btn--sm" type="button"
+            [disabled]="downloadingId === detailQuote?._id" (click)="downloadPdf(detailQuote!)">
+      {{ downloadingId === detailQuote?._id ? 'Descargando…' : 'Descargar PDF' }}
+    </button>
+    <button class="btn btn--primary btn--sm" type="button"
+            [disabled]="emailSendingId === detailQuote?._id || !detailQuote?.client?.email"
+            (click)="resendEmail(detailQuote!)">
+      {{ emailSendingId === detailQuote?._id ? 'Enviando…' : 'Reenviar por email' }}
+    </button>
   </div>
-}
+</vayo-modal>

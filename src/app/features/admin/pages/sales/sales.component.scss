@@ -1,104 +1,125 @@
-.page-sales {
+// ── sales.component.scss ────────────────────────────────────────────────────
+// Admin sales table + detail modal — Industrial Marcado design system
+
+:host { display: block; }
+
+.admin-page {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: var(--space-5);
 }
 
-.page-header {
+.sa-toolbar {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 1rem;
-  flex-wrap: wrap;
-}
-
-.page-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--color-text-primary);
-}
-
-.page-subtitle {
-  margin-top: 0.25rem;
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-}
-
-.filters {
-  display: flex;
-  gap: 0.75rem;
+  gap: var(--space-3);
   align-items: center;
   flex-wrap: wrap;
 }
 
-.filters__folio { flex: 1; min-width: 16rem; max-width: 22rem; }
-.filters__status { min-width: 11rem; }
-
-.state-msg {
-  font-size: 0.875rem;
-  color: var(--color-text-secondary);
-  padding: 1.5rem 0;
-
-  &--error { color: var(--color-danger); }
+.sa-toolbar__folio {
+  flex: 1;
+  min-width: 14rem;
+  max-width: 20rem;
 }
 
-.table-wrap {
-  overflow-x: auto;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--color-border-primary);
+.sa-toolbar__status {
+  width: auto;
+  min-width: 10rem;
 }
 
-.data-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.875rem;
-  background: var(--color-white);
-
-  th {
-    padding: 0.75rem 1rem;
-    text-align: left;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--color-text-secondary);
-    background: var(--color-bg-soft);
-    border-bottom: 1px solid var(--color-border-primary);
-    white-space: nowrap;
-  }
-
-  td {
-    padding: 0.875rem 1rem;
-    color: var(--color-text-primary);
-    border-bottom: 1px solid var(--color-border-secondary);
-    vertical-align: middle;
-  }
-
-  tbody tr:last-child td { border-bottom: none; }
-  tbody tr:hover td      { background: var(--color-bg-soft); }
+.td--folio {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-bold);
+  color: var(--blue);
+  white-space: nowrap;
 }
 
-.td--folio  { font-weight: 600; font-family: ui-monospace, monospace; }
-.td--name   { font-weight: 500; }
-.td--price  { font-weight: 600; }
+.td--name {
+  font-weight: var(--fw-semibold);
+  color: var(--ink);
+}
+
+.td--price {
+  font-family: var(--font-mono);
+  font-weight: var(--fw-semibold);
+  white-space: nowrap;
+}
+
+.td--right {
+  text-align: right;
+}
+
+.td--actions-h {
+  width: 1%;
+  white-space: nowrap;
+}
+
 .td--actions {
   white-space: nowrap;
   display: flex;
-  gap: 0.5rem;
+  gap: var(--space-2);
   align-items: center;
 }
 
-.btn-success {
-  background: var(--color-success, #1e6e3f);
-  color: #fff;
-  border-color: transparent;
-  &:hover:not(:disabled) { filter: brightness(0.95); }
+.sa-detail {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
 }
 
-.btn-ghost-danger {
-  background: transparent;
-  color: var(--color-danger);
-  border-color: transparent;
-  &:hover:not(:disabled) {
-    background: var(--color-danger-bg);
-    border-color: var(--color-danger);
+.sa-detail__row {
+  display: flex;
+  gap: var(--space-8);
+  flex-wrap: wrap;
+}
+
+.sa-detail__label {
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  margin-bottom: var(--space-1);
+  display: block;
+}
+
+.sa-detail__val {
+  font-size: var(--fs-body);
+  color: var(--ink);
+  margin: 0;
+}
+
+.sa-detail__sub {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+  margin: var(--space-1) 0 0;
+}
+
+.sa-detail__items {
+  font-size: var(--fs-sm);
+}
+
+.sa-detail__totals {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  align-self: flex-end;
+  min-width: 220px;
+}
+
+.sa-detail__tot-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: var(--fs-sm);
+  color: var(--ink-2);
+
+  &--grand {
+    border-top: 1px dashed var(--line);
+    padding-top: var(--space-2);
+    margin-top: var(--space-1);
+    font-weight: var(--fw-semibold);
+    color: var(--ink);
+    font-size: var(--fs-body);
   }
 }

@@ -1,0 +1,45 @@
+@if (open()) {
+  <!-- Backdrop -->
+  <div
+    class="vm-backdrop"
+    role="presentation"
+    (click)="onBackdropClick($event)"
+    aria-hidden="true"
+  ></div>
+
+  <!-- Dialog -->
+  <div
+    class="vm-dialog"
+    [class.vm-dialog--sm]="size() === 'sm'"
+    [class.vm-dialog--lg]="size() === 'lg'"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="title()"
+    tabindex="-1"
+  >
+    <!-- Head navy -->
+    <div class="vm-head">
+      <h3 class="vm-head__title">{{ title() }}</h3>
+      <button
+        type="button"
+        class="vm-head__close"
+        (click)="close.emit()"
+        aria-label="Cerrar"
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.5" aria-hidden="true">
+          <line x1="18" y1="6" x2="6" y2="18"/>
+          <line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Body (contenido proyectado) -->
+    <div class="vm-body">
+      <ng-content></ng-content>
+    </div>
+
+    <!-- Footer (opcional) -->
+    <ng-content select="[slot=footer]"></ng-content>
+  </div>
+}

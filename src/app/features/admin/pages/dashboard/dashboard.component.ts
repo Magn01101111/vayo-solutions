@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 import { StatsService, DashboardStats } from '../../../../core/services/stats.service';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 interface MetricCard {
   label: string;
@@ -15,7 +16,7 @@ interface MetricCard {
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, IconComponent],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -31,12 +32,12 @@ export class DashboardComponent implements OnInit {
     const s = this.stats();
     if (!s) return [];
     return [
-      { label: 'Ingresos', value: this.formatCLP(s.revenue.total), icon: '💰', link: '/admin/ventas', hint: 'Ventas no anuladas' },
-      { label: 'Ventas', value: String(s.counters.sales), icon: '🧾', link: '/admin/ventas', hint: 'Total registradas' },
-      { label: 'Cotizaciones', value: String(s.counters.quotes), icon: '📄', link: '/admin/cotizaciones', hint: `Conversión ${s.conversionRate}%` },
-      { label: 'Productos', value: String(s.counters.products), icon: '📦', link: '/admin/productos', hint: 'Activos en catálogo' },
-      { label: 'Clientes', value: String(s.counters.clients), icon: '👥', link: '/admin/clientes', hint: 'Registrados' },
-      { label: 'Categorías', value: String(s.counters.categories), icon: '🗂️', link: '/admin/categorias', hint: 'Activas' },
+      { label: 'Ingresos', value: this.formatCLP(s.revenue.total), icon: 'money', link: '/admin/ventas', hint: 'Ventas no anuladas' },
+      { label: 'Ventas', value: String(s.counters.sales), icon: 'receipt', link: '/admin/ventas', hint: 'Total registradas' },
+      { label: 'Cotizaciones', value: String(s.counters.quotes), icon: 'document', link: '/admin/cotizaciones', hint: `Conversión ${s.conversionRate}%` },
+      { label: 'Productos', value: String(s.counters.products), icon: 'box', link: '/admin/productos', hint: 'Activos en catálogo' },
+      { label: 'Clientes', value: String(s.counters.clients), icon: 'users', link: '/admin/clientes', hint: 'Registrados' },
+      { label: 'Categorías', value: String(s.counters.categories), icon: 'folder', link: '/admin/categorias', hint: 'Activas' },
     ];
   });
 

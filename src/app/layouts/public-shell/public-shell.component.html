@@ -1,30 +1,38 @@
-<div class="public-shell">
-  <app-public-header></app-public-header>
+<app-public-header></app-public-header>
 
-  <main class="public-shell__content">
-    <router-outlet></router-outlet>
-  </main>
+<main class="public-shell__content">
+  <router-outlet></router-outlet>
+</main>
 
-  <footer class="public-footer">
-    <div class="container">
-      <div class="public-footer__grid">
-        <div class="public-footer__brand">
-          <strong>VAYO Solutions</strong>
-          <p>Repuestos para climatización industrial. Catálogo y cotización B2B.</p>
+<footer class="ftr" role="contentinfo">
+  <div class="container">
+    <div class="ftr__grid">
+      <div class="ftr__brand">
+        <b>VAYO Solutions</b>
+        <p>Repuestos para climatización industrial. Catálogo y cotización B2B.</p>
+      </div>
+      <nav class="ftr__col" aria-label="Catálogo">
+        <p class="eyebrow" style="color:var(--text-on-navy-3);margin-bottom:10px;">Catálogo</p>
+        <div class="ftr__links">
+          <a routerLink="/catalogo">Ver catálogo</a>
+          <a routerLink="/cotizacion">Iniciar cotización</a>
         </div>
-        <div class="public-footer__links">
-          <a routerLink="/catalogo">Catálogo</a>
-          <a routerLink="/cotizacion">Cotizar</a>
+      </nav>
+      <nav class="ftr__col" aria-label="Legal">
+        <p class="eyebrow" style="color:var(--text-on-navy-3);margin-bottom:10px;">Legal</p>
+        <div class="ftr__links">
           <a routerLink="/terminos">Términos y condiciones</a>
           <a routerLink="/privacidad">Política de privacidad</a>
         </div>
-        <div class="public-footer__contact">
-          <a href="mailto:contacto&#64;vayo.cl">contacto&#64;vayo.cl</a>
-        </div>
-      </div>
-      <div class="public-footer__bottom">
-        <span>&copy; {{ currentYear }} VAYO Solutions. Todos los derechos reservados.</span>
+      </nav>
+      <div class="ftr__col">
+        <p class="eyebrow" style="color:var(--text-on-navy-3);margin-bottom:10px;">Contacto</p>
+        <a href="mailto:contacto@vayo.cl" class="ftr__links">contacto&#64;vayo.cl</a>
       </div>
     </div>
-  </footer>
-</div>
+    <div class="ftr__bottom">
+      &copy; {{ currentYear }} VAYO Solutions. Todos los derechos reservados. &nbsp;·&nbsp;
+      <span class="mono">RUT 76.XXX.XXX-X</span>
+    </div>
+  </div>
+</footer>

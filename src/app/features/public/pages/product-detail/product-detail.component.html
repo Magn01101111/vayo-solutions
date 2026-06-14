@@ -1,465 +1,526 @@
-<!-- product-detail.component.html -->
-<!-- Feedback toast -->
-@if (showAddToCartFeedback()) {
-<div class="toast-notification toast-notification--show">
-  <div class="toast-notification__content">
-    <span>{{ feedbackMessage() }}</span>
-  </div>
-</div>
-}
+<div class="pd-page">
 
-<section class="section" *ngIf="isLoading()">
-  <div class="container">
-    <div class="card product-not-found">
-      <h2>Cargando producto...</h2>
-      <p>Estamos obteniendo la información del repuesto.</p>
+  <!-- ── Estado: cargando ──────────────────────────────────────────────────── -->
+  @if (isLoading()) {
+    <div class="container pd-loading" aria-live="polite">
+      <div class="pd-loading__spinner" aria-label="Cargando producto…"></div>
     </div>
-  </div>
-</section>
+  }
 
-<section class="section" *ngIf="!isLoading() && errorMessage()">
-  <div class="container">
-    <div class="card product-not-found">
-      <h2>Error al cargar</h2>
-      <p>{{ errorMessage() }}</p>
-      <a routerLink="/catalogo" class="btn btn-primary">Volver al catálogo</a>
+  <!-- ── Estado: error ─────────────────────────────────────────────────────── -->
+  @if (errorMessage() && !isLoading()) {
+    <div class="container pd-error">
+      <div class="panel panel--pad pd-error__card">
+        <p class="pd-error__msg">{{ errorMessage() }}</p>
+        <a routerLink="/catalogo" class="btn btn--outline btn--sm">← Volver al catálogo</a>
+      </div>
     </div>
-  </div>
-</section>
+  }
 
-<section class="product-detail-page section" *ngIf="product() as currentProduct; else productNotFound">
-  <div class="container">
-    <nav class="product-breadcrumb" aria-label="Breadcrumb">
-      <a routerLink="/">Inicio</a>
-      <span>›</span>
-      <a routerLink="/catalogo">Catálogo</a>
-      <span>›</span>
-      <a routerLink="/catalogo">{{ currentProduct.category }}</a>
-      <span>›</span>
-      <span class="is-current">{{ currentProduct.name }}</span>
+  <!-- ── Producto ───────────────────────────────────────────────────────────── -->
+  @if (product(); as p) {
+
+    <!-- Feedback de cotización -->
+    @if (showAddToCartFeedback()) {
+      <div class="pd-feedback" role="alert" aria-live="polite">{{ feedbackMessage() }}</div>
+    }
+
+    <!-- Breadcrumb -->
+    <nav aria-label="Ruta de navegación" class="container">
+      <ol class="crumb">
+        <li><a routerLink="/" class="crumb__link">Inicio</a></li>
+        <li aria-hidden="true" class="crumb__sep">/</li>
+        <li><a routerLink="/catalogo" class="crumb__link">Catálogo</a></li>
+        <li aria-hidden="true" class="crumb__sep">/</li>
+        <li>
+          <a [routerLink]="['/catalogo']" [queryParams]="{ categoria: p.categorySlug }"
+             class="crumb__link">{{ p.category }}</a>
+        </li>
+        <li aria-hidden="true" class="crumb__sep">/</li>
+        <li class="crumb__cur" aria-current="page">{{ p.name }}</li>
+      </ol>
     </nav>
 
-    <div class="product-layout">
-      <div class="product-main">
-        <section class="product-hero card">
-          <div class="product-hero__grid">
-            <div class="product-gallery">
-              <div class="product-gallery__main">
-                <span class="badge" [class.badge-success]="isAvailableStatus(currentProduct.shortStatus)"
-                  [class.badge-muted]="!isAvailableStatus(currentProduct.shortStatus)">
-                  {{ currentProduct.shortStatus }}
-                </span>
+    <!-- ── Hero: galería + rail de precio ─────────────────────────────────── -->
+    <div class="container">
+      <div class="pd-hero">
 
-                <span class="product-gallery__sku">{{ currentProduct.sku }}</span>
-
-                <div class="product-gallery__icon">
-                  <!-- Imagen activa de la galería (o fallback al icono SVG por categoría) -->
-                  <img
-                    *ngIf="activeImageUrl(); else productHeroIcon"
-                    [src]="activeImageUrl()"
-                    [alt]="currentProduct.name"
-                    class="product-gallery__image"
-                    loading="eager"
-                  />
-                  <ng-template #productHeroIcon>
-                  <ng-container [ngSwitch]="currentProduct.icon">
-                    <svg *ngSwitchCase="'compressor'" width="140" height="140" viewBox="0 0 140 140" fill="none"
-                      aria-hidden="true">
-                      <circle cx="70" cy="70" r="48" stroke="#B5D4F4" stroke-width="2.5" />
-                      <circle cx="70" cy="70" r="36" stroke="#378ADD" stroke-width="2" />
-                      <circle cx="70" cy="70" r="22" stroke="#85B7EB" stroke-width="1.5" />
-                      <circle cx="70" cy="70" r="10" fill="#E6F1FB" stroke="#378ADD" stroke-width="1.5" />
-                      <path d="M70 22v10M70 108v10M22 70h10M108 70h10M36 36l7 7M97 97l7 7M104 36l-7 7M43 97l-7 7"
-                        stroke="#378ADD" stroke-width="2" stroke-linecap="round" />
-                      <circle cx="70" cy="70" r="4" fill="#0C447C" />
-                    </svg>
-
-                    <svg *ngSwitchCase="'fan'" width="140" height="140" viewBox="0 0 140 140" fill="none"
-                      aria-hidden="true">
-                      <circle cx="70" cy="70" r="46" stroke="#85B7EB" stroke-width="2.5" stroke-dasharray="4 3" />
-                      <circle cx="70" cy="70" r="16" fill="#B5D4F4" stroke="#378ADD" stroke-width="1.6" />
-                      <path d="M70 24l8 26-8-6-8 6zM70 116l-8-26 8 6 8-6zM24 70l26-8-6 8 6 8zM116 70l-26 8 6-8-6-8z"
-                        fill="#378ADD" />
-                    </svg>
-
-                    <svg *ngSwitchCase="'valve'" width="140" height="140" viewBox="0 0 140 140" fill="none"
-                      aria-hidden="true">
-                      <path d="M28 70h84M50 44l20 26-20 26M90 44L70 70l20 26" stroke="#378ADD" stroke-width="6"
-                        stroke-linecap="round" stroke-linejoin="round" />
-                    </svg>
-
-                    <svg *ngSwitchCase="'sensor'" width="140" height="140" viewBox="0 0 140 140" fill="none"
-                      aria-hidden="true">
-                      <rect x="50" y="24" width="40" height="64" rx="20" stroke="#378ADD" stroke-width="6" />
-                      <circle cx="70" cy="100" r="14" fill="#B5D4F4" stroke="#378ADD" stroke-width="4" />
-                    </svg>
-
-                    <svg *ngSwitchCase="'filter'" width="140" height="140" viewBox="0 0 140 140" fill="none"
-                      aria-hidden="true">
-                      <path d="M34 34h72l-26 32v26l-20 8V66L34 34z" stroke="#378ADD" stroke-width="6"
-                        stroke-linejoin="round" />
-                    </svg>
-
-                    <svg *ngSwitchDefault width="140" height="140" viewBox="0 0 140 140" fill="none" aria-hidden="true">
-                      <rect x="34" y="34" width="72" height="72" rx="16" stroke="#378ADD" stroke-width="6" />
-                    </svg>
-                  </ng-container>
-                  </ng-template>
-                </div>
+        <!-- Galería blueprint -->
+        <div class="pd-gallery">
+          <div class="pd-gallery__main">
+            @if (activeImageUrl()) {
+              <img [src]="activeImageUrl()" [alt]="p.name" class="pd-gallery__img" />
+            } @else {
+              <div class="pd-gallery__fallback" aria-hidden="true">
+                <span class="pd-gallery__sku mono">{{ p.sku }}</span>
               </div>
+            }
+          </div>
 
-              <!-- Thumbnails: solo se muestran si hay más de 1 imagen real -->
-              <div class="product-gallery__thumbs" *ngIf="galleryImages().length > 1">
+          @if (galleryImages().length > 1) {
+            <div class="pd-gallery__thumbs" role="group" aria-label="Miniaturas">
+              @for (img of galleryImages(); track $index) {
                 <button
-                  *ngFor="let img of galleryImages(); let i = index"
                   type="button"
-                  class="thumb"
-                  [class.is-active]="i === activeImageIndex()"
-                  (click)="selectImage(i)"
-                  [attr.aria-label]="'Vista ' + (i + 1)"
-                  [attr.aria-current]="i === activeImageIndex() ? 'true' : null"
+                  class="pd-gallery__thumb"
+                  [class.is-active]="activeImageIndex() === $index"
+                  [attr.aria-label]="'Ver imagen ' + ($index + 1)"
+                  (click)="selectImage($index)"
                 >
-                  <img [src]="img" [alt]="'Vista ' + (i + 1)" loading="lazy" />
+                  <img [src]="img" [alt]="p.name + ' vista ' + ($index + 1)" loading="lazy" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+
+        <!-- Rail de precio (sticky) -->
+        <aside class="pd-rail" aria-label="Agregar a cotización">
+          <div class="pd-rail__card">
+
+            <span class="eyebrow">{{ p.category }}</span>
+            <h1 class="pd-rail__name">{{ p.name }}</h1>
+
+            <p class="pd-rail__meta mono">
+              SKU: <strong>{{ p.sku }}</strong>
+              @if (p.brand) {<span>&nbsp;·&nbsp;{{ p.brand }}</span>}
+              @if (p.model) {<span>&nbsp;·&nbsp;Mod. {{ p.model }}</span>}
+            </p>
+
+            <!-- Rating resumen -->
+            @if (p.reviewCount > 0) {
+              <div class="pd-rail__rating">
+                <span class="stars" [attr.aria-label]="'Rating ' + (p.rating | number:'1.1-1') + ' de 5'">
+                  @for (on of getStars(p.rating); track $index) {
+                    <span class="star" [class.on]="on">★</span>
+                  }
+                </span>
+                <span class="pd-rail__rating-txt mono">
+                  {{ p.rating | number:'1.1-1' }} · {{ p.reviewCount }} reseña{{ p.reviewCount === 1 ? '' : 's' }}
+                </span>
+              </div>
+            }
+
+            <hr class="pd-rail__div" />
+
+            <!-- Stock -->
+            <div class="pd-rail__stock-row">
+              <span [class]="stockBadgeClass(p.shortStatus)">
+                <span class="dot" aria-hidden="true"></span>{{ p.shortStatus }}
+              </span>
+            </div>
+
+            <!-- Precio -->
+            @if (unitPrice() > 0) {
+              <div class="pd-rail__price">
+                <vayo-price class="vp--lg" [price]="unitPrice()" [offerPrice]="null" />
+              </div>
+            } @else {
+              <p class="pd-rail__consultar">Precio a consultar</p>
+            }
+
+            <!-- CTA: no está en cotización -->
+            @if (!isInCart()) {
+              <div class="pd-rail__cta">
+                <div class="pd-rail__qty-row">
+                  <label class="pd-rail__qty-label">Cantidad</label>
+                  <vayo-quantity-stepper
+                    [value]="quantity()"
+                    [min]="1"
+                    [max]="999"
+                    (valueChange)="quantity.set($event)"
+                  />
+                </div>
+
+                @if (unitPrice() > 0) {
+                  <div class="pd-rail__subtotal">
+                    <span class="pd-rail__subtotal-label">Subtotal</span>
+                    <span class="pd-rail__subtotal-val mono">{{ formatCurrency(subtotal()) }} + IVA</span>
+                  </div>
+                }
+
+                <button
+                  type="button"
+                  class="btn btn--amber btn--block"
+                  [disabled]="p.shortStatus === 'Sin stock'"
+                  (click)="addToQuote()"
+                >
+                  Agregar a cotización
                 </button>
               </div>
-            </div>
 
-            <div class="product-summary">
-              <div class="product-summary__meta">
-                <span class="badge badge-brand">{{ currentProduct.category }}</span>
-
-                <span class="badge badge-stock-dot"
-                  [class.badge-success]="isAvailableStatus(currentProduct.shortStatus)"
-                  [class.badge-muted]="!isAvailableStatus(currentProduct.shortStatus)">
-                  {{ currentProduct.stockLabel }}
-                </span>
-              </div>
-
-              <h1 class="product-title">{{ currentProduct.name }}</h1>
-
-              <p class="product-subtitle">
-                Ref: {{ currentProduct.sku }} · Marca: {{ currentProduct.brand }} · Modelo:
-                {{ currentProduct.model }}
-              </p>
-
-              <div class="product-rating">
-                <div class="rating-stars">
-                  <span class="rating-star" *ngFor="let filled of getStars(currentProduct.rating)"
-                    [class.is-filled]="filled">
-                    ★
+            } @else {
+              <!-- Ya está en cotización -->
+              <div class="pd-rail__in-cart">
+                <div class="pd-rail__in-cart-info">
+                  <span class="badge badge--ok">
+                    <span class="dot" aria-hidden="true"></span>
+                    {{ currentCartQty() }} en cotización
                   </span>
                 </div>
-
-                <span class="rating-text">
-                  {{ currentProduct.rating }} · {{ currentProduct.reviewCount }} reseñas
-                </span>
-              </div>
-
-              <p class="product-description">
-                {{ currentProduct.description }}
-              </p>
-
-              <div class="product-tags">
-                <span class="badge badge-soft" *ngFor="let tag of currentProduct.tags">
-                  {{ tag }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </section>
-
-        <section class="product-tabs card">
-          <div class="product-tabs__nav">
-            <button type="button" class="product-tab" *ngFor="let tab of tabList; trackBy: trackByTab"
-              [class.is-active]="activeTab === tab.key" (click)="setTab(tab.key)">
-              {{ tab.label }}
-            </button>
-          </div>
-
-          <div class="product-tabs__content" *ngIf="activeTab === 'specs'">
-            <div class="spec-grid">
-              <div class="spec-row" *ngFor="let spec of currentProduct.specs; trackBy: trackBySpec">
-                <span class="spec-label">{{ spec.label }}</span>
-                <span class="spec-value">{{ spec.value }}</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="product-tabs__content" *ngIf="activeTab === 'dimensions'">
-            <div class="dimension-card">
-              <div class="dimension-item">
-                <span>Alto</span>
-                <strong>{{ currentProduct.dimensions.height }}</strong>
-              </div>
-              <div class="dimension-item">
-                <span>Diámetro</span>
-                <strong>{{ currentProduct.dimensions.diameter }}</strong>
-              </div>
-              <div class="dimension-item">
-                <span>Peso neto</span>
-                <strong>{{ currentProduct.dimensions.netWeight }}</strong>
-              </div>
-              <div class="dimension-item">
-                <span>Peso bruto</span>
-                <strong>{{ currentProduct.dimensions.grossWeight }}</strong>
-              </div>
-            </div>
-          </div>
-
-          <div class="product-tabs__content" *ngIf="activeTab === 'compatibility'">
-            <div class="compatibility-list">
-              <div class="compatibility-item" *ngFor="let item of currentProduct.compatibility">
-                {{ item }}
-              </div>
-            </div>
-          </div>
-
-          <div class="product-tabs__content" *ngIf="activeTab === 'documents'">
-            <div class="document-list">
-              <div class="document-item" *ngFor="let doc of currentProduct.documents; trackBy: trackByDoc">
-                <div>
-                  <h4>{{ doc.title }}</h4>
-                  <p>{{ doc.meta }}</p>
+                <div class="pd-rail__qty-row">
+                  <label class="pd-rail__qty-label">Modificar cantidad</label>
+                  <vayo-quantity-stepper
+                    [value]="currentCartQty()"
+                    [min]="1"
+                    [max]="999"
+                    (valueChange)="updateCartQuantity($event)"
+                  />
                 </div>
-
-                <a
-                  [href]="doc.url"
-                  target="_blank"
-                  rel="noopener"
-                  class="btn btn-secondary btn-sm"
-                  [class.btn-disabled]="!doc.url"
+                <button
+                  type="button"
+                  class="btn btn--ghost btn--sm btn--block"
+                  (click)="removeFromCart()"
                 >
-                  {{ doc.url ? 'Descargar' : 'No disponible' }}
-                </a>
+                  Quitar de la cotización
+                </button>
               </div>
+            }
+
+            <!-- Descuentos por volumen (FUNCIÓN PROPUESTA) -->
+            <div class="pd-rail__vol">
+              <div class="block-head block-head--sm">
+                <span class="block-head__title">Descuentos por volumen</span>
+                <span class="chip chip--proposed">FUNCIÓN PROPUESTA</span>
+              </div>
+              <table class="data-table data-table--compact" aria-label="Rangos de descuento">
+                <thead>
+                  <tr><th>Unidades</th><th>Descuento</th><th class="mono">P/u neto</th></tr>
+                </thead>
+                <tbody>
+                  <tr><td>1–9</td><td>—</td><td class="mono">Precio lista</td></tr>
+                  <tr><td>10–24</td><td><span class="badge badge--offer">−5%</span></td><td class="mono">—</td></tr>
+                  <tr><td>25+</td><td><span class="badge badge--offer">−10%</span></td><td class="mono">—</td></tr>
+                </tbody>
+              </table>
             </div>
+
+          </div><!-- /.pd-rail__card -->
+        </aside>
+
+      </div><!-- /.pd-hero -->
+    </div>
+
+    <!-- ── Tabs de contenido ───────────────────────────────────────────────── -->
+    <div class="container">
+      <div class="pd-content">
+
+        @if (p.description) {
+          <div class="pd-description"><p>{{ p.description }}</p></div>
+        }
+
+        <nav class="tabs" role="tablist" aria-label="Información del producto">
+          @for (tab of tabList; track tab.key) {
+            <button
+              role="tab"
+              type="button"
+              class="tabs__btn"
+              [class.is-active]="activeTab === tab.key"
+              [attr.aria-selected]="activeTab === tab.key"
+              [attr.aria-controls]="'pd-tab-' + tab.key"
+              [id]="'pd-tab-btn-' + tab.key"
+              (click)="setTab(tab.key)"
+            >{{ tab.label }}</button>
+          }
+        </nav>
+
+        <div class="pd-panel">
+          @switch (activeTab) {
+
+            @case ('specs') {
+              <div role="tabpanel" id="pd-tab-specs" aria-labelledby="pd-tab-btn-specs">
+                @if (p.specs.length) {
+                  <table class="data-table" aria-label="Especificaciones técnicas">
+                    <tbody>
+                      @for (spec of p.specs; track spec.label) {
+                        <tr>
+                          <th scope="row">{{ spec.label }}</th>
+                          <td class="mono">{{ spec.value }}</td>
+                        </tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <p class="pd-panel__empty">Sin especificaciones registradas.</p>
+                }
+              </div>
+            }
+
+            @case ('dimensions') {
+              <div role="tabpanel" id="pd-tab-dimensions" aria-labelledby="pd-tab-btn-dimensions">
+                @if (p.dimensions && (p.dimensions.height || p.dimensions.width || p.dimensions.length || p.dimensions.diameter || p.dimensions.netWeight)) {
+                  <table class="data-table" aria-label="Dimensiones">
+                    <tbody>
+                      @if (p.dimensions.height) {
+                        <tr><th scope="row">Alto</th><td class="mono">{{ p.dimensions.height }}</td></tr>
+                      }
+                      @if (p.dimensions.width) {
+                        <tr><th scope="row">Ancho</th><td class="mono">{{ p.dimensions.width }}</td></tr>
+                      }
+                      @if (p.dimensions.length) {
+                        <tr><th scope="row">Largo</th><td class="mono">{{ p.dimensions.length }}</td></tr>
+                      }
+                      @if (p.dimensions.diameter) {
+                        <tr><th scope="row">Diámetro</th><td class="mono">{{ p.dimensions.diameter }}</td></tr>
+                      }
+                      @if (p.dimensions.netWeight) {
+                        <tr><th scope="row">Peso neto</th><td class="mono">{{ p.dimensions.netWeight }}</td></tr>
+                      }
+                      @if (p.dimensions.grossWeight) {
+                        <tr><th scope="row">Peso bruto</th><td class="mono">{{ p.dimensions.grossWeight }}</td></tr>
+                      }
+                    </tbody>
+                  </table>
+                } @else {
+                  <p class="pd-panel__empty">Sin datos de dimensiones.</p>
+                }
+              </div>
+            }
+
+            @case ('compatibility') {
+              <div role="tabpanel" id="pd-tab-compatibility" aria-labelledby="pd-tab-btn-compatibility">
+                @if (p.compatibility.length) {
+                  <ul class="pd-compat-list">
+                    @for (item of p.compatibility; track $index) {
+                      <li class="pd-compat-list__item">
+                        <span class="pd-compat-list__dot" aria-hidden="true"></span>{{ item }}
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="pd-panel__empty">Sin información de compatibilidad.</p>
+                }
+              </div>
+            }
+
+            @case ('documents') {
+              <div role="tabpanel" id="pd-tab-documents" aria-labelledby="pd-tab-btn-documents">
+                @if (p.documents.length) {
+                  <ul class="pd-doc-list">
+                    @for (doc of p.documents; track doc.title) {
+                      <li class="pd-doc-list__item">
+                        <a [href]="doc.url" target="_blank" rel="noopener noreferrer"
+                           class="pd-doc-list__link">
+                          <svg class="pd-doc-list__icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                            <path d="M9 1H4a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6L9 1Z" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/>
+                            <path d="M9 1v5h5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+                          </svg>
+                          <span class="pd-doc-list__name">{{ doc.title }}</span>
+                          @if (doc.meta) {<span class="pd-doc-list__size mono">{{ doc.meta }}</span>}
+                          <span class="pd-doc-list__dl mono" aria-hidden="true">↓</span>
+                        </a>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="pd-panel__empty">Sin documentos disponibles.</p>
+                }
+              </div>
+            }
+
+          }
+        </div><!-- /.pd-panel -->
+      </div><!-- /.pd-content -->
+    </div>
+
+    <!-- ── Proveedores y tiempos de entrega ───────────────────────────────── -->
+    @if (providers.length > 0) {
+      <div class="container">
+        <section class="pd-providers" aria-label="Proveedores y tiempos de entrega">
+          <div class="block-head">
+            <h2 class="block-head__title">Proveedores y tiempos de entrega</h2>
+          </div>
+          <div class="pd-providers__grid">
+            @for (prov of providers; track prov.name) {
+              <div class="pd-provider-card">
+                <div class="pd-provider-card__name">{{ prov.name }}</div>
+                @if (prov.location) {
+                  <div class="pd-provider-card__loc">{{ prov.location }}</div>
+                }
+                @if (prov.deliveryTime) {
+                  <div class="pd-provider-card__lead mono">{{ prov.deliveryTime }}</div>
+                }
+              </div>
+            }
           </div>
         </section>
+      </div>
+    }
 
-        <section class="product-reviews card">
-          <div class="section-heading">
-            <h2 class="section-title">Reseñas de clientes</h2>
+    <!-- ── Reseñas ────────────────────────────────────────────────────────── -->
+    <div class="container">
+      <section class="pd-reviews" aria-label="Reseñas del producto">
 
-            <!-- Botón dejar reseña (solo CLIENTE logueado) -->
-            <button *ngIf="canReview()" type="button" class="btn btn-secondary btn-sm"
-              (click)="toggleReviewForm()">
+        <div class="block-head">
+          <h2 class="block-head__title">
+            Reseñas
+            @if (p.reviewCount > 0) {
+              <span class="pd-reviews__count mono">({{ p.reviewCount }})</span>
+            }
+          </h2>
+          @if (canReview()) {
+            <button type="button" class="btn btn--ghost btn--sm" (click)="toggleReviewForm()">
               {{ showReviewForm() ? 'Cancelar' : 'Escribir reseña' }}
             </button>
-          </div>
+          }
+        </div>
 
-          <div class="reviews-summary" *ngIf="currentProduct.reviewCount > 0">
-            <div class="reviews-summary__score">
-              <strong>{{ currentProduct.rating }}</strong>
-              <span>{{ currentProduct.reviewCount }} reseña(s)</span>
+        @if (p.reviewCount > 0) {
+          <div class="pd-reviews__summary">
+            <span class="pd-reviews__avg mono">{{ p.rating | number:'1.1-1' }}</span>
+            <div class="stars stars--lg" [attr.aria-label]="'Rating ' + p.rating + ' de 5'">
+              @for (on of getStars(p.rating); track $index) {
+                <span class="star" [class.on]="on">★</span>
+              }
             </div>
+            <span class="pd-reviews__of">de 5</span>
           </div>
+        }
 
-          <!-- Formulario de nueva reseña -->
-          <div class="review-form" *ngIf="showReviewForm()">
-            <label class="review-form__label">Tu calificación</label>
-            <div class="review-form__stars">
-              <button type="button" class="star-btn" *ngFor="let n of [1,2,3,4,5]"
-                [class.is-on]="n <= newReview.rating" (click)="setReviewRating(n)"
-                [attr.aria-label]="n + ' estrellas'">★</button>
-            </div>
-            <textarea class="textarea" rows="3" [(ngModel)]="newReview.body"
-              placeholder="Cuéntanos tu experiencia con este producto…"></textarea>
-
-            <p class="review-form__error" *ngIf="reviewError()">{{ reviewError() }}</p>
-
-            <button type="button" class="btn btn-primary btn-sm" [disabled]="reviewSending()"
-              (click)="submitReview()">
-              {{ reviewSending() ? 'Enviando…' : 'Enviar reseña' }}
-            </button>
-            <p class="review-form__hint">Tu reseña será revisada antes de publicarse.</p>
-          </div>
-
-          <!-- Mensaje de éxito -->
-          <p class="review-success" *ngIf="reviewMessage()">{{ reviewMessage() }}</p>
-
-          <!-- Estado vacío -->
-          <p class="review-empty" *ngIf="!reviewsLoading() && reviews().length === 0">
-            Este producto aún no tiene reseñas. ¡Sé el primero en opinar!
-          </p>
-
-          <div class="review-list">
-            <article class="review-item" *ngFor="let review of reviews(); trackBy: trackByReview">
-              <div class="review-item__header">
-                <div>
-                  <h3>
-                    {{ review.author }}
-                    <span *ngIf="review.company">· {{ review.company }}</span>
-                  </h3>
-                  <p>{{ review.date }}</p>
-                </div>
-
-                <span class="badge badge-success" *ngIf="review.verified">
-                  Compra verificada
-                </span>
+        <!-- Formulario de reseña -->
+        @if (showReviewForm() && canReview()) {
+          <form class="pd-review-form panel panel--pad" (ngSubmit)="submitReview()">
+            <div class="pd-review-form__stars" role="group" aria-label="Tu calificación">
+              <span class="pd-review-form__stars-label">Calificación</span>
+              <div class="stars stars--interactive">
+                @for (n of [1,2,3,4,5]; track n) {
+                  <button
+                    type="button"
+                    class="star"
+                    [class.on]="newReview.rating >= n"
+                    [attr.aria-label]="n + ' estrellas'"
+                    (click)="setReviewRating(n)"
+                  >★</button>
+                }
               </div>
-
-              <div class="rating-stars review-stars">
-                <span class="rating-star" *ngFor="let filled of getStars(review.rating)" [class.is-filled]="filled">
-                  ★
-                </span>
-              </div>
-
-              <p class="review-body">{{ review.body }}</p>
-
-              <div class="review-tags" *ngIf="review.tags?.length">
-                <span class="badge badge-muted" *ngFor="let tag of review.tags">
-                  {{ tag }}
-                </span>
-              </div>
-            </article>
-          </div>
-        </section>
-
-        <section class="related-products card">
-          <div class="section-heading">
-            <h2 class="section-title">Artículos relacionados</h2>
-          </div>
-
-          <div class="related-grid">
-            <article class="related-card" *ngFor="let item of relatedProducts(); trackBy: trackByRelated">
-              <a class="related-card__media" [routerLink]="['/catalogo', item.id]">
-                <img *ngIf="item.imageUrl; else relIcon" [src]="item.imageUrl" [alt]="item.name"
-                  class="related-card__img" loading="lazy" />
-                <ng-template #relIcon>
-                  <span class="related-card__placeholder"><app-icon name="box" [size]="40" /></span>
-                </ng-template>
-              </a>
-
-              <div class="related-card__body">
-                <span class="related-card__cat">{{ item.category }}</span>
-                <h3 class="related-card__name">{{ item.name }}</h3>
-                <p class="related-card__sku">Ref: {{ item.sku }}</p>
-                <p class="related-card__price">{{ item.price }}</p>
-              </div>
-
-              <a class="btn btn-secondary btn-sm related-card__btn" [routerLink]="['/catalogo', item.id]">
-                Ver ficha
-              </a>
-            </article>
-          </div>
-        </section>
-      </div>
-
-      <aside class="product-sidebar">
-        <section class="price-panel card">
-          <div>
-            <p class="price-label">Precio unitario</p>
-            <h2 class="price-value">{{ formatCurrency(unitPrice()) }}</h2>
-            <p class="price-note">+ IVA · Precio referencial</p>
-          </div>
-
-          <!-- Si el producto está en el carrito, mostrar controles de edición -->
-          @if (isInCart()) {
-          <div class="cart-status">
-            <div class="cart-status__info">
-              <span class="badge badge-success"><app-icon name="check" [size]="13" /> En tu carrito</span>
-              <span class="cart-status__qty">{{ currentCartQty() }} unidades</span>
             </div>
 
-            <div class="cart-actions">
-              <div class="qty-control">
-                <button type="button" class="qty-btn" (click)="updateCartQuantity(currentCartQty() - 1)">−</button>
-                <span class="qty-number">{{ currentCartQty() }}</span>
-                <button type="button" class="qty-btn" (click)="updateCartQuantity(currentCartQty() + 1)">+</button>
-              </div>
-              <button class="btn btn-outline btn-sm" (click)="removeFromCart()">
-                Eliminar
+            <div class="form-field">
+              <label class="form-label" for="review-body">Comentario</label>
+              <textarea
+                id="review-body"
+                class="form-control"
+                rows="4"
+                [(ngModel)]="newReview.body"
+                name="reviewBody"
+                placeholder="Describe tu experiencia con este producto…"
+              ></textarea>
+            </div>
+
+            @if (reviewError()) {
+              <p class="pd-review-form__error" role="alert">{{ reviewError() }}</p>
+            }
+            @if (reviewMessage()) {
+              <p class="pd-review-form__success" role="alert">{{ reviewMessage() }}</p>
+            }
+
+            <div class="pd-review-form__footer">
+              <button type="submit" class="btn btn--primary btn--sm" [disabled]="reviewSending()">
+                {{ reviewSending() ? 'Enviando…' : 'Publicar reseña' }}
+              </button>
+              <button type="button" class="btn btn--ghost btn--sm" (click)="toggleReviewForm()">
+                Cancelar
               </button>
             </div>
-          </div>
-          } @else {
-          <!-- Selector de cantidad para agregar al carrito -->
-          <div class="qty-row">
-            <span>Cantidad</span>
-            <div class="qty-control">
-              <button type="button" class="qty-btn" (click)="decreaseQuantity()">−</button>
-              <span class="qty-number">{{ quantity() }}</span>
-              <button type="button" class="qty-btn" (click)="increaseQuantity()">+</button>
-            </div>
-          </div>
-          }
+          </form>
+        }
 
-          <div class="totals">
-            <div class="totals-row">
-              <span>Subtotal neto</span>
-              <strong>{{ formatCurrency(subtotal()) }}</strong>
-            </div>
-
-            <div class="totals-row">
-              <span>IVA ({{ ivaPercent() }}%)</span>
-              <strong>{{ formatCurrency(iva()) }}</strong>
-            </div>
-
-            <div class="totals-row totals-row--final">
-              <span>Total estimado</span>
-              <strong>{{ formatCurrency(total()) }}</strong>
-            </div>
-          </div>
-
-          <div class="price-actions">
-            @if (isInCart()) {
-            <a routerLink="/cotizacion" class="btn btn-primary">Ir a cotización</a>
-            } @else {
-            <button class="btn btn-primary" (click)="addToQuote()">
-              Agregar {{ quantity() > 1 ? quantity() + ' unidades' : 'a cotización' }}
-            </button>
+        <!-- Lista -->
+        @if (reviewsLoading()) {
+          <p class="pd-reviews__loading">Cargando reseñas…</p>
+        } @else if (reviews().length) {
+          <ul class="pd-review-list">
+            @for (rev of reviews(); track trackByReview($index, rev)) {
+              <li class="pd-review-card">
+                <div class="pd-review-card__head">
+                  <div class="pd-review-card__avatar" aria-hidden="true">{{ rev.initials }}</div>
+                  <div class="pd-review-card__author">
+                    <strong class="pd-review-card__name">{{ rev.author }}</strong>
+                    @if (rev.company) {
+                      <span class="pd-review-card__company">{{ rev.company }}</span>
+                    }
+                    <div class="pd-review-card__meta">
+                      <span class="stars stars--sm" [attr.aria-label]="rev.rating + ' estrellas'">
+                        @for (on of getStars(rev.rating); track $index) {
+                          <span class="star" [class.on]="on">★</span>
+                        }
+                      </span>
+                      <span class="pd-review-card__date mono">{{ rev.date }}</span>
+                      @if (rev.verified) {
+                        <span class="badge badge--ok pd-review-card__verified">
+                          <span class="dot" aria-hidden="true"></span>Compra verificada
+                        </span>
+                      }
+                    </div>
+                  </div>
+                </div>
+                <p class="pd-review-card__body">{{ rev.body }}</p>
+                @if (rev.tags?.length) {
+                  <div class="pd-review-card__tags">
+                    @for (tag of rev.tags; track tag) {
+                      <span class="badge badge--soft">{{ tag }}</span>
+                    }
+                  </div>
+                }
+              </li>
             }
-            <button class="btn btn-outline" (click)="addSingleToCart()">
-              +1 rápido
-            </button>
+          </ul>
+        } @else {
+          <div class="pd-reviews__empty">
+            <p>Aún no hay reseñas para este producto.</p>
+            @if (canReview()) {
+              <button type="button" class="btn btn--ghost btn--sm" (click)="toggleReviewForm()">
+                Sé el primero en opinar
+              </button>
+            }
           </div>
-        </section>
+        }
 
-        <section class="providers-panel card">
-          <div class="section-heading">
-            <h2 class="section-title">Envíos disponibles</h2>
-          </div>
-
-          <div class="provider-list">
-            <article class="provider-item" *ngFor="let provider of providers; trackBy: trackByProvider">
-              <div>
-                <h3>{{ provider.name }}</h3>
-                <p>{{ provider.location }}</p>
-              </div>
-
-              <span class="provider-time" [class.is-fast]="provider.speed === 'fast'">
-                {{ provider.deliveryTime }}
-              </span>
-            </article>
-          </div>
-        </section>
-
-        <section class="support-panel card">
-          <div class="section-heading">
-            <h2 class="section-title">¿Dudas técnicas?</h2>
-          </div>
-
-          <p class="support-text">
-            Nuestro equipo técnico puede verificar compatibilidad antes de cotizar.
-          </p>
-
-          <a href="mailto:contacto@vayo.cl?subject=Consulta técnica: {{ product()?.name }}" class="btn btn-secondary">
-            Consultar al equipo técnico
-          </a>
-        </section>
-      </aside>
+      </section>
     </div>
-  </div>
-</section>
 
-<ng-template #productNotFound>
-  <section class="section">
-    <div class="container">
-      <div class="card product-not-found">
-        <h2>Producto no encontrado</h2>
-        <p>No encontramos un repuesto asociado a esta ruta.</p>
-        <a routerLink="/catalogo" class="btn btn-primary">Volver al catálogo</a>
+    <!-- ── Productos relacionados ─────────────────────────────────────────── -->
+    @if (relatedProducts().length) {
+      <div class="container">
+        <section class="pd-related" aria-label="Productos relacionados">
+          <div class="block-head">
+            <h2 class="block-head__title">Productos relacionados</h2>
+            <a routerLink="/catalogo" class="block-head__opt">Ver catálogo completo</a>
+          </div>
+          <div class="grid-3">
+            @for (rel of relatedProducts(); track rel.id) {
+              <a [routerLink]="['/producto', rel.id]" class="card card--product">
+                <div class="card__media">
+                  @if (rel.imageUrl) {
+                    <img [src]="rel.imageUrl" [alt]="rel.name" loading="lazy" class="card__img" />
+                  } @else {
+                    <div class="card__media-fallback" aria-hidden="true">
+                      <span class="mono">{{ rel.sku }}</span>
+                    </div>
+                  }
+                </div>
+                <div class="card__body">
+                  @if (rel.category) {
+                    <span class="eyebrow">{{ rel.category }}</span>
+                  }
+                  <h3 class="card__name">{{ rel.name }}</h3>
+                  <p class="card__sku mono">{{ rel.sku }}</p>
+                  <div class="card__foot">
+                    @if (rel.price) {
+                      <span class="card__price mono">{{ rel.price }}</span>
+                    }
+                    <span [class]="stockBadgeClass(rel.shortStatus)">
+                      <span class="dot" aria-hidden="true"></span>{{ rel.shortStatus }}
+                    </span>
+                  </div>
+                </div>
+              </a>
+            }
+          </div>
+        </section>
       </div>
-    </div>
-  </section>
-</ng-template>
+    }
+
+  }<!-- /@if product -->
+
+</div><!-- /.pd-page -->

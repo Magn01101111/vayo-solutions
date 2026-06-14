@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
 import { ReportService, ReportType, ReportFilters } from '../../../../core/services/report.service';
+import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
 interface ReportCard {
   type: ReportType;
@@ -16,7 +17,7 @@ interface ReportCard {
 @Component({
   selector: 'app-reports',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, IconComponent],
   templateUrl: './reports.component.html',
   styleUrl: './reports.component.scss',
 })
@@ -36,7 +37,7 @@ export class ReportsComponent {
     {
       type: 'sales',
       title: 'Ventas',
-      icon: '🧾',
+      icon: 'receipt',
       description: 'Exporta las ventas registradas con cliente, montos y estado.',
       statuses: [
         { value: '',          label: 'Todos los estados' },
@@ -48,7 +49,7 @@ export class ReportsComponent {
     {
       type: 'quotes',
       title: 'Cotizaciones',
-      icon: '📄',
+      icon: 'document',
       description: 'Exporta las cotizaciones con cliente, ítems, totales y estado.',
       statuses: [
         { value: '',         label: 'Todos los estados' },
@@ -61,7 +62,7 @@ export class ReportsComponent {
     {
       type: 'clients',
       title: 'Clientes',
-      icon: '👥',
+      icon: 'users',
       description: 'Exporta el directorio de clientes con datos de contacto.',
       statuses: [],
     },

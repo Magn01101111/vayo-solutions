@@ -1,0 +1,47 @@
+@if (totalPages() > 1) {
+  <nav class="vpag" aria-label="Paginación">
+    <!-- Anterior -->
+    <button
+      type="button"
+      class="vpag__btn vpag__btn--nav"
+      [disabled]="page() <= 1"
+      (click)="go(page() - 1)"
+      aria-label="Página anterior"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" aria-hidden="true">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </button>
+
+    <!-- Números -->
+    @for (p of pages(); track p) {
+      @if (p === -1) {
+        <span class="vpag__ellipsis" aria-hidden="true">…</span>
+      } @else {
+        <button
+          type="button"
+          class="vpag__btn"
+          [class.vpag__btn--active]="p === page()"
+          [attr.aria-current]="p === page() ? 'page' : null"
+          [attr.aria-label]="'Página ' + p"
+          (click)="go(p)"
+        >{{ p }}</button>
+      }
+    }
+
+    <!-- Siguiente -->
+    <button
+      type="button"
+      class="vpag__btn vpag__btn--nav"
+      [disabled]="page() >= totalPages()"
+      (click)="go(page() + 1)"
+      aria-label="Página siguiente"
+    >
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="2.5" aria-hidden="true">
+        <polyline points="9 18 15 12 9 6"/>
+      </svg>
+    </button>
+  </nav>
+}

@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
 import { SaleService, ApiSale, SaleStatus } from '../../../../core/services/sale.service';
+import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
 
 @Component({
   selector: 'app-sales',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, VayoModalComponent],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.scss',
 })
@@ -23,6 +24,10 @@ export class SalesComponent implements OnInit {
 
   // Cambio de estado en proceso (para deshabilitar botones)
   updatingId = '';
+
+  // Modal detalle
+  showDetail = false;
+  detailSale: ApiSale | null = null;
 
   ngOnInit(): void {
     this.load();
@@ -63,10 +68,22 @@ export class SalesComponent implements OnInit {
       next: (res) => {
         const idx = this.sales.findIndex((s) => s.id === sale.id);
         if (idx >= 0) this.sales[idx] = res.data;
+        // Actualizar también el detalle si está abierto
+        if (this.detailSale?.id === sale.id) this.detailSale = res.data;
         this.updatingId = '';
       },
       error: () => { this.updatingId = ''; },
     });
+  }
+
+  openDetail(sale: ApiSale): void {
+    this.detailSale = sale;
+    this.showDetail = true;
+  }
+
+  closeDetail(): void {
+    this.showDetail = false;
+    this.detailSale = null;
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────

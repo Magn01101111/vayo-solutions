@@ -1,124 +1,136 @@
-<div class="page-users">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Cotizadores</h2>
-      <p class="page-subtitle">Personal interno con acceso al panel de gestión</p>
+      <h2 class="block-head__title">Cotizadores</h2>
+      <p class="block-head__sub mono">Personal interno con acceso al panel de gestión</p>
     </div>
-    <button class="btn btn-primary" type="button" (click)="openCreate()">
+    <button class="btn btn--primary" type="button" (click)="openCreate()">
       + Nuevo cotizador
     </button>
   </div>
 
   @if (loading) {
-  <p class="state-msg">Cargando cotizadores…</p>
+    <p class="state-txt">Cargando cotizadores…</p>
   } @else if (loadError) {
-  <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (cotizadores.length === 0) {
-  <p class="state-msg">No hay cotizadores registrados.</p>
+    <div class="empty-state">
+      <p class="empty-state__msg">No hay cotizadores registrados.</p>
+      <button class="btn btn--primary btn--sm" type="button" (click)="openCreate()">
+        Crear primer cotizador
+      </button>
+    </div>
   } @else {
-  <div class="table-wrap">
-    <table class="data-table">
-      <thead>
-        <tr>
-          <th>Nombre</th>
-          <th>Correo</th>
-          <th>Cargo</th>
-          <th>Teléfono</th>
-          <th>Estado</th>
-          <th>Acciones</th>
-        </tr>
-      </thead>
-      <tbody>
-        @for (user of cotizadores; track user.id) {
-        <tr [class.row--inactive]="!user.isActive">
-          <td class="td--name">{{ user.name }}</td>
-          <td>{{ user.email }}</td>
-          <td>{{ user.position || '—' }}</td>
-          <td>{{ user.phone || '—' }}</td>
-          <td>
-            <span class="badge" [class.badge-success]="user.isActive" [class.badge-danger]="!user.isActive">
-              {{ user.isActive ? 'Activo' : 'Inactivo' }}
-            </span>
-          </td>
-          <td class="td--actions">
-            <button class="btn btn-sm btn-outline" type="button" (click)="openEdit(user)">
-              Editar
-            </button>
-            @if (user.isActive) {
-              @if (confirmingId === user.id) {
-              <span class="confirm-inline">
-                <button class="btn btn-sm btn-danger" type="button" (click)="deactivate(user.id)">Confirmar</button>
-                <button class="btn btn-sm btn-secondary" type="button" (click)="cancelDeactivate()">Cancelar</button>
-              </span>
-              } @else {
-              <button class="btn btn-sm btn-ghost-danger" type="button" (click)="confirmDeactivate(user.id)">
-                Desactivar
-              </button>
-              }
-            } @else {
-              <button class="btn btn-sm btn-outline" type="button" (click)="reactivate(user)">
-                Reactivar
-              </button>
-            }
-          </td>
-        </tr>
-        }
-      </tbody>
-    </table>
-  </div>
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de cotizadores">
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Correo</th>
+            <th scope="col">Cargo</th>
+            <th scope="col">Teléfono</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of cotizadores; track user.id) {
+            <tr [class.row--inactive]="!user.isActive">
+              <td class="td--name">{{ user.name }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.position || '—' }}</td>
+              <td class="mono">{{ user.phone || '—' }}</td>
+              <td>
+                <span class="badge" [class.badge--ok]="user.isActive" [class.badge--soft]="!user.isActive">
+                  <span class="dot" aria-hidden="true"></span>
+                  {{ user.isActive ? 'Activo' : 'Inactivo' }}
+                </span>
+              </td>
+              <td class="td--actions">
+                <button class="btn btn--outline btn--xs" type="button" (click)="openEdit(user)">
+                  Editar
+                </button>
+                @if (user.isActive) {
+                  @if (confirmingId === user.id) {
+                    <span class="confirm-inline">
+                      <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(user.id)">Confirmar</button>
+                      <button class="btn btn--ghost btn--xs" type="button" (click)="cancelDeactivate()">Cancelar</button>
+                    </span>
+                  } @else {
+                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(user.id)">
+                      Desactivar
+                    </button>
+                  }
+                } @else {
+                  <button class="btn btn--outline btn--xs" type="button" (click)="reactivate(user)">
+                    Reactivar
+                  </button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
   }
 
 </div>
 
-@if (showModal) {
-<div class="modal-backdrop" (click)="closeModal()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal__header">
-      <h3 class="modal__title">
-        {{ formMode === 'create' ? 'Nuevo cotizador' : 'Editar cotizador' }}
-      </h3>
-      <button class="modal__close" type="button" (click)="closeModal()" aria-label="Cerrar"><app-icon name="close" [size]="18" /></button>
+<vayo-modal
+  [open]="showModal"
+  [title]="formMode === 'create' ? 'Nuevo cotizador' : 'Editar cotizador'"
+  size="md"
+  (close)="closeModal()"
+>
+  <form id="usr-form" (ngSubmit)="save()" novalidate>
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="usr-name">Nombre <span class="usr-req">*</span></label>
+        <input id="usr-name" class="form-control" type="text"
+               [(ngModel)]="form.name" name="name" required />
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="usr-email">Correo <span class="usr-req">*</span></label>
+        <input id="usr-email" class="form-control" type="email"
+               [(ngModel)]="form.email" name="email" required />
+      </div>
     </div>
-    <form (ngSubmit)="save()" novalidate>
-      <div class="modal__body">
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="u-name">Nombre <span class="required">*</span></label>
-            <input id="u-name" class="input" type="text" [(ngModel)]="form.name" name="name" required />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="u-email">Correo <span class="required">*</span></label>
-            <input id="u-email" class="input" type="email" [(ngModel)]="form.email" name="email" required />
-          </div>
-        </div>
-        @if (formMode === 'create') {
-        <div class="form-group">
-          <label class="form-label" for="u-pass">Contraseña <span class="required">*</span></label>
-          <input id="u-pass" class="input" type="password" [(ngModel)]="form.password" name="password" required />
-        </div>
-        }
-        <div class="form-row">
-          <div class="form-group">
-            <label class="form-label" for="u-position">Cargo</label>
-            <input id="u-position" class="input" type="text" [(ngModel)]="form.position" name="position" />
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="u-phone">Teléfono</label>
-            <input id="u-phone" class="input" type="tel" [(ngModel)]="form.phone" name="phone" />
-          </div>
-        </div>
-        @if (formError) {
-        <p class="form-error">{{ formError }}</p>
-        }
+
+    @if (formMode === 'create') {
+      <div class="form-field">
+        <label class="form-label" for="usr-pass">Contraseña <span class="usr-req">*</span></label>
+        <input id="usr-pass" class="form-control" type="password"
+               [(ngModel)]="form.password" name="password" required />
       </div>
-      <div class="modal__footer">
-        <button class="btn btn-secondary" type="button" (click)="closeModal()" [disabled]="saving">Cancelar</button>
-        <button class="btn btn-primary" type="submit" [disabled]="saving">
-          {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear cotizador' : 'Guardar cambios') }}
-        </button>
+    }
+
+    <div class="form-grid">
+      <div class="form-field">
+        <label class="form-label" for="usr-pos">Cargo</label>
+        <input id="usr-pos" class="form-control" type="text"
+               [(ngModel)]="form.position" name="position" />
       </div>
-    </form>
+      <div class="form-field">
+        <label class="form-label" for="usr-phone">Teléfono</label>
+        <input id="usr-phone" class="form-control" type="tel"
+               [(ngModel)]="form.phone" name="phone" />
+      </div>
+    </div>
+
+    @if (formError) {
+      <p class="usr-form-err" role="alert">{{ formError }}</p>
+    }
+
+  </form>
+
+  <div slot="footer">
+    <button class="btn btn--ghost btn--sm" type="button" (click)="closeModal()" [disabled]="saving">
+      Cancelar
+    </button>
+    <button class="btn btn--primary btn--sm" type="submit" form="usr-form" [disabled]="saving">
+      {{ saving ? 'Guardando…' : (formMode === 'create' ? 'Crear cotizador' : 'Guardar cambios') }}
+    </button>
   </div>
-</div>
-}
+</vayo-modal>

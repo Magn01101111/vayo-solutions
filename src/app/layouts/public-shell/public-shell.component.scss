@@ -1,64 +1,62 @@
-.public-shell {
-  min-height: 100dvh;
+:host {
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-page);
+  min-height: 100dvh;
 }
 
 .public-shell__content {
   flex: 1;
 }
 
-/* ── Footer ───────────────────────────────────────────────────────────────── */
-.public-footer {
-  background: var(--color-surface, #1a1a2e);
-  color: var(--color-text-muted, #999);
-  padding: 2rem 0 1.5rem;
-  margin-top: auto;
+/* ── Footer "Industrial Marcado" ── */
+.ftr {
+  background: var(--navy-900);
+  color: #91a6bc;
+  padding: 40px 0 24px;
+  border-top: var(--bw-3) solid var(--amber);
 
-  a {
-    color: var(--color-text-secondary, #ccc);
-    text-decoration: none;
+  a { color: #91a6bc; &:hover { color: #fff; } }
 
-    &:hover { color: var(--color-brand, #3b82f6); }
+  b { display: block; }
+}
+
+.ftr__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 40px;
+  justify-content: space-between;
+  margin-bottom: 28px;
+}
+
+.ftr__brand {
+  b {
+    color: #fff;
+    font-size: 17px;
+    font-weight: var(--fw-black);
+    margin-bottom: 7px;
+    letter-spacing: var(--ls-tight);
   }
-
-  &__grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
+  p {
+    font-size: var(--fs-sm);
+    max-width: 34ch;
+    color: #91a6bc;
   }
+}
 
-  &__brand {
-    flex: 1 1 200px;
+.ftr__col { min-width: 130px; }
 
-    strong {
-      display: block;
-      color: var(--color-text, #fff);
-      margin-bottom: 0.25rem;
-    }
+.ftr__links {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  font-size: var(--fs-sm);
+}
 
-    p {
-      font-size: 0.875rem;
-      margin: 0;
-    }
-  }
-
-  &__links {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-    font-size: 0.875rem;
-  }
-
-  &__contact {
-    font-size: 0.875rem;
-  }
-
-  &__bottom {
-    border-top: 1px solid rgba(255,255,255,0.1);
-    padding-top: 1rem;
-    font-size: 0.75rem;
-  }
+.ftr__bottom {
+  border-top: 1px solid rgba(255,255,255,.1);
+  padding-top: 18px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  color: #6f8294;
+  letter-spacing: .03em;
 }

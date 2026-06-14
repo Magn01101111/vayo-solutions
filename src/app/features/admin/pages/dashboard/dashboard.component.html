@@ -15,7 +15,7 @@
     <div class="dashboard__metrics">
       @for (metric of metrics(); track metric.label) {
         <a class="metric-card" [routerLink]="metric.link">
-          <span class="metric-card__icon">{{ metric.icon }}</span>
+          <span class="metric-card__icon"><app-icon [name]="$any(metric.icon)" [size]="28" /></span>
           <span class="metric-card__value">{{ metric.value }}</span>
           <span class="metric-card__label">{{ metric.label }}</span>
           <span class="metric-card__hint">{{ metric.hint }}</span>

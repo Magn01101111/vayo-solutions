@@ -1,78 +1,84 @@
-<div class="page-sales">
+<div class="admin-page">
 
-  <div class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Ventas</h2>
-      <p class="page-subtitle">Ventas generadas a partir de cotizaciones</p>
+      <h2 class="block-head__title">Ventas</h2>
+      <p class="block-head__sub mono">Ventas generadas a partir de cotizaciones</p>
     </div>
   </div>
 
-  <!-- Filtros -->
-  <div class="filters">
+  <div class="sa-toolbar">
     <input
-      class="input filters__folio"
+      class="form-control sa-toolbar__folio"
       type="search"
       placeholder="Buscar por folio (ej. V-2026-0001)…"
       [(ngModel)]="folioQ"
+      name="folioQ"
       (keyup.enter)="search()"
     />
-    <select class="select filters__status" [(ngModel)]="statusFilter" (change)="search()">
+    <select class="form-control sa-toolbar__status" [(ngModel)]="statusFilter" (change)="search()">
       <option value="">Todos los estados</option>
       <option value="pending">Pendiente</option>
       <option value="paid">Pagada</option>
       <option value="cancelled">Anulada</option>
     </select>
-    <button class="btn btn-secondary" type="button" (click)="search()">Buscar</button>
+    <button class="btn btn--outline btn--sm" type="button" (click)="search()">Buscar</button>
     @if (folioQ || statusFilter) {
-      <button class="btn btn-outline" type="button" (click)="clearFilters()">Limpiar</button>
+      <button class="btn btn--ghost btn--sm" type="button" (click)="clearFilters()">Limpiar</button>
     }
   </div>
 
   @if (loading) {
-    <p class="state-msg">Cargando ventas…</p>
+    <p class="state-txt">Cargando ventas…</p>
   } @else if (loadError) {
-    <p class="state-msg state-msg--error">{{ loadError }}</p>
+    <p class="state-txt state-txt--error">{{ loadError }}</p>
   } @else if (sales.length === 0) {
-    <p class="state-msg">No hay ventas registradas. Convierte una cotización desde la sección Cotizaciones.</p>
+    <p class="state-txt">No hay ventas registradas. Convierte una cotización desde la sección Cotizaciones.</p>
   } @else {
-    <div class="table-wrap">
-      <table class="data-table">
+    <div class="tbl-wrap">
+      <table class="data-table" aria-label="Listado de ventas">
         <thead>
           <tr>
-            <th>Folio</th>
-            <th>Fecha</th>
-            <th>Cliente</th>
-            <th>Cotización</th>
-            <th>Pago</th>
-            <th>Total</th>
-            <th>Estado</th>
-            <th>Acciones</th>
+            <th scope="col">Folio</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Cliente</th>
+            <th scope="col">Cotización</th>
+            <th scope="col">Pago</th>
+            <th scope="col">Total</th>
+            <th scope="col">Estado</th>
+            <th scope="col" class="td--actions-h">Acciones</th>
           </tr>
         </thead>
         <tbody>
           @for (sale of sales; track sale.id) {
             <tr>
-              <td class="td--folio">{{ sale.folio }}</td>
+              <td class="td--folio mono">{{ sale.folio }}</td>
               <td>{{ formatDate(sale.createdAt) }}</td>
               <td class="td--name">{{ sale.client?.name || sale.client?.company || '—' }}</td>
-              <td>{{ sale.quoteFolio || '—' }}</td>
+              <td class="mono">{{ sale.quoteFolio || '—' }}</td>
               <td>{{ paymentLabel(sale.paymentMethod) }}</td>
-              <td class="td--price">{{ formatCLP(sale.totals?.total) }}</td>
+              <td class="td--price mono">{{ formatCLP(sale.totals?.total) }}</td>
               <td>
-                <span class="badge" [class]="statusBadge(sale.status)">
+                <span class="badge" [class.badge--warn]="sale.status === 'pending'"
+                      [class.badge--ok]="sale.status === 'paid'"
+                      [class.badge--soft]="sale.status === 'cancelled'">
+                  <span class="dot" aria-hidden="true"></span>
                   {{ statusLabel(sale.status) }}
                 </span>
               </td>
               <td class="td--actions">
+                <button class="btn btn--ghost btn--xs" type="button" (click)="openDetail(sale)">
+                  Ver
+                </button>
                 @if (sale.status !== 'paid') {
-                  <button class="btn btn-sm btn-success" type="button"
+                  <button class="btn btn--success btn--xs" type="button"
                           [disabled]="updatingId === sale.id"
                           (click)="changeStatus(sale, 'paid')">
                     Marcar pagada
                   </button>
                 }
                 @if (sale.status !== 'cancelled') {
-                  <button class="btn btn-sm btn-ghost-danger" type="button"
+                  <button class="btn btn--ghost-danger btn--xs" type="button"
                           [disabled]="updatingId === sale.id"
                           (click)="changeStatus(sale, 'cancelled')">
                     Anular
@@ -87,3 +93,92 @@
   }
 
 </div>
+
+<vayo-modal
+  [open]="showDetail && !!detailSale"
+  [title]="'Venta ' + (detailSale?.folio ?? '')"
+  size="lg"
+  (close)="closeDetail()"
+>
+  @if (detailSale) {
+    <div class="sa-detail">
+      <div class="sa-detail__row">
+        <div>
+          <span class="sa-detail__label mono">CLIENTE</span>
+          <p class="sa-detail__val">{{ detailSale.client?.name || detailSale.client?.company || '—' }}</p>
+          @if (detailSale.client?.email) {
+            <p class="sa-detail__sub mono">{{ detailSale.client?.email }}</p>
+          }
+        </div>
+        <div>
+          <span class="sa-detail__label mono">COTIZACIÓN ORIGEN</span>
+          <p class="sa-detail__val mono">{{ detailSale.quoteFolio || '—' }}</p>
+        </div>
+      </div>
+
+      <span class="sa-detail__label mono">ÍTEMS</span>
+      <table class="data-table data-table--compact sa-detail__items">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>SKU</th>
+            <th class="td--right">Cant.</th>
+            <th class="td--right">Precio unit.</th>
+            <th class="td--right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of detailSale.items; track item.productId) {
+            <tr>
+              <td>{{ item.name }}</td>
+              <td class="mono">{{ item.sku || '—' }}</td>
+              <td class="td--right mono">{{ item.quantity }}</td>
+              <td class="td--right mono">{{ formatCLP(item.price) }}</td>
+              <td class="td--right mono">{{ formatCLP(item.total) }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+
+      @if (detailSale.totals) {
+        <div class="sa-detail__totals">
+          <div class="sa-detail__tot-row">
+            <span>Subtotal</span>
+            <span class="mono">{{ formatCLP(detailSale.totals.subtotal) }}</span>
+          </div>
+          <div class="sa-detail__tot-row">
+            <span>IVA</span>
+            <span class="mono">{{ formatCLP(detailSale.totals.iva) }}</span>
+          </div>
+          <div class="sa-detail__tot-row sa-detail__tot-row--grand">
+            <span>Total</span>
+            <span class="mono">{{ formatCLP(detailSale.totals.total) }}</span>
+          </div>
+        </div>
+      }
+
+      @if (detailSale.paymentMethod) {
+        <div>
+          <span class="sa-detail__label mono">MÉTODO DE PAGO</span>
+          <p class="sa-detail__val">{{ paymentLabel(detailSale.paymentMethod) }}</p>
+        </div>
+      }
+
+      <div class="sa-detail__row">
+        <div>
+          <span class="sa-detail__label mono">FECHA</span>
+          <p class="sa-detail__val">{{ formatDate(detailSale.createdAt) }}</p>
+        </div>
+        <div>
+          <span class="sa-detail__label mono">ESTADO</span>
+          <span class="badge" [class.badge--warn]="detailSale.status === 'pending'"
+                [class.badge--ok]="detailSale.status === 'paid'"
+                [class.badge--soft]="detailSale.status === 'cancelled'">
+            <span class="dot" aria-hidden="true"></span>
+            {{ statusLabel(detailSale.status) }}
+          </span>
+        </div>
+      </div>
+    </div>
+  }
+</vayo-modal>

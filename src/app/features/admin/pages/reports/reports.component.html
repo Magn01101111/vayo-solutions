@@ -1,44 +1,42 @@
-<div class="page-reports">
+<div class="admin-page">
 
-  <header class="page-header">
+  <div class="block-head">
     <div>
-      <h2 class="page-title">Reportes</h2>
-      <p class="page-subtitle">Exporta tus datos a Excel (CSV) con filtros de fecha</p>
+      <h2 class="block-head__title">Reportes</h2>
+      <p class="block-head__sub mono">Exporta tus datos a CSV con filtros de fecha</p>
     </div>
-  </header>
+  </div>
 
-  <!-- Filtro de fechas compartido -->
-  <div class="date-filter">
-    <div class="date-filter__field">
-      <label class="form-label" for="from">Desde</label>
-      <input id="from" class="input" type="date" [(ngModel)]="from" />
+  <div class="rp-dates">
+    <div class="form-field">
+      <label class="form-label" for="rp-from">Desde</label>
+      <input id="rp-from" class="form-control" type="date" [(ngModel)]="from" />
     </div>
-    <div class="date-filter__field">
-      <label class="form-label" for="to">Hasta</label>
-      <input id="to" class="input" type="date" [(ngModel)]="to" />
+    <div class="form-field">
+      <label class="form-label" for="rp-to">Hasta</label>
+      <input id="rp-to" class="form-control" type="date" [(ngModel)]="to" />
     </div>
     @if (from || to) {
-      <button class="btn btn-outline" type="button" (click)="clearDates()">Limpiar fechas</button>
+      <button class="btn btn--ghost btn--sm" type="button" (click)="clearDates()">Limpiar fechas</button>
     }
-    <p class="date-filter__hint">Si no eliges fechas, se exporta todo el historial.</p>
+    <p class="rp-dates__hint">Si no eliges fechas, se exporta todo el historial.</p>
   </div>
 
   @if (error()) {
-    <div class="reports-alert">{{ error() }}</div>
+    <p class="rp-alert" role="alert">{{ error() }}</p>
   }
 
-  <!-- Tarjetas de reporte -->
-  <div class="reports-grid">
+  <div class="grid-3">
     @for (r of reports; track r.type) {
-      <article class="report-card">
-        <div class="report-card__head">
-          <span class="report-card__icon">{{ r.icon }}</span>
-          <h3 class="report-card__title">{{ r.title }}</h3>
+      <article class="panel panel--pad rp-card">
+        <div class="rp-card__head">
+          <span class="rp-card__icon"><app-icon [name]="$any(r.icon)" [size]="24" /></span>
+          <h3 class="rp-card__title">{{ r.title }}</h3>
         </div>
-        <p class="report-card__desc">{{ r.description }}</p>
+        <p class="rp-card__desc">{{ r.description }}</p>
 
         @if (r.statuses.length > 0) {
-          <select class="select report-card__status" [(ngModel)]="statusByType[r.type]">
+          <select class="form-control rp-card__sel" [(ngModel)]="statusByType[r.type]">
             @for (st of r.statuses; track st.value) {
               <option [value]="st.value">{{ st.label }}</option>
             }
@@ -46,7 +44,7 @@
         }
 
         <button
-          class="btn btn-primary report-card__btn"
+          class="btn btn--primary btn--sm btn--block"
           type="button"
           [disabled]="downloading() === r.type"
           (click)="download(r.type)"
@@ -54,7 +52,7 @@
           @if (downloading() === r.type) {
             Generando…
           } @else {
-            ⬇ Descargar CSV
+            <app-icon name="download" [size]="16" /> Descargar CSV
           }
         </button>
       </article>
