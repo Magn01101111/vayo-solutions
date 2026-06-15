@@ -1,23 +1,26 @@
 <section class="portal">
   <header class="portal-header">
     <h1>Mi cuenta</h1>
-    <p class="portal-welcome" *ngIf="currentUser">
-      Bienvenido{{ currentUser.name ? ', ' + currentUser.name : '' }}
-      <span class="portal-email">({{ currentUser.email }})</span>
-    </p>
+    @if (currentUser) {
+      <p class="portal-welcome">
+        Bienvenido{{ currentUser.name ? ', ' + currentUser.name : '' }}
+        <span class="portal-email">({{ currentUser.email }})</span>
+      </p>
+    }
   </header>
 
   <nav class="portal-tabs" role="tablist">
-    <button
-      *ngFor="let tab of ['resumen', 'cotizaciones', 'compras', 'favoritos', 'datos']"
-      class="portal-tab"
-      [class.active]="activeTab() === tab"
-      [attr.aria-selected]="activeTab() === tab"
-      role="tab"
-      (click)="setTab($any(tab))"
-    >
-      {{ tab === 'resumen' ? 'Resumen' : tab === 'cotizaciones' ? 'Cotizaciones' : tab === 'compras' ? 'Compras' : tab === 'favoritos' ? 'Favoritos' : 'Mis datos' }}
-    </button>
+    @for (tab of ['resumen', 'cotizaciones', 'compras', 'favoritos', 'datos']; track tab) {
+      <button
+        class="portal-tab"
+        [class.active]="activeTab() === tab"
+        [attr.aria-selected]="activeTab() === tab"
+        role="tab"
+        (click)="setTab($any(tab))"
+      >
+        {{ tab === 'resumen' ? 'Resumen' : tab === 'cotizaciones' ? 'Cotizaciones' : tab === 'compras' ? 'Compras' : tab === 'favoritos' ? 'Favoritos' : 'Mis datos' }}
+      </button>
+    }
   </nav>
 
   <!-- ═══════════ RESUMEN ═══════════ -->
@@ -82,23 +85,25 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let q of quotes()">
-                <td>{{ q.folio }}</td>
-                <td>{{ formatDate(q.createdAt) }}</td>
-                <td>
-                  <span [class]="statusClass(q.metadata?.status || '')">{{ statusLabel(q.metadata?.status || '') }}</span>
-                </td>
-                <td>{{ formatCLP(q.totals?.total) }}</td>
-                <td class="portal-actions">
-                  <button class="btn btn-sm btn-light" (click)="openQuoteDetail(q)">Ver</button>
-                  <button class="btn btn-sm btn-light" (click)="downloadPDF(q._id)">PDF</button>
-                  <button class="btn btn-sm btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
-                  @if (q.metadata?.status === 'sent') {
-                    <button class="btn btn-sm btn-success" (click)="acceptQuote(q)">Aceptar</button>
-                    <button class="btn btn-sm btn-danger" (click)="rejectQuote(q)">Rechazar</button>
-                  }
-                </td>
-              </tr>
+              @for (q of quotes(); track q._id) {
+                <tr>
+                  <td>{{ q.folio }}</td>
+                  <td>{{ formatDate(q.createdAt) }}</td>
+                  <td>
+                    <span [class]="statusClass(q.metadata?.status || '')">{{ statusLabel(q.metadata?.status || '') }}</span>
+                  </td>
+                  <td>{{ formatCLP(q.totals?.total) }}</td>
+                  <td class="portal-actions">
+                    <button class="btn btn-sm btn-light" (click)="openQuoteDetail(q)">Ver</button>
+                    <button class="btn btn-sm btn-light" (click)="downloadPDF(q._id)">PDF</button>
+                    <button class="btn btn-sm btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
+                    @if (q.metadata?.status === 'sent') {
+                      <button class="btn btn-sm btn-success" (click)="acceptQuote(q)">Aceptar</button>
+                      <button class="btn btn-sm btn-danger" (click)="rejectQuote(q)">Rechazar</button>
+                    }
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -126,17 +131,19 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let s of sales()">
-                <td>{{ s.folio }}</td>
-                <td>{{ formatDate(s.createdAt) }}</td>
-                <td>
-                  <span [class]="statusClass(s.status)">{{ statusLabel(s.status) }}</span>
-                </td>
-                <td>{{ formatCLP(s.totals?.total) }}</td>
-                <td class="portal-actions">
-                  <button class="btn btn-sm btn-light" (click)="openSaleDetail(s)">Ver</button>
-                </td>
-              </tr>
+              @for (s of sales(); track s.folio) {
+                <tr>
+                  <td>{{ s.folio }}</td>
+                  <td>{{ formatDate(s.createdAt) }}</td>
+                  <td>
+                    <span [class]="statusClass(s.status)">{{ statusLabel(s.status) }}</span>
+                  </td>
+                  <td>{{ formatCLP(s.totals?.total) }}</td>
+                  <td class="portal-actions">
+                    <button class="btn btn-sm btn-light" (click)="openSaleDetail(s)">Ver</button>
+                  </td>
+                </tr>
+              }
             </tbody>
           </table>
         </div>
@@ -288,17 +295,21 @@
       <div class="modal-body">
         <p><strong>Fecha:</strong> {{ formatDate(q.createdAt) }}</p>
         <p><strong>Estado:</strong> <span [class]="statusClass(q.metadata?.status || '')">{{ statusLabel(q.metadata?.status || '') }}</span></p>
-        <table class="portal-table" *ngIf="q.items?.length">
-          <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let it of q.items">
-              <td>{{ it.name }}</td>
-              <td>{{ it.quantity }}</td>
-              <td>{{ formatCLP(it.price) }}</td>
-              <td>{{ formatCLP(it.total) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        @if (q.items?.length) {
+          <table class="portal-table">
+            <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (it of q.items; track it.name) {
+                <tr>
+                  <td>{{ it.name }}</td>
+                  <td>{{ it.quantity }}</td>
+                  <td>{{ formatCLP(it.price) }}</td>
+                  <td>{{ formatCLP(it.total) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(q.totals?.total) }}</p>
         <div class="modal-actions">
           <button class="btn btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
@@ -323,18 +334,24 @@
       <div class="modal-body">
         <p><strong>Fecha:</strong> {{ formatDate(s.createdAt) }}</p>
         <p><strong>Estado:</strong> <span [class]="statusClass(s.status)">{{ statusLabel(s.status) }}</span></p>
-        <p *ngIf="s.paymentMethod"><strong>Método de pago:</strong> {{ paymentLabel(s.paymentMethod) }}</p>
-        <table class="portal-table" *ngIf="s.items?.length">
-          <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
-          <tbody>
-            <tr *ngFor="let it of s.items">
-              <td>{{ it.name }}</td>
-              <td>{{ it.quantity }}</td>
-              <td>{{ formatCLP(it.price) }}</td>
-              <td>{{ formatCLP(it.total) }}</td>
-            </tr>
-          </tbody>
-        </table>
+        @if (s.paymentMethod) {
+          <p><strong>Método de pago:</strong> {{ paymentLabel(s.paymentMethod) }}</p>
+        }
+        @if (s.items?.length) {
+          <table class="portal-table">
+            <thead><tr><th>Producto</th><th>Cant.</th><th>Precio</th><th>Total</th></tr></thead>
+            <tbody>
+              @for (it of s.items; track it.name) {
+                <tr>
+                  <td>{{ it.name }}</td>
+                  <td>{{ it.quantity }}</td>
+                  <td>{{ formatCLP(it.price) }}</td>
+                  <td>{{ formatCLP(it.total) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(s.totals?.total) }}</p>
       </div>
     </div>

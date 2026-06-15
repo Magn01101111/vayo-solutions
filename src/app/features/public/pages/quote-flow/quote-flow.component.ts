@@ -12,6 +12,7 @@ import {
 } from '../../../../core/models/ui.models';
 
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { ConfirmService } from '../../../../core/services/confirm.service';
 import { StepClientComponent } from './components/step-client/step-client.component';
 import { StepDocumentComponent } from './components/step-document/step-document.component';
 import { StepConfirmationComponent } from './components/step-confirmation/step-confirmation.component';
@@ -34,6 +35,7 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 })
 export class QuoteFlowComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);
+  private readonly confirm = inject(ConfirmService);
   qs = inject(QuotationService);
 
   steps: StepFlowItem[] = [
@@ -126,9 +128,13 @@ export class QuoteFlowComponent implements OnInit {
     window.location.href = '/catalogo';
   }
 
-  clearCart() {
-    if (confirm('¿Vaciar todos los productos del carrito?')) {
-      this.qs.clearCart();
-    }
+  async clearCart() {
+    const ok = await this.confirm.ask({
+      title: 'Vaciar carrito',
+      message: 'Se quitarán todos los productos de tu cotización en curso.',
+      confirmLabel: 'Vaciar',
+      tone: 'danger',
+    });
+    if (ok) this.qs.clearCart();
   }
 }

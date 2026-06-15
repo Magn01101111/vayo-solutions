@@ -6,6 +6,7 @@ import { UserService }                 from '../../../../core/services/user.serv
 import { ApiUser, CreateUserPayload }  from '../../../../core/models/api.models';
 import { IconComponent }               from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent }          from '../../../../shared/components/vayo-modal/vayo-modal.component';
+import { ConfirmService }              from '../../../../core/services/confirm.service';
 
 /**
  * Gestiona el personal interno de VAYO con acceso al panel: COTIZADORES.
@@ -38,6 +39,7 @@ function emptyForm(): UserForm {
 })
 export class UsersComponent implements OnInit {
   private readonly userSvc = inject(UserService);
+  private readonly confirm = inject(ConfirmService);
 
   cotizadores: ApiUser[] = [];
   loading   = true;
@@ -49,8 +51,6 @@ export class UsersComponent implements OnInit {
   form: UserForm = emptyForm();
   saving     = false;
   formError  = '';
-
-  confirmingId = '';
 
   ngOnInit(): void {
     this.load();
@@ -142,18 +142,22 @@ export class UsersComponent implements OnInit {
     }
   }
 
-  confirmDeactivate(id: string): void {
-    this.confirmingId = id;
-  }
-
-  cancelDeactivate(): void {
-    this.confirmingId = '';
+  async confirmDeactivate(id: string): Promise<void> {
+    const user = this.cotizadores.find((u) => u.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Desactivar cotizador',
+      message: `${user?.name ?? 'Este usuario'} perderá el acceso al panel. Podrás reactivarlo cuando quieras.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.deactivate(id);
   }
 
   deactivate(id: string): void {
     this.userSvc.deactivateCotizador(id).subscribe({
-      next: () => { this.confirmingId = ''; this.load(); },
-      error: () => { this.confirmingId = ''; },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 

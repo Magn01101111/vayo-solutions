@@ -154,7 +154,7 @@
                       }
                       @if (client.hasPortalAccount && client.isActive) {
                         <li role="menuitem">
-                          <button type="button" (click)="revokePortal(client.id); closeActionMenu()">
+                          <button type="button" (click)="confirmRevoke(client.id); closeActionMenu()">
                             Revocar acceso portal
                           </button>
                         </li>
@@ -176,14 +176,6 @@
                     </ul>
                   }
                 </div>
-
-                <!-- Confirmación inline desactivar -->
-                @if (confirmingId === client.id) {
-                  <span class="confirm-inline">
-                    <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(client.id)">Confirmar</button>
-                    <button class="btn btn--ghost btn--xs" type="button" (click)="confirmingId = ''">Cancelar</button>
-                  </span>
-                }
 
               </td>
             </tr>

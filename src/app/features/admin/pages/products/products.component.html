@@ -96,16 +96,9 @@
                   Editar
                 </button>
                 @if (product.isActive) {
-                  @if (confirmingId === product.id) {
-                    <span class="confirm-inline">
-                      <button class="btn btn--danger btn--xs" type="button" (click)="deactivate(product.id)">Confirmar</button>
-                      <button class="btn btn--ghost btn--xs" type="button" (click)="cancelDeactivate()">Cancelar</button>
-                    </span>
-                  } @else {
-                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(product.id)">
-                      Desactivar
-                    </button>
-                  }
+                  <button class="btn btn--ghost-danger btn--xs" type="button" (click)="confirmDeactivate(product.id)">
+                    Desactivar
+                  </button>
                 } @else {
                   <button class="btn btn--outline btn--xs" type="button" (click)="reactivate(product.id)">
                     Reactivar

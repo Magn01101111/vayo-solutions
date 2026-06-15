@@ -6,6 +6,7 @@ import { SupplierService } from '../../../../core/services/supplier.service';
 import { ApiSupplier, SupplierPayload } from '../../../../core/models/api.models';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
+import { ConfirmService } from '../../../../core/services/confirm.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -30,6 +31,7 @@ function emptyForm(): SupplierForm {
 })
 export class SuppliersComponent implements OnInit {
   private readonly supplierSvc = inject(SupplierService);
+  private readonly confirm     = inject(ConfirmService);
 
   suppliers: ApiSupplier[] = [];
   loading   = true;
@@ -41,8 +43,6 @@ export class SuppliersComponent implements OnInit {
   form: SupplierForm = emptyForm();
   saving     = false;
   formError  = '';
-
-  confirmingId = '';
 
   ngOnInit(): void {
     this.load();
@@ -109,13 +109,22 @@ export class SuppliersComponent implements OnInit {
     });
   }
 
-  confirmDeactivate(id: string): void { this.confirmingId = id; }
-  cancelDeactivate(): void { this.confirmingId = ''; }
+  async confirmDeactivate(id: string): Promise<void> {
+    const supplier = this.suppliers.find((s) => s.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Desactivar proveedor',
+      message: `Se desactivará "${supplier?.name ?? 'este proveedor'}". Ya no estará disponible para asignar a productos. Podrás reactivarlo luego.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.deactivate(id);
+  }
 
   deactivate(id: string): void {
     this.supplierSvc.deactivateSupplier(id).subscribe({
-      next: () => { this.confirmingId = ''; this.load(); },
-      error: () => { this.confirmingId = ''; },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 

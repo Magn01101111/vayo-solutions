@@ -7,6 +7,7 @@ import { UploadService }   from '../../../../core/services/upload.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { IconComponent }   from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
+import { ConfirmService }   from '../../../../core/services/confirm.service';
 import {
   ApiProductListItem,
   ApiProductDetail,
@@ -75,6 +76,7 @@ export class ProductsComponent implements OnInit {
   private readonly catalogSvc  = inject(CatalogService);
   private readonly uploadSvc   = inject(UploadService);
   private readonly supplierSvc = inject(SupplierService);
+  private readonly confirm     = inject(ConfirmService);
 
   // ── List state ────────────────────────────────────────────────────────────
   products:   ApiProductListItem[] = [];
@@ -99,8 +101,6 @@ export class ProductsComponent implements OnInit {
   imageError     = '';
   readonly maxImages = MAX_IMAGES;
 
-  // ── Confirm deactivate ────────────────────────────────────────────────────
-  confirmingId = '';
 
   readonly statusOptions: { value: ApiProductAvailabilityStatus; label: string }[] = [
     { value: 'in_stock',     label: 'En stock' },
@@ -363,23 +363,22 @@ export class ProductsComponent implements OnInit {
 
   // ── Deactivate ────────────────────────────────────────────────────────────
 
-  confirmDeactivate(id: string): void {
-    this.confirmingId = id;
-  }
-
-  cancelDeactivate(): void {
-    this.confirmingId = '';
+  async confirmDeactivate(id: string): Promise<void> {
+    const product = this.products.find((p) => p.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Desactivar producto',
+      message: `Se ocultará "${product?.name ?? 'este producto'}" del catálogo. Podrás reactivarlo cuando quieras.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.deactivate(id);
   }
 
   deactivate(id: string): void {
     this.catalogSvc.deactivateProduct(id).subscribe({
-      next: () => {
-        this.confirmingId = '';
-        this.load();
-      },
-      error: () => {
-        this.confirmingId = '';
-      },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 

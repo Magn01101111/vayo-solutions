@@ -489,7 +489,7 @@
           </div>
           <div class="grid-3">
             @for (rel of relatedProducts(); track rel.id) {
-              <a [routerLink]="['/producto', rel.id]" class="card card--product">
+              <a [routerLink]="['/catalogo', rel.id]" class="card card--product">
                 <div class="card__media">
                   @if (rel.imageUrl) {
                     <img [src]="rel.imageUrl" [alt]="rel.name" loading="lazy" class="card__img" />

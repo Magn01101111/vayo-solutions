@@ -6,6 +6,7 @@ import { CatalogService }         from '../../../../core/services/catalog.servic
 import { ApiCategory }            from '../../../../core/models/api.models';
 import { IconComponent }          from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent }     from '../../../../shared/components/vayo-modal/vayo-modal.component';
+import { ConfirmService }         from '../../../../core/services/confirm.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -23,6 +24,7 @@ interface CategoryForm {
 })
 export class CategoriesComponent implements OnInit {
   private readonly catalogSvc = inject(CatalogService);
+  private readonly confirm    = inject(ConfirmService);
 
   categories: ApiCategory[] = [];
   loading    = true;
@@ -34,8 +36,6 @@ export class CategoriesComponent implements OnInit {
   form: CategoryForm = { name: '', description: '' };
   saving     = false;
   formError  = '';
-
-  confirmingId = '';
 
   ngOnInit(): void {
     this.load();
@@ -107,22 +107,24 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  confirmDeactivate(id: string): void {
-    this.confirmingId = id;
-  }
-
-  cancelDeactivate(): void {
-    this.confirmingId = '';
+  async confirmDeactivate(id: string): Promise<void> {
+    const cat = this.categories.find((c) => c.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Desactivar categoría',
+      message: `Se desactivará "${cat?.name ?? 'esta categoría'}". Los productos asociados podrían dejar de mostrarse en ella. Podrás reactivarla luego.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.deactivate(id);
   }
 
   deactivate(id: string): void {
     this.catalogSvc.deactivateCategory(id).subscribe({
       next: () => {
-        this.confirmingId = '';
         this.load();
       },
       error: () => {
-        this.confirmingId = '';
       },
     });
   }

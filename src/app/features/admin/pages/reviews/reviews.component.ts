@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
 import { ReviewService } from '../../../../core/services/review.service';
+import { ConfirmService } from '../../../../core/services/confirm.service';
 import { ApiReview, ApiReviewStatus } from '../../../../core/models/api.models';
 
 @Component({
@@ -14,6 +15,7 @@ import { ApiReview, ApiReviewStatus } from '../../../../core/models/api.models';
 })
 export class ReviewsComponent implements OnInit {
   private readonly reviewSvc = inject(ReviewService);
+  private readonly confirm   = inject(ConfirmService);
 
   reviews: ApiReview[] = [];
   loading   = true;
@@ -50,8 +52,14 @@ export class ReviewsComponent implements OnInit {
     });
   }
 
-  remove(r: ApiReview): void {
-    if (!confirm('¿Eliminar esta reseña permanentemente?')) return;
+  async remove(r: ApiReview): Promise<void> {
+    const ok = await this.confirm.ask({
+      title: 'Eliminar reseña',
+      message: `Se eliminará permanentemente la reseña de ${r.authorName || 'este cliente'}. Esta acción no se puede deshacer.`,
+      confirmLabel: 'Eliminar',
+      tone: 'danger',
+    });
+    if (!ok) return;
     this.reviewSvc.remove(r.id).subscribe({
       next: () => { this.reviews = this.reviews.filter((x) => x.id !== r.id); },
     });

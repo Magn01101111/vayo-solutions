@@ -367,6 +367,7 @@ small { font-size: var(--fs-xs); }
 .block-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   margin-bottom: 18px;
 
@@ -376,6 +377,27 @@ small { font-size: var(--fs-xs); }
     background: var(--blue);
     border-radius: 2px;
     flex: none;
+  }
+
+  /* Título / subtítulo del bloque (canónico) */
+  &__title {
+    font-size: var(--fs-h2);
+    font-weight: var(--fw-bold);
+    color: var(--ink);
+    letter-spacing: var(--ls-snug);
+  }
+
+  &__sub {
+    font-size: var(--fs-xs);
+    color: var(--ink-3);
+    margin-top: 2px;
+  }
+
+  &__opt,
+  &__act {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-semibold);
+    color: var(--blue);
   }
 
   h2, h3 { font-size: var(--fs-h3); font-weight: var(--fw-bold); }
@@ -549,13 +571,17 @@ small { font-size: var(--fs-xs); }
 
 /* =========================================================
    10) Formularios
+   Vocabulario canónico: .form-field / .form-grid / .form-control / .form-hint
+   Alias legacy: .form-group / .form-row / .input / .select / .textarea
    ========================================================= */
+.form-field,
 .form-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
 }
 
+.form-grid,
 .form-row {
   display: grid;
   gap: var(--space-4);
@@ -569,38 +595,65 @@ small { font-size: var(--fs-xs); }
   color: var(--ink-2);
 }
 
-.input, .select, .textarea {
+.form-hint {
+  font-size: var(--fs-xs);
+  color: var(--ink-3);
+}
+
+/* Controles base — form-control (canónico) + input/select/textarea (legacy) */
+.form-control,
+.input, .select, .textarea,
+select {
   width: 100%;
   border: var(--bw) solid var(--line);
   border-radius: var(--r);
-  background: var(--paper-2);
+  background-color: var(--paper-2);
   color: var(--ink);
   font-family: var(--font-sans);
-  transition: border-color var(--t-fast), background var(--t-fast), box-shadow var(--t-fast);
+  transition: border-color var(--t-fast), background-color var(--t-fast), box-shadow var(--t-fast);
 
   &::placeholder { color: var(--ink-3); }
 
   &:focus {
     outline: none;
     border-color: var(--blue);
-    background: var(--paper);
+    background-color: var(--paper);
     box-shadow: var(--focus-shadow);
   }
 
   &:disabled { opacity: 0.6; cursor: not-allowed; }
 }
 
-.input, .select {
+/* Altura para inputs y selects (no textarea) */
+input.form-control,
+select.form-control,
+.input, .select, select {
   min-height: 42px;
   padding: 0 12px;
   font-size: var(--fs-sm);
 }
 
+textarea.form-control,
 .textarea {
   min-height: 7rem;
   padding: 10px 12px;
   resize: vertical;
   font-size: var(--fs-sm);
+}
+
+/* Select nativo: quitar chrome del SO + chevron propio (Industrial Marcado) */
+select.form-control,
+.select,
+select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 36px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='none' viewBox='0 0 24 24' stroke='%236a7986' stroke-width='2.2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 14px;
+  cursor: pointer;
 }
 
 .search {
@@ -618,6 +671,14 @@ small { font-size: var(--fs-xs); }
 .table-wrap {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Wrapper canónico con borde + radio (admin CRUD) */
+.tbl-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border: var(--bw) solid var(--line);
+  border-radius: var(--r-lg);
 }
 
 .data-table {
@@ -650,14 +711,16 @@ small { font-size: var(--fs-xs); }
 /* =========================================================
    12) Estados vacío / carga / error
    ========================================================= */
-.state-msg {
+.state-msg,
+.state-txt {
   text-align: center;
   padding: 40px var(--space-6);
   color: var(--ink-3);
   font-size: var(--fs-body);
 }
 
-.state-msg--error { color: var(--danger); }
+.state-msg--error,
+.state-txt--error { color: var(--danger); }
 
 .state-empty {
   display: flex;
@@ -678,8 +741,8 @@ small { font-size: var(--fs-xs); }
    ========================================================= */
 .stars   { display: inline-flex; gap: 1px; }
 .stars svg { width: 16px; height: 16px; }
-.star    { fill: #cdd5dd; }
-.star.on { fill: var(--amber); }
+.star    { fill: #cdd5dd; color: #cdd5dd; line-height: 1; }
+.star.on { fill: var(--amber); color: var(--amber); }
 
 /* =========================================================
    14) Breadcrumb
@@ -693,9 +756,49 @@ small { font-size: var(--fs-xs); }
   font-size: var(--fs-xs);
   color: var(--ink-3);
 
-  a:hover  { color: var(--blue); }
-  .sep     { opacity: .5; }
-  .cur     { color: var(--ink); font-weight: var(--fw-semibold); }
+  a:hover,
+  &__link:hover { color: var(--blue); }
+  &__link  { color: var(--ink-3); }
+  .sep, &__sep { opacity: .5; }
+  .cur, &__cur { color: var(--ink); font-weight: var(--fw-semibold); }
+}
+
+/* =========================================================
+   14b) Tabs (subrayado Industrial Marcado)
+   ========================================================= */
+.tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: var(--bw) solid var(--line);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar { display: none; }
+}
+
+.tabs__btn {
+  appearance: none;
+  background: transparent;
+  border: none;
+  border-bottom: var(--bw-3) solid transparent;
+  margin-bottom: -1px;
+  padding: 11px 16px;
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--ink-3);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color var(--t-fast), border-color var(--t-fast);
+
+  &:hover { color: var(--ink); }
+
+  &.is-active {
+    color: var(--blue);
+    border-bottom-color: var(--blue);
+  }
+
+  &:focus-visible { outline: none; box-shadow: var(--focus-shadow); }
 }
 
 /* =========================================================

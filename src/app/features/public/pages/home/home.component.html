@@ -1,264 +1,240 @@
 <!-- ── HERO ──────────────────────────────────────────────────────────────── -->
-<section class="portal-hero">
+<section class="home-hero">
+  <div class="home-hero__grid" aria-hidden="true"></div>
   <div class="container">
-    <div class="portal-hero__content">
-      <div class="portal-hero__main">
-        <div class="portal-hero__tag">
-          <span class="portal-hero__tag-dot"></span>
+    <div class="home-hero__content">
+      <div class="home-hero__main">
+        <span class="home-hero__tag mono">
+          <span class="home-hero__tag-dot" aria-hidden="true"></span>
           Repuestos para climatización industrial
-        </div>
+        </span>
 
-        <h1 class="portal-hero__title">
-          Repuestos para tus equipos,
-          <br />
+        <h1 class="home-hero__title">
+          Repuestos para tus equipos,<br />
           cotización en minutos.
         </h1>
 
-        <p class="portal-hero__description">
+        <p class="home-hero__desc">
           Encuentra piezas para sistemas de climatización en data centers, centros
           de datos e instalaciones tecnológicas. Navega el catálogo, selecciona lo
           que necesitas y solicita tu cotización al instante.
         </p>
 
-        <div class="portal-hero__pills">
-          <span class="badge badge-hero" *ngFor="let pill of heroPills">
-            <span class="badge-hero__icon"></span>
-            {{ pill }}
-          </span>
+        <div class="home-hero__pills">
+          @for (pill of heroPills; track pill) {
+            <span class="home-hero__pill mono">
+              <span class="home-hero__pill-dot" aria-hidden="true"></span>{{ pill }}
+            </span>
+          }
         </div>
 
-        <div class="portal-hero__actions">
-          <a routerLink="/catalogo" class="btn btn-light">Ver catálogo</a>
-          <a href="#como-funciona" class="btn btn-hero-outline">¿Cómo funciona?</a>
+        <div class="home-hero__actions">
+          <a routerLink="/catalogo" class="btn btn--amber">Ver catálogo</a>
+          <a href="#como-funciona" class="btn btn--hero-outline">¿Cómo funciona?</a>
         </div>
       </div>
 
-      <div class="portal-hero__aside">
-        <div class="app-card card">
-          <div class="app-card__title">Cotización en línea</div>
-          <div class="app-card__subtitle">
+      <aside class="home-hero__aside">
+        <div class="home-aside-card">
+          <span class="eyebrow home-aside-card__eyebrow">Cotización en línea</span>
+          <p class="home-aside-card__sub">
             Arma tu cotización de repuestos industriales y recibe respuesta rápida.
+          </p>
+          <div class="home-aside-card__chips">
+            <span class="chip mono">Catálogo completo</span>
+            <span class="chip mono">Cotización en segundos</span>
+            <span class="chip mono">Sin compromiso</span>
           </div>
-          <div class="app-card__features">
-            <span class="app-chip">Catálogo completo</span>
-            <span class="app-chip">Cotización en segundos</span>
-            <span class="app-chip">Sin compromiso</span>
+          <div class="home-aside-card__links">
+            <a routerLink="/catalogo" class="btn btn--primary btn--sm">Ver catálogo</a>
+            <a href="mailto:contacto@vayo.cl" class="btn btn--hero-outline btn--sm">Contactar</a>
           </div>
         </div>
-
-        <div class="store-links">
-          <a routerLink="/catalogo" class="btn btn-primary">Ver catálogo</a>
-          <a href="mailto:contacto@vayo.cl" class="btn btn-hero-outline">Contactar</a>
-        </div>
-      </div>
+      </aside>
     </div>
   </div>
 </section>
 
 <!-- ── BANNERS PROMOCIONALES ──────────────────────────────────────────────── -->
 @if (banners.length > 0) {
-  <section class="section portal-banners">
+  <section class="section">
     <div class="container">
-      <div class="banners-strip">
-        <a
-          *ngFor="let banner of banners"
-          class="banner-card"
-          [href]="banner.link || undefined"
-          [target]="banner.link ? '_blank' : undefined"
-          [rel]="banner.link ? 'noopener' : undefined"
-        >
-          <img [src]="banner.imageUrl" [alt]="banner.title" loading="lazy" />
-          @if (banner.title) {
-            <div class="banner-card__text">
-              <strong>{{ banner.title }}</strong>
-              @if (banner.subtitle) {
-                <span>{{ banner.subtitle }}</span>
-              }
-            </div>
-          }
-        </a>
+      <div class="home-banners">
+        @for (banner of banners; track banner.imageUrl) {
+          <a
+            class="home-banner"
+            [href]="banner.link || undefined"
+            [target]="banner.link ? '_blank' : undefined"
+            [rel]="banner.link ? 'noopener' : undefined"
+          >
+            <img [src]="banner.imageUrl" [alt]="banner.title" loading="lazy" />
+            @if (banner.title) {
+              <div class="home-banner__text">
+                <strong>{{ banner.title }}</strong>
+                @if (banner.subtitle) {
+                  <span>{{ banner.subtitle }}</span>
+                }
+              </div>
+            }
+          </a>
+        }
       </div>
     </div>
   </section>
 }
 
 <!-- ── EXPLORA POR CATEGORÍA ─────────────────────────────────────────────── -->
-<section class="section portal-categories">
+<section class="section">
   <div class="container">
-    <div class="portal-section-header">
+    <div class="block-head">
       <div>
-        <h2 class="portal-section-title">Explora por categoría</h2>
-        <p class="portal-section-subtitle">Encuentra el tipo de repuesto que necesitas.</p>
+        <h2 class="block-head__title">Explora por categoría</h2>
+        <p class="block-head__sub mono">Encuentra el tipo de repuesto que necesitas</p>
       </div>
-      <a routerLink="/catalogo" class="portal-section-link">Ver catálogo completo →</a>
+      <a routerLink="/catalogo" class="block-head__opt">Ver catálogo completo →</a>
     </div>
 
-    <div class="category-grid" *ngIf="categories.length > 0">
-      <a
-        class="category-card"
-        *ngFor="let cat of categories; trackBy: trackByCategory"
-        [routerLink]="['/catalogo']"
-        [queryParams]="{ categoria: cat.slug }"
-      >
-        <span class="category-card__icon">{{ cat.label.charAt(0) }}</span>
-        <span class="category-card__name">{{ cat.label }}</span>
-        <span class="category-card__arrow" aria-hidden="true">→</span>
-      </a>
-    </div>
+    @if (categories.length > 0) {
+      <div class="home-cats">
+        @for (cat of categories; track cat.id) {
+          <a
+            class="home-cat"
+            [routerLink]="['/catalogo']"
+            [queryParams]="{ categoria: cat.slug }"
+          >
+            <span class="home-cat__icon mono" aria-hidden="true">{{ cat.label.charAt(0) }}</span>
+            <span class="home-cat__name">{{ cat.label }}</span>
+            <span class="home-cat__arrow" aria-hidden="true">→</span>
+          </a>
+        }
+      </div>
+    }
   </div>
 </section>
 
 <!-- ── PRODUCTOS DESTACADOS ──────────────────────────────────────────────── -->
-<section class="section portal-featured">
+<section class="section">
   <div class="container">
-    <div class="portal-section-header">
+    <div class="block-head">
       <div>
-        <h2 class="portal-section-title">Productos destacados</h2>
-        <p class="portal-section-subtitle">Nuestra selección de repuestos recomendados.</p>
+        <h2 class="block-head__title">Productos destacados</h2>
+        <p class="block-head__sub mono">Nuestra selección de repuestos recomendados</p>
       </div>
-      <a routerLink="/catalogo" class="portal-section-link">Ver todos →</a>
+      <a routerLink="/catalogo" class="block-head__opt">Ver todos →</a>
     </div>
 
-    <div class="portal-empty-state card" *ngIf="isLoading">
-      <h3>Cargando destacados…</h3>
-    </div>
-
-    <div class="portal-empty-state card" *ngIf="!isLoading && errorMessage">
-      <h3>Error al cargar</h3>
-      <p>{{ errorMessage }}</p>
-    </div>
-
-    <!-- Con destacados -->
-    <div class="portal-products" *ngIf="!isLoading && !errorMessage && featured.length > 0">
-      <article class="portal-product card" *ngFor="let product of featured; trackBy: trackByProduct">
-        <div class="portal-product__media">
-          <img
-            *ngIf="product.imageUrl; else featIcon"
-            [src]="product.imageUrl"
-            [alt]="product.name"
-            class="portal-product__image"
-            loading="lazy"
-          />
-          <ng-template #featIcon>
-            <div class="portal-product__placeholder"><app-icon name="box" [size]="40" /></div>
-          </ng-template>
-        </div>
-
-        <div class="portal-product__body">
-          <span class="badge badge-brand">{{ product.category }}</span>
-          <h3 class="portal-product__title">{{ product.name }}</h3>
-          <p class="portal-product__reference">Ref: {{ product.sku }}</p>
-
-          <div class="portal-product__footer">
-            <div class="portal-product__price">
-              @if (product.offerPrice) {
-                <span class="portal-product__price--old">{{ product.price }}</span>
-                <span class="portal-product__price--offer">{{ product.offerPrice }}</span>
-                <span class="badge badge-offer">−{{ product.offerDiscountPercent }}%</span>
-              } @else {
-                {{ product.price }}
-              }
-            </div>
-            <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
-              Agregar
-            </button>
-            <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
-              Ver ficha
-            </a>
-          </div>
-        </div>
-      </article>
-    </div>
-
-    <!-- Sin destacados configurados -->
-    <div class="portal-empty-state card" *ngIf="!isLoading && !errorMessage && featured.length === 0">
-      <h3>Aún no hay productos destacados</h3>
-      <p>Explora todo nuestro catálogo de repuestos disponibles.</p>
-      <a routerLink="/catalogo" class="btn btn-primary">Ir al catálogo</a>
-    </div>
+    @if (isLoading) {
+      <div class="home-state"><div class="home-state__spinner" aria-label="Cargando…"></div></div>
+    } @else if (errorMessage) {
+      <div class="home-state home-state--error">{{ errorMessage }}</div>
+    } @else if (featured.length > 0) {
+      <div class="home-grid">
+        @for (product of featured; track product.id) {
+          <ng-container *ngTemplateOutlet="productCard; context: { $implicit: product }" />
+        }
+      </div>
+    } @else {
+      <div class="home-state">
+        <h3>Aún no hay productos destacados</h3>
+        <p>Explora todo nuestro catálogo de repuestos disponibles.</p>
+        <a routerLink="/catalogo" class="btn btn--primary btn--sm">Ir al catálogo</a>
+      </div>
+    }
   </div>
 </section>
 
 <!-- ── OFERTAS ────────────────────────────────────────────────────────────── -->
-<section class="section portal-offers" *ngIf="offers.length > 0">
-  <div class="container">
-    <div class="portal-section-header">
-      <div>
-        <h2 class="portal-section-title">Ofertas</h2>
-        <p class="portal-section-subtitle">Productos con descuento por tiempo limitado.</p>
+@if (offers.length > 0) {
+  <section class="section home-offers">
+    <div class="container">
+      <div class="block-head">
+        <div>
+          <h2 class="block-head__title">Ofertas</h2>
+          <p class="block-head__sub mono">Productos con descuento por tiempo limitado</p>
+        </div>
+        <a routerLink="/catalogo" class="block-head__opt">Ver todas →</a>
       </div>
-      <a routerLink="/catalogo" class="portal-section-link">Ver todas →</a>
+
+      <div class="home-grid">
+        @for (product of offers; track product.id) {
+          <ng-container *ngTemplateOutlet="productCard; context: { $implicit: product }" />
+        }
+      </div>
     </div>
-
-    <div class="portal-products">
-      <article class="portal-product card" *ngFor="let product of offers; trackBy: trackByProduct">
-        <div class="portal-product__media">
-          <img
-            *ngIf="product.imageUrl; else offerIcon"
-            [src]="product.imageUrl"
-            [alt]="product.name"
-            class="portal-product__image"
-            loading="lazy"
-          />
-          <ng-template #offerIcon>
-            <div class="portal-product__placeholder"><app-icon name="box" [size]="40" /></div>
-          </ng-template>
-        </div>
-
-        <div class="portal-product__body">
-          <span class="badge badge-brand">{{ product.category }}</span>
-          <h3 class="portal-product__title">{{ product.name }}</h3>
-          <p class="portal-product__reference">Ref: {{ product.sku }}</p>
-
-          <div class="portal-product__footer">
-            <div class="portal-product__price">
-              @if (product.offerPrice) {
-                <span class="portal-product__price--old">{{ product.price }}</span>
-                <span class="portal-product__price--offer">{{ product.offerPrice }}</span>
-                <span class="badge badge-offer">−{{ product.offerDiscountPercent }}%</span>
-              } @else {
-                {{ product.price }}
-              }
-            </div>
-            <button class="btn btn-secondary btn-sm" (click)="qs.addItem(product)">
-              Agregar
-            </button>
-            <a class="btn btn-primary btn-sm" [routerLink]="['/catalogo', product.id]">
-              Ver ficha
-            </a>
-          </div>
-        </div>
-      </article>
-    </div>
-  </div>
-</section>
+  </section>
+}
 
 <!-- ── CÓMO FUNCIONA ─────────────────────────────────────────────────────── -->
-<section class="section portal-how" id="como-funciona">
+<section class="section" id="como-funciona">
   <div class="container">
-    <h2 class="portal-section-title">¿Cómo solicitar una cotización?</h2>
+    <div class="block-head">
+      <div>
+        <h2 class="block-head__title">¿Cómo solicitar una cotización?</h2>
+        <p class="block-head__sub mono">Tres pasos, sin cuenta necesaria</p>
+      </div>
+    </div>
 
-    <div class="portal-steps">
-      <article class="portal-step card" *ngFor="let step of steps; trackBy: trackByStep">
-        <div class="portal-step__number">{{ step.number }}</div>
-        <h3 class="portal-step__title">{{ step.title }}</h3>
-        <p class="portal-step__description">{{ step.description }}</p>
-      </article>
+    <div class="home-steps">
+      @for (step of steps; track step.number) {
+        <article class="home-step">
+          <div class="home-step__number mono">{{ step.number }}</div>
+          <h3 class="home-step__title">{{ step.title }}</h3>
+          <p class="home-step__desc">{{ step.description }}</p>
+        </article>
+      }
     </div>
   </div>
 </section>
 
 <!-- ── CTA ───────────────────────────────────────────────────────────────── -->
-<section class="portal-cta">
+<section class="section">
   <div class="container">
-    <div class="portal-cta__inner">
+    <div class="home-cta">
       <div>
-        <h2 class="portal-cta__title">¿Necesitas una cotización rápida?</h2>
-        <p class="portal-cta__text">
+        <h2 class="home-cta__title">¿Necesitas una cotización rápida?</h2>
+        <p class="home-cta__text">
           Revisa el catálogo y solicita tus repuestos para climatización industrial en pocos pasos.
         </p>
       </div>
-      <a routerLink="/catalogo" class="btn btn-light">Ir al catálogo</a>
+      <a routerLink="/catalogo" class="btn btn--amber">Ir al catálogo</a>
     </div>
   </div>
 </section>
+
+<!-- ── Plantilla reutilizable de card de producto ─────────────────────────── -->
+<ng-template #productCard let-product>
+  <article class="card card--product home-card">
+    <a [routerLink]="['/catalogo', product.id]" class="home-card__media">
+      @if (product.imageUrl) {
+        <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+      } @else {
+        <div class="home-card__placeholder" aria-hidden="true"><span class="mono">{{ product.sku }}</span></div>
+      }
+      @if (product.offerPrice) {
+        <span class="badge badge--offer home-card__flag">−{{ product.offerDiscountPercent }}%</span>
+      }
+    </a>
+
+    <div class="card__body home-card__body">
+      <span class="eyebrow">{{ product.category }}</span>
+      <h3 class="home-card__title">
+        <a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a>
+      </h3>
+      <p class="home-card__sku mono">Ref: {{ product.sku }}</p>
+
+      <div class="home-card__price">
+        @if (product.offerPrice) {
+          <span class="home-card__price-old mono">{{ product.price }}</span>
+          <span class="home-card__price-now mono">{{ product.offerPrice }}</span>
+        } @else {
+          <span class="home-card__price-now mono">{{ product.price }}</span>
+        }
+      </div>
+
+      <div class="home-card__actions">
+        <button type="button" class="btn btn--ghost btn--sm" (click)="qs.addItem(product)">Agregar</button>
+        <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>
+      </div>
+    </div>
+  </article>
+</ng-template>

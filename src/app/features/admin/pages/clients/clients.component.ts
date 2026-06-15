@@ -5,6 +5,7 @@ import { Router }        from '@angular/router';
 
 import { ClientService }                   from '../../../../core/services/client.service';
 import { QuotationService }                from '../../../../core/services/quotation.service';
+import { ConfirmService }                  from '../../../../core/services/confirm.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
 import { IconComponent }       from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
@@ -42,6 +43,7 @@ export class ClientsComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
   private readonly quoteSvc  = inject(QuotationService);
   private readonly router    = inject(Router);
+  private readonly confirm   = inject(ConfirmService);
 
   /** Navega a /admin/cotizaciones?clientId=... para ver el historial */
   viewQuoteHistory(clientId: string): void {
@@ -76,9 +78,6 @@ export class ClientsComponent implements OnInit {
   saving  = false;
   formError = '';
 
-  // ── Confirm deactivate ────────────────────────────────────────────────────
-  confirmingId = '';
-
   // ── Menú contextual ────────────────────────────────────────────────────────
   openMenuId = '';
 
@@ -96,9 +95,6 @@ export class ClientsComponent implements OnInit {
   invitePassword  = '';
   inviting        = false;
   inviteError     = '';
-
-  // ── Confirm revoke portal ─────────────────────────────────────────────────
-  revokingId = '';
 
   ngOnInit(): void {
     this.load();
@@ -182,8 +178,6 @@ export class ClientsComponent implements OnInit {
     if (this.showModal) this.closeModal();
     if (this.showInviteModal) this.showInviteModal = false;
     if (this.openMenuId) this.openMenuId = '';
-    if (this.confirmingId) this.confirmingId = '';
-    if (this.revokingId) this.revokingId = '';
   }
 
   save(): void {
@@ -227,18 +221,22 @@ export class ClientsComponent implements OnInit {
 
   // ── Deactivate ────────────────────────────────────────────────────────────
 
-  confirmDeactivate(id: string): void {
-    this.confirmingId = id;
-  }
-
-  cancelDeactivate(): void {
-    this.confirmingId = '';
+  async confirmDeactivate(id: string): Promise<void> {
+    const client = this.clients.find((c) => c.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Desactivar cliente',
+      message: `${client?.name ?? 'Este cliente'} dejará de aparecer en el directorio activo${client?.hasPortalAccount ? ' y perderá el acceso al portal' : ''}. Podrás reactivarlo luego.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.deactivate(id);
   }
 
   deactivate(id: string): void {
     this.clientSvc.deactivateClient(id).subscribe({
-      next: () => { this.confirmingId = ''; this.load(); },
-      error: () => { this.confirmingId = ''; },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 
@@ -292,18 +290,22 @@ export class ClientsComponent implements OnInit {
 
   // ── Revocar portal ────────────────────────────────────────────────────────
 
-  confirmRevoke(id: string): void {
-    this.revokingId = id;
-  }
-
-  cancelRevoke(): void {
-    this.revokingId = '';
+  async confirmRevoke(id: string): Promise<void> {
+    const client = this.clients.find((c) => c.id === id);
+    const ok = await this.confirm.ask({
+      title: 'Revocar acceso al portal',
+      message: `${client?.name ?? 'Este cliente'} ya no podrá iniciar sesión en el portal. El registro CRM se mantiene.`,
+      confirmLabel: 'Revocar acceso',
+      tone: 'danger',
+    });
+    if (!ok) return;
+    this.revokePortal(id);
   }
 
   revokePortal(id: string): void {
     this.clientSvc.revokePortalAccess(id).subscribe({
-      next: () => { this.revokingId = ''; this.load(); },
-      error: () => { this.revokingId = ''; },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 

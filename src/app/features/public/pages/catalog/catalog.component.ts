@@ -11,11 +11,12 @@ import { FavoriteService }  from '../../../../core/services/favorite.service';
 import { CacheService }     from '../../../../core/services/cache.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 import { IconComponent }    from '../../../../shared/components/icon/icon.component';
+import { VayoPaginationComponent } from '../../../../shared/components/vayo-pagination/vayo-pagination.component';
 
 @Component({
   selector: 'app-catalog',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, IconComponent],
+  imports: [CommonModule, FormsModule, RouterLink, IconComponent, VayoPaginationComponent],
   templateUrl: './catalog.component.html',
   styleUrl: './catalog.component.scss',
 })
@@ -92,7 +93,7 @@ export class CatalogComponent implements OnInit, OnDestroy {
   }
 
   goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages()) return;
+    if (page < 1 || page > this.pageCount) return;
     this.currentPage.set(page);
     if (this.searchQuery.trim()) {
       this.doServerSearch(this.searchQuery);
@@ -117,6 +118,13 @@ export class CatalogComponent implements OnInit, OnDestroy {
   trackByLabel(_: number, item: CatalogCategory): string { return item.id; }
   trackByProduct(_: number, item: ProductCardData): string { return item.id; }
 
+  stockBadgeClass(shortStatus: string): string {
+    if (shortStatus === 'En stock')  return 'badge badge--ok';
+    if (shortStatus === 'A pedido')  return 'badge badge--warn';
+    if (shortStatus === 'Sin stock') return 'badge badge--danger';
+    return 'badge badge--soft';
+  }
+
   isCategoryActive(category: CatalogCategory): boolean {
     return category.label === this.selectedCategory;
   }
@@ -129,10 +137,34 @@ export class CatalogComponent implements OnInit, OnDestroy {
    *   (el listado completo ya está en memoria desde `loadCatalogData`).
    */
   get filteredProducts(): ProductCardData[] {
-    if (this.searchQuery.trim() || this.selectedCategory === 'Todos') {
-      return this.products;
+    let list = this.products;
+
+    // Categoría (con búsqueda el backend ya filtró por categoría)
+    if (!this.searchQuery.trim() && this.selectedCategory !== 'Todos') {
+      list = list.filter((p) => p.category === this.selectedCategory);
     }
-    return this.products.filter((p) => p.category === this.selectedCategory);
+
+    // "Solo ofertas": únicamente productos con precio de oferta REAL.
+    // Esto excluye los ítems "Consultar"/sin precio (no tienen offerPrice).
+    if (this.onlyOffers()) {
+      list = list.filter((p) => !!p.offerPrice);
+    }
+
+    return list;
+  }
+
+  /** Total de páginas: servidor (búsqueda) o cálculo local (catálogo completo). */
+  get pageCount(): number {
+    return this.searchQuery.trim()
+      ? this.totalPages()
+      : Math.max(1, Math.ceil(this.filteredProducts.length / this.pageSize));
+  }
+
+  /** Productos de la página actual. En búsqueda el backend ya paginó. */
+  get displayedProducts(): ProductCardData[] {
+    if (this.searchQuery.trim()) return this.filteredProducts;
+    const start = (this.currentPage() - 1) * this.pageSize;
+    return this.filteredProducts.slice(start, start + this.pageSize);
   }
 
   private doServerSearch(q: string): void {

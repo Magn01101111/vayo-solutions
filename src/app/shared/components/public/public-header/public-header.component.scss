@@ -1,3 +1,7 @@
+/* ── Host: display:contents para que .hdr (sticky) no quede confinado al
+   box del componente y pueda fijarse durante todo el scroll de la página ── */
+:host { display: contents; }
+
 /* ── Trust strip ── */
 .trust {
   background: var(--navy-800);

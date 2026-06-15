@@ -15,6 +15,7 @@ import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
 import { QuotationService } from '../../../../core/services/quotation.service';
+import { ConfirmService }   from '../../../../core/services/confirm.service';
 import { IconComponent }    from '../../icon/icon.component';
 
 @Component({
@@ -26,6 +27,7 @@ import { IconComponent }    from '../../icon/icon.component';
 })
 export class CartDropdownComponent {
   private qs = inject(QuotationService);
+  private confirm = inject(ConfirmService);
   private elementRef = inject(ElementRef);
   private destroyRef = inject(DestroyRef);
 
@@ -148,10 +150,14 @@ export class CartDropdownComponent {
     this.qs.removeCoupon();
   }
 
-  clearCart() {
-    if (confirm('¿Deseas vaciar todo el carrito?')) {
-      this.qs.clearCart();
-    }
+  async clearCart() {
+    const ok = await this.confirm.ask({
+      title: 'Vaciar carrito',
+      message: 'Se quitarán todos los productos de tu cotización en curso.',
+      confirmLabel: 'Vaciar',
+      tone: 'danger',
+    });
+    if (ok) this.qs.clearCart();
   }
 
   parsePrice(price: string): number {
