@@ -95,16 +95,24 @@
     </div>
 
     @if (categories.length > 0) {
-      <div class="home-cats">
+      <div class="catx-grid">
         @for (cat of categories; track cat.id) {
           <a
-            class="home-cat"
+            class="catx"
             [routerLink]="['/catalogo']"
             [queryParams]="{ categoria: cat.slug }"
           >
-            <span class="home-cat__icon mono" aria-hidden="true">{{ cat.label.charAt(0) }}</span>
-            <span class="home-cat__name">{{ cat.label }}</span>
-            <span class="home-cat__arrow" aria-hidden="true">→</span>
+            <div class="catx__top">
+              <span class="catx__code" aria-hidden="true">
+                <span class="catx__code-grid"></span>
+                <span class="catx__code-txt mono">{{ cat.label.charAt(0) }}</span>
+              </span>
+            </div>
+            <div class="catx__name">{{ cat.label }}</div>
+            <div class="catx__go">
+              <span class="mono">Ver familia</span>
+              <span class="catx__arr" aria-hidden="true">→</span>
+            </div>
           </a>
         }
       </div>
@@ -128,7 +136,7 @@
     } @else if (errorMessage) {
       <div class="home-state home-state--error">{{ errorMessage }}</div>
     } @else if (featured.length > 0) {
-      <div class="home-grid">
+      <div class="pgrid">
         @for (product of featured; track product.id) {
           <ng-container *ngTemplateOutlet="productCard; context: { $implicit: product }" />
         }
@@ -150,15 +158,29 @@
       <div class="block-head">
         <div>
           <h2 class="block-head__title">Ofertas</h2>
-          <p class="block-head__sub mono">Productos con descuento por tiempo limitado</p>
+          <p class="block-head__sub mono">Productos con descuento — precios netos</p>
         </div>
-        <a routerLink="/catalogo" class="block-head__opt">Ver todas →</a>
+        <div class="home-offers__opt">
+          <span class="offers__strip mono">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M20.6 13.4 11 3.8a2 2 0 0 0-1.4-.6H5a2 2 0 0 0-2 2v4.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+            {{ offers.length }} {{ offers.length === 1 ? 'oferta activa' : 'ofertas activas' }}
+          </span>
+          <a routerLink="/catalogo" class="block-head__opt">Ver todas →</a>
+        </div>
       </div>
 
-      <div class="home-grid">
+      <div class="pgrid">
         @for (product of offers; track product.id) {
           <ng-container *ngTemplateOutlet="productCard; context: { $implicit: product }" />
         }
+        <a class="pcard pcard--more" routerLink="/catalogo">
+          <span class="catx__code" aria-hidden="true">
+            <span class="catx__code-grid"></span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="position:relative;width:23px;height:23px"><path d="M20.6 13.4 11 3.8a2 2 0 0 0-1.4-.6H5a2 2 0 0 0-2 2v4.6a2 2 0 0 0 .6 1.4l9.6 9.6a2 2 0 0 0 2.8 0l4.6-4.6a2 2 0 0 0 0-2.8z" stroke-linejoin="round"/><circle cx="7.5" cy="7.5" r="1.2"/></svg>
+          </span>
+          <span class="pcard--more__txt">Más ofertas en el catálogo</span>
+          <span class="btn btn--ghost btn--sm">Ver todas →</span>
+        </a>
       </div>
     </div>
   </section>
@@ -203,36 +225,55 @@
 
 <!-- ── Plantilla reutilizable de card de producto ─────────────────────────── -->
 <ng-template #productCard let-product>
-  <article class="card card--product home-card">
-    <a [routerLink]="['/catalogo', product.id]" class="home-card__media">
+  <article class="pcard">
+    <a [routerLink]="['/catalogo', product.id]" class="pcard__media">
+      <span class="pcard__grid" aria-hidden="true"></span>
+      @if (product.offerPrice) {
+        <span class="pcard__flag mono">−{{ product.offerDiscountPercent }}%</span>
+      }
       @if (product.imageUrl) {
         <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
       } @else {
-        <div class="home-card__placeholder" aria-hidden="true"><span class="mono">{{ product.sku }}</span></div>
+        <svg class="pcard__ph" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z M3.3 7 12 12l8.7-5M12 22V12" stroke-linejoin="round"/></svg>
       }
-      @if (product.offerPrice) {
-        <span class="badge badge--offer home-card__flag">−{{ product.offerDiscountPercent }}%</span>
-      }
+      <span class="pcard__qv">
+        <span class="pcard__qv-btn"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3" stroke-linecap="round"/></svg> Vista rápida</span>
+        <span class="fp">Función propuesta</span>
+      </span>
     </a>
 
-    <div class="card__body home-card__body">
-      <span class="eyebrow">{{ product.category }}</span>
-      <h3 class="home-card__title">
-        <a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a>
-      </h3>
-      <p class="home-card__sku mono">Ref: {{ product.sku }}</p>
+    @if (product.offerPrice && product.offerEndsAt) {
+      <div class="pcard__timer">
+        <span class="lbl mono"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/></svg> Vigente hasta</span>
+        <span class="clock mono">{{ formatOfferEnd(product.offerEndsAt) }}</span>
+      </div>
+    }
 
-      <div class="home-card__price">
+    <div class="pcard__b">
+      <div class="pcard__cat mono">{{ product.category }}</div>
+      <h3 class="pcard__name"><a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a></h3>
+      <div class="pcard__sku mono">Ref: {{ product.sku }}</div>
+
+      <div class="pcard__price">
         @if (product.offerPrice) {
-          <span class="home-card__price-old mono">{{ product.price }}</span>
-          <span class="home-card__price-now mono">{{ product.offerPrice }}</span>
+          <span class="pcard__now off mono">{{ product.offerPrice }}</span>
+          <span class="pcard__old mono">{{ product.price }}</span>
         } @else {
-          <span class="home-card__price-now mono">{{ product.price }}</span>
+          <span class="pcard__now mono">{{ product.price }}</span>
         }
       </div>
 
-      <div class="home-card__actions">
-        <button type="button" class="btn btn--ghost btn--sm" (click)="qs.addItem(product)">Agregar</button>
+      @if (savings(product); as save) {
+        <span class="pcard__save mono">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><path d="M20 6 9 17l-5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          Ahorras {{ save }}
+        </span>
+      }
+
+      <div class="pcard__actions">
+        <button type="button" class="btn btn--ghost btn--sm pcard__add" (click)="qs.addItem(product)" title="Agregar a cotización" aria-label="Agregar a cotización">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
+        </button>
         <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>
       </div>
     </div>

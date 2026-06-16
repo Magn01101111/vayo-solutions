@@ -1,95 +1,254 @@
 <div class="dashboard">
-  <header class="dashboard__header">
-    <h1 class="dashboard__title">Panel de control</h1>
-    <p class="dashboard__subtitle">Resumen general de VAYO Solutions</p>
-  </header>
 
   @if (loading()) {
     <p class="dashboard__loading">Cargando métricas…</p>
   } @else if (error()) {
     <p class="dashboard__error">{{ error() }}</p>
-  } @else if (stats()) {
-    @if (stats(); as s) {
+  }
 
-    <!-- ── Tarjetas de métricas ──────────────────────────────────────────── -->
-    <div class="dashboard__metrics">
-      @for (metric of metrics(); track metric.label) {
-        <a class="metric-card" [routerLink]="metric.link">
-          <span class="metric-card__icon"><app-icon [name]="$any(metric.icon)" [size]="28" /></span>
-          <span class="metric-card__value">{{ metric.value }}</span>
-          <span class="metric-card__label">{{ metric.label }}</span>
-          <span class="metric-card__hint">{{ metric.hint }}</span>
-        </a>
-      }
-    </div>
+  @if (stats(); as s) {
 
-    <!-- ── Gráficos ──────────────────────────────────────────────────────── -->
-    <div class="dashboard__charts">
+    <!-- ── COMMAND BAND ──────────────────────────────────────────────────── -->
+    <section class="cmd">
+      <div class="cmd__grid" aria-hidden="true"></div>
+      <div class="cmd__edge" aria-hidden="true"></div>
+      <div class="cmd__in">
+        <div>
+          <span class="cmd__eyebrow"><span class="live" aria-hidden="true"></span> Datos en vivo</span>
+          <h2>Panel de control</h2>
+          <p class="cmd__sub">Resumen operativo · últimos 6 meses · CLP neto (IVA aparte)</p>
+        </div>
+        <div class="cmd__tools">
+          <div class="group">
+            <span class="fp">Función propuesta</span>
+            <div class="seg" aria-hidden="true">
+              <button type="button" disabled>7D</button>
+              <button type="button" disabled>30D</button>
+              <button type="button" class="on" disabled>6M</button>
+              <button type="button" disabled>12M</button>
+            </div>
+          </div>
+          <div class="group">
+            <span class="fp">Función propuesta</span>
+            <button class="btn btn--onnavy btn--sm" type="button" disabled>
+              <svg class="ic" viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4M5 21h14" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Exportar reporte
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
 
-      <!-- Ventas por mes (barras) -->
-      <section class="chart-card">
-        <h2 class="chart-card__title">Ventas últimos 6 meses</h2>
-        <div class="bar-chart">
-          @for (m of s.salesByMonth; track m.label + m.year) {
-            <div class="bar-chart__col">
-              <div class="bar-chart__bar-wrap">
-                <span class="bar-chart__value" [class.bar-chart__value--zero]="m.total === 0">
-                  {{ m.total > 0 ? formatCLP(m.total) : '' }}
-                </span>
-                <div class="bar-chart__bar" [style.height.%]="barHeight(m.total)"></div>
+    <!-- ── BENTO ─────────────────────────────────────────────────────────── -->
+    <div class="bento">
+
+      <!-- KPI · Ingresos (acento, dato + tendencia reales) -->
+      <a class="card-s kpi kpi--accent" routerLink="/admin/ventas">
+        <div class="kpi__top">
+          <span class="kpi__ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" stroke-linecap="round"/></svg></span>
+          @if (momDelta(); as d) {
+            <span class="kpi__delta" [class.up]="d.dir === 'up'" [class.down]="d.dir === 'down'" [class.flat]="d.dir === 'flat'">
+              @if (d.dir === 'up') { <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg> }
+              @if (d.dir === 'down') { <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 9l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg> }
+              {{ d.pct > 0 ? '+' : '' }}{{ d.pct }}%
+            </span>
+          }
+        </div>
+        <div class="kpi__v">{{ formatCompactCLP(s.revenue.total) }}</div>
+        <div class="kpi__l">Ingresos del período</div>
+        <div class="kpi__foot">
+          @if (momDelta(); as d) {
+            <span class="kpi__hint">{{ d.lastLabel }} vs {{ d.prevLabel }}</span>
+          } @else {
+            <span class="kpi__hint">Ventas no anuladas</span>
+          }
+          @if (sparkline(); as sp) {
+            <svg class="spark" viewBox="0 0 78 26" preserveAspectRatio="none" aria-hidden="true">
+              <path class="area" [attr.d]="sp.area"></path>
+              <path class="line" [attr.d]="sp.line"></path>
+            </svg>
+          }
+        </div>
+      </a>
+
+      <!-- KPI · Ventas -->
+      <a class="card-s kpi" routerLink="/admin/ventas">
+        <div class="kpi__top">
+          <span class="kpi__ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span>
+        </div>
+        <div class="kpi__v">{{ s.counters.sales }}</div>
+        <div class="kpi__l">Ventas registradas</div>
+        <div class="kpi__foot">
+          <span class="kpi__hint">Ticket prom. {{ formatCompactCLP(ticketProm()) }}</span>
+        </div>
+      </a>
+
+      <!-- KPI · Cotizaciones -->
+      <a class="card-s kpi" routerLink="/admin/cotizaciones">
+        <div class="kpi__top">
+          <span class="kpi__ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" stroke-linejoin="round"/></svg></span>
+          <span class="kpi__delta flat">{{ s.quotesByStatus.sent }} env.</span>
+        </div>
+        <div class="kpi__v">{{ s.counters.quotes }}</div>
+        <div class="kpi__l">Cotizaciones</div>
+        <div class="kpi__foot">
+          <span class="kpi__hint">{{ acceptancePct() }}% aceptación</span>
+        </div>
+      </a>
+
+      <!-- KPI · Productos -->
+      <a class="card-s kpi" routerLink="/admin/productos">
+        <div class="kpi__top">
+          <span class="kpi__ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M21 8a2 2 0 0 0-1-1.7l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.7l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="kpi__v">{{ s.counters.products }}</div>
+        <div class="kpi__l">Productos · {{ s.counters.clients }} clientes</div>
+        <div class="kpi__foot">
+          <span class="kpi__hint">{{ s.counters.categories }} categorías activas</span>
+        </div>
+      </a>
+
+      <!-- COBRANZA · pagado vs total (dato real, antes ignorado) -->
+      <section class="card-s pay">
+        <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Cobranza del período</h3><div class="right"><span class="tag">Pagado / total</span></div></div>
+        <div class="pay__in">
+          <div class="ring">
+            <svg width="124" height="124" viewBox="0 0 124 124" aria-hidden="true">
+              <circle class="ring__track" cx="62" cy="62" r="52"/>
+              <circle class="ring__fill" cx="62" cy="62" r="52" [attr.stroke-dasharray]="ringCirc" [attr.stroke-dashoffset]="ringOffset()"/>
+            </svg>
+            <div class="ring__center"><span class="ring__pct">{{ paidPct() }}%</span><span class="ring__cap">Cobrado</span></div>
+          </div>
+          <div class="pay__data">
+            <div class="pay__row"><span class="pay__k"><span class="sw sw--ok" aria-hidden="true"></span> Pagado</span><span class="pay__amt pay__amt--ok">{{ formatCLP(s.revenue.paid) }}</span></div>
+            <div class="pay__row"><span class="pay__k"><span class="sw sw--pend" aria-hidden="true"></span> Pendiente</span><span class="pay__amt">{{ formatCLP(pendingAmount()) }}</span></div>
+            <div class="pay__row"><span class="pay__k">Total facturado</span><span class="pay__amt">{{ formatCLP(s.revenue.total) }}</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- CONVERSIÓN · medidor (dato real) -->
+      <section class="card-s conv">
+        <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Tasa de conversión</h3></div>
+        <div class="gauge">
+          <svg viewBox="0 0 188 104" aria-hidden="true">
+            <path class="gauge__track" d="M16 96 A 78 78 0 0 1 172 96"/>
+            <path class="gauge__fill" d="M16 96 A 78 78 0 0 1 172 96" [attr.stroke-dasharray]="gaugeLen" [attr.stroke-dashoffset]="gaugeOffset()"/>
+          </svg>
+          <div class="gauge__val"><div class="gauge__num">{{ s.conversionRate }}%</div><div class="gauge__cap">cotización → aceptada</div></div>
+        </div>
+        <div class="conv__legend">
+          <div class="conv__leg"><b class="is-ok">{{ s.quotesByStatus.accepted }}</b><span>Aceptadas</span></div>
+          <div class="conv__leg"><b>{{ totalQuotes() }}</b><span>Emitidas</span></div>
+          <div class="conv__leg"><b class="is-danger">{{ s.quotesByStatus.rejected }}</b><span>Rechazadas</span></div>
+        </div>
+      </section>
+
+      <!-- VENTAS 6 MESES -->
+      <section class="card-s chart-sales">
+        <div class="ch">
+          <span class="ch__bar" aria-hidden="true"></span><h3>Ventas últimos 6 meses</h3>
+          <div class="right">
+            @if (momDelta(); as d) {
+              <span class="kpi__delta" [class.up]="d.dir === 'up'" [class.down]="d.dir === 'down'" [class.flat]="d.dir === 'flat'">
+                @if (d.dir === 'up') { <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 15l7-7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg> }
+                @if (d.dir === 'down') { <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" aria-hidden="true"><path d="M5 9l7 7 7-7" stroke-linecap="round" stroke-linejoin="round"/></svg> }
+                {{ d.pct > 0 ? '+' : '' }}{{ d.pct }}% MoM
+              </span>
+            }
+            <span class="tag">CLP</span>
+          </div>
+        </div>
+        <div class="bars">
+          @for (m of s.salesByMonth; track m.label + m.year; let last = $last) {
+            <div class="bcol" [class.bcol--last]="last">
+              <div class="wrap">
+                <span class="val">{{ m.total > 0 ? formatCompactCLP(m.total) : '' }}</span>
+                <div class="b" [style.height.%]="barHeight(m.total)"></div>
               </div>
-              <span class="bar-chart__label">{{ m.label }}</span>
+              <span class="lab">{{ m.label }}</span>
             </div>
           }
         </div>
       </section>
 
-      <!-- Cotizaciones por estado (lista con barras) -->
-      <section class="chart-card">
-        <h2 class="chart-card__title">Cotizaciones por estado</h2>
+      <!-- COTIZACIONES POR ESTADO -->
+      <section class="card-s chart-status">
+        <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Cotizaciones por estado</h3></div>
         @if (totalQuotes() === 0) {
-          <p class="chart-card__empty">Aún no hay cotizaciones.</p>
+          <p class="chart-empty">Aún no hay cotizaciones.</p>
         } @else {
-          <div class="status-chart">
-            @for (st of statusList(); track st.label) {
-              <div class="status-row">
-                <div class="status-row__head">
-                  <span class="status-row__dot" [style.background]="st.color"></span>
-                  <span class="status-row__label">{{ st.label }}</span>
-                  <span class="status-row__value">{{ st.value }} ({{ st.pct }}%)</span>
-                </div>
-                <div class="status-row__track">
-                  <div class="status-row__fill" [style.width.%]="st.pct" [style.background]="st.color"></div>
-                </div>
+          @for (st of statusList(); track st.label) {
+            <div class="statrow">
+              <div class="statrow__head">
+                <span class="statrow__dot" [style.background]="st.color"></span>
+                <span class="statrow__lab">{{ st.label }}</span>
+                <span class="statrow__val">{{ st.value }} ({{ st.pct }}%)</span>
               </div>
-            }
-          </div>
+              <div class="statrow__track"><div class="statrow__fill" [style.width.%]="st.pct" [style.background]="st.color"></div></div>
+            </div>
+          }
+          <div class="status-foot"><span>Total emitidas</span><b>{{ totalQuotes() }}</b></div>
         }
       </section>
 
-      <!-- Top productos -->
-      <section class="chart-card chart-card--wide">
-        <h2 class="chart-card__title">Top productos vendidos</h2>
+      <!-- TOP PRODUCTOS -->
+      <section class="card-s chart-top">
+        <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Top productos vendidos</h3></div>
         @if (s.topProducts.length === 0) {
-          <p class="chart-card__empty">Aún no hay ventas registradas.</p>
+          <p class="chart-empty">Aún no hay ventas registradas.</p>
         } @else {
-          <div class="top-products">
+          <div class="top">
             @for (p of s.topProducts; track p.name; let i = $index) {
               <div class="top-row">
                 <span class="top-row__rank">{{ i + 1 }}</span>
                 <span class="top-row__name" [title]="p.name">{{ p.name }}</span>
-                <div class="top-row__track">
-                  <div class="top-row__fill" [style.width.%]="topWidth(p.qty)"></div>
-                </div>
+                <span class="top-row__track"><span class="top-row__fill" [style.width.%]="topWidth(p.qty)"></span></span>
                 <span class="top-row__qty">{{ p.qty }} u.</span>
-                <span class="top-row__revenue">{{ formatCLP(p.revenue) }}</span>
+                <span class="top-row__rev">{{ formatCLP(p.revenue) }}</span>
               </div>
             }
           </div>
         }
       </section>
 
+      <!-- SIDE MODULES (FUNCIÓN PROPUESTA — datos de ejemplo, sin lógica) -->
+      <div class="side-mods">
+        <section class="mod">
+          <div class="mod__head"><h3>Actividad reciente</h3><span class="fp">Función propuesta</span></div>
+          <div class="feed">
+            <div class="feed__i"><span class="feed__dot feed__dot--sale" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M9 14l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="4" width="18" height="16" rx="2"/></svg></span><div class="feed__body"><div class="feed__txt">Venta <b>V-2026-0271</b> · $1.249.000</div><div class="feed__time">hace 24 min · Frigoríficos del Sur</div></div></div>
+            <div class="feed__i"><span class="feed__dot feed__dot--quote" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" stroke-linejoin="round"/></svg></span><div class="feed__body"><div class="feed__txt">Cotización <b>Q-2026-0419</b> aceptada</div><div class="feed__time">hace 1 h · Data Center Andes</div></div></div>
+            <div class="feed__i"><span class="feed__dot feed__dot--client" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" stroke-linecap="round"/><circle cx="9" cy="7" r="4"/></svg></span><div class="feed__body"><div class="feed__txt">Nuevo cliente <b>Climatiza Ltda.</b></div><div class="feed__time">hace 3 h · RUT 76.XXX.XXX-K</div></div></div>
+          </div>
+        </section>
+
+        <section class="mod">
+          <div class="mod__head"><h3>Alertas de stock bajo</h3><span class="fp">Función propuesta</span></div>
+          <div class="alert"><div class="alert__body"><div class="alert__name">Válvula expansión Danfoss TUA</div><div class="alert__sku">VLV-TUA-085</div></div><span class="alert__qty crit">2 u.</span></div>
+          <div class="alert"><div class="alert__body"><div class="alert__name">Sensor presión Carel SPKT0033</div><div class="alert__sku">SEN-SPKT0033</div></div><span class="alert__qty low">5 u.</span></div>
+          <div class="alert"><div class="alert__body"><div class="alert__name">Filtro deshidratador EK-163</div><div class="alert__sku">FIL-EK163</div></div><span class="alert__qty low">6 u.</span></div>
+        </section>
+
+        <section class="mod">
+          <div class="mod__head"><h3>Cotizaciones por vencer</h3><span class="fp">Función propuesta</span></div>
+          <div class="due"><div class="due__body"><div class="due__folio">Q-2026-0411</div><div class="due__client">Refrigeración Patagonia</div></div><span class="due__when urgent">vence hoy</span></div>
+          <div class="due"><div class="due__body"><div class="due__folio">Q-2026-0408</div><div class="due__client">HVAC Norte Grande</div></div><span class="due__when">2 días</span></div>
+          <div class="due"><div class="due__body"><div class="due__folio">Q-2026-0402</div><div class="due__client">Minera Atacama SpA</div></div><span class="due__when">4 días</span></div>
+        </section>
+      </div>
+
+      <!-- EMBUDO (FUNCIÓN PROPUESTA — datos de ejemplo, sin lógica) -->
+      <section class="card-s funnel">
+        <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Embudo de conversión</h3><div class="right"><span class="fp">Función propuesta</span><span class="tag">Visita → venta</span></div></div>
+        <div class="funnel__stages">
+          <div class="stage stage--1"><div class="stage__v">3.840</div><div class="stage__l">Visitas al catálogo</div><div class="stage__rate">100%</div></div>
+          <div class="stage stage--2"><div class="stage__v">612</div><div class="stage__l">Productos al carrito</div><div class="stage__rate">15,9% del total</div></div>
+          <div class="stage stage--3"><div class="stage__v">64</div><div class="stage__l">Cotizaciones enviadas</div><div class="stage__rate">10,5% del carrito</div></div>
+          <div class="stage stage--4"><div class="stage__v">27</div><div class="stage__l">Ventas cerradas</div><div class="stage__rate">42,2% de cotiz.</div></div>
+        </div>
+      </section>
+
     </div>
-    }
   }
 </div>

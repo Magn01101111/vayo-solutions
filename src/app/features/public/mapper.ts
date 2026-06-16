@@ -225,6 +225,7 @@ export function mapApiProductToCardData(
     sku: product.sku,
     description: product.description,
     price: formatCurrency(product.price, product.currency),
+    priceRaw: product.price ?? null,
     imageUrl: imageUrls[0],
     images: imageUrls,
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),

@@ -97,6 +97,23 @@ export class HomeComponent implements OnInit, OnDestroy {
   trackByCategory(_: number, item: CatalogCategory): string { return item.id; }
   trackByStep(_: number, item: StepItem): number { return item.number; }
 
+  /** "Ahorras $X" para ofertas (precio normal − precio oferta). null si no aplica. */
+  savings(p: ProductCardData): string | null {
+    if (p.priceRaw == null || p.offerPriceRaw == null) return null;
+    const diff = p.priceRaw - p.offerPriceRaw;
+    if (diff <= 0) return null;
+    return new Intl.NumberFormat('es-CL', {
+      style: 'currency', currency: 'CLP', maximumFractionDigits: 0,
+    }).format(diff);
+  }
+
+  /** Fecha de término de la oferta formateada (es-CL). */
+  formatOfferEnd(iso: string): string {
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '';
+    return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
+  }
+
   private loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';

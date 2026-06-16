@@ -97,6 +97,8 @@ export interface ProductCardData {
   sku: string;
   description?: string;
   price: string;
+  /** Precio normal numérico para cálculos (ej. "Ahorras $X"). null = sin precio. */
+  priceRaw?: number | null;
   /** URL de la imagen principal (compatibilidad). */
   imageUrl?: string;
   /** Galería completa — usada en la ficha de detalle. */
