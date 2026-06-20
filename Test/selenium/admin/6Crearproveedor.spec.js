@@ -14,7 +14,15 @@ describe('6. Crear proveedor', function() {
     await driver.quit();
   })
   it('6. Crear proveedor', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.css(".form-group:nth-child(1)")).click()
+    await driver.findElement(By.css(".login-form")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
     await driver.manage().window().setRect(1024, 536)
     {
       const element = await driver.findElement(By.linkText("Categorías"))
@@ -45,5 +53,7 @@ describe('6. Crear proveedor', function() {
     await driver.findElement(By.id("sup-notes")).click()
     await driver.findElement(By.id("sup-notes")).sendKeys("test")
     await driver.findElement(By.css(".btn--sm:nth-child(2)")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
+    await driver.close()
   })
 })

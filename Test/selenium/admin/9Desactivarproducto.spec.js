@@ -14,7 +14,13 @@ describe('9. Desactivar producto', function() {
     await driver.quit();
   })
   it('9. Desactivar producto', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
     await driver.manage().window().setRect(1024, 536)
     await driver.findElement(By.linkText("Productos")).click()
     {
@@ -62,5 +68,7 @@ describe('9. Desactivar producto', function() {
     await driver.findElement(By.css("tbody")).click()
     await driver.findElement(By.css("tr:nth-child(1) .btn--ghost-danger")).click()
     await driver.findElement(By.css(".btn--danger")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
+    await driver.close()
   })
 })

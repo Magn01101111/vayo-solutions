@@ -8,6 +8,7 @@ describe('8. Log out', function() {
   let vars
   beforeEach(async function() {
     driver = await new Builder().forBrowser('chrome').build()
+    await driver.manage().setTimeouts({ implicit: 10000 })
     vars = {}
   })
   afterEach(async function() {

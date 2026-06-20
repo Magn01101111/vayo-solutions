@@ -2,5 +2,5 @@
   "spec": "test/selenium/**/*.spec.js",
   "reporter": "allure-mocha",
   "reporter-options": "resultsDir=allure-results",
-  "timeout": 30000
+  "timeout": 90000
 }

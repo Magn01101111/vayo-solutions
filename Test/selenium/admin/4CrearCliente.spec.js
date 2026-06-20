@@ -14,7 +14,22 @@ describe('4. Crear Cliente', function() {
     await driver.quit();
   })
   it('4. Crear Cliente', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.css(".login-card")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
+    {
+      const element = await driver.findElement(By.css(".btn"))
+      await driver.actions({ bridge: true }).moveToElement(element).perform()
+    }
+    {
+      const element = await driver.findElement(By.CSS_SELECTOR, "body")
+      await driver.actions({ bridge: true }).moveToElement(element, 0, 0).perform()
+    }
     await driver.manage().window().setRect(1024, 536)
     {
       const element = await driver.findElement(By.linkText("Clientes"))
@@ -44,5 +59,10 @@ describe('4. Crear Cliente', function() {
     await driver.findElement(By.id("c-notes")).click()
     await driver.findElement(By.id("c-notes")).sendKeys("test")
     await driver.findElement(By.css("div:nth-child(3) > .btn--primary")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
+    {
+      const element = await driver.findElement(By.linkText("Crear cuenta"))
+      await driver.actions({ bridge: true }).moveToElement(element).perform()
+    }
   })
 })

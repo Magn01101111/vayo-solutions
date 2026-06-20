@@ -14,7 +14,18 @@ describe('5. Crear Usuario interno', function() {
     await driver.quit();
   })
   it('5. Crear Usuario interno', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    {
+      const element = await driver.findElement(By.css(".nav__link:nth-child(2)"))
+      await driver.actions({ bridge: true }).moveToElement(element).perform()
+    }
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.css(".login-form")).click()
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
     await driver.manage().window().setRect(1024, 536)
     await driver.findElement(By.linkText("Usuarios")).click()
     {
@@ -46,5 +57,7 @@ describe('5. Crear Usuario interno', function() {
     await driver.findElement(By.id("usr-pass")).click()
     await driver.findElement(By.id("usr-pass")).sendKeys("12345678")
     await driver.findElement(By.css(".btn--sm:nth-child(2)")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
+    await driver.close()
   })
 })

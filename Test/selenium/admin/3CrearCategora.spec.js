@@ -14,7 +14,22 @@ describe('3.Crear Categoría ', function() {
     await driver.quit();
   })
   it('3.Crear Categoría ', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
+    {
+      const element = await driver.findElement(By.css(".btn"))
+      await driver.actions({ bridge: true }).moveToElement(element).perform()
+    }
+    {
+      const element = await driver.findElement(By.CSS_SELECTOR, "body")
+      await driver.actions({ bridge: true }).moveToElement(element, 0, 0).perform()
+    }
+    await driver.get("https://vayo-solutions.netlify.app/")
     await driver.manage().window().setRect(1024, 536)
     await driver.findElement(By.linkText("Categorías")).click()
     await driver.findElement(By.css(".btn--primary")).click()
@@ -23,5 +38,6 @@ describe('3.Crear Categoría ', function() {
     await driver.findElement(By.id("cat-desc")).click()
     await driver.findElement(By.id("cat-desc")).sendKeys("test")
     await driver.findElement(By.css(".btn--sm:nth-child(2)")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
   })
 })
