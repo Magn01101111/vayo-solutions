@@ -1,3 +1,8 @@
+<!-- ── BANNER PRIMERA VISITA ──────────────────────────────────────────────── -->
+@if (showWelcomeBanner()) {
+  <app-welcome-banner (dismissed)="showWelcomeBanner.set(false)" />
+}
+
 <!-- ── HERO ──────────────────────────────────────────────────────────────── -->
 <section class="home-hero">
   <div class="home-hero__grid" aria-hidden="true"></div>

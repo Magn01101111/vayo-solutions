@@ -1,145 +1,194 @@
-<div class="auth-page">
-  <div class="auth-card">
+<div class="auth-stage">
+  <!-- ── Aside blueprint ──────────────────────────────────────── -->
+  <aside class="auth-aside" aria-hidden="true">
+    <div class="auth-aside__grid"></div>
 
-    <!-- Brand -->
-    <div class="auth-card__brand">
-      <span class="auth-card__logo">VAYO</span>
-      <p class="auth-card__tagline">Crea tu cuenta gratuita</p>
+    <div class="auth-brand">
+      <span class="auth-brand__logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+          <path d="M4 7l8-4 8 4v10l-8 4-8-4z" stroke-linejoin="round"/>
+          <path d="M4 7l8 4 8-4M12 11v10" stroke-linejoin="round"/>
+        </svg>
+      </span>
+      <span class="auth-brand__txt">
+        <b>VAYO Solutions</b>
+        <span>Repuestos HVAC Industrial</span>
+      </span>
     </div>
 
-    <!-- Form -->
-    <form class="auth-form" (ngSubmit)="onSubmit()" novalidate>
+    <div class="auth-aside__mid">
+      <h2>Tu central de repuestos para climatización industrial.</h2>
+      <p>Regístrate para cotizar más rápido. Tus datos se guardan para futuras cotizaciones y puedes revisar tu historial en cualquier momento.</p>
+    </div>
 
-      <div class="form-group">
-        <label class="form-label" for="name">
-          Nombre completo <span class="required">*</span>
-        </label>
-        <input
-          id="name"
-          class="input"
-          type="text"
-          [(ngModel)]="name"
-          name="name"
-          placeholder="Juan Pérez"
-          autocomplete="name"
-          [disabled]="loading"
-          required
-        />
+    <div class="auth-aside__pills">
+      <span class="auth-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7">
+          <path d="M12 3l7 3v5c0 4.5-3 8-7 10-4-2-7-5.5-7-10V6l7-3z" stroke-linejoin="round"/>
+          <path d="M9 12l2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Cotización con datos guardados
+      </span>
+      <span class="auth-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6" stroke-linejoin="round"/>
+        </svg>
+        Historial y descarga de PDF
+      </span>
+      <span class="auth-pill">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7">
+          <circle cx="12" cy="12" r="9"/>
+          <path d="M12 7v5l3 2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        Respuesta en 24 h hábiles
+      </span>
+    </div>
+  </aside>
+
+  <!-- ── Panel formulario ─────────────────────────────────────── -->
+  <main class="auth-panel">
+    <div class="auth-card">
+      <div class="auth-tabs">
+        <a class="auth-tab" routerLink="/login">Ingresar</a>
+        <a class="auth-tab auth-tab--active" routerLink="/registro">Crear cuenta</a>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="rut">
-          RUT <span class="required">*</span>
-        </label>
-        <input
-          id="rut"
-          class="input"
-          type="text"
-          [ngModel]="rut"
-          (ngModelChange)="onRutInput($event)"
-          name="rut"
-          placeholder="12.345.678-9"
-          autocomplete="off"
-          inputmode="text"
-          maxlength="12"
-          [disabled]="loading"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="email">
-          Correo electrónico <span class="required">*</span>
-        </label>
-        <input
-          id="email"
-          class="input"
-          type="email"
-          [(ngModel)]="email"
-          name="email"
-          placeholder="juan@empresa.cl"
-          autocomplete="email"
-          [disabled]="loading"
-          required
-        />
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="phone">
-          Teléfono móvil <span class="required">*</span>
-        </label>
-        <div class="phone-input">
-          <span class="phone-input__prefix">+56&nbsp;9</span>
-          <input
-            id="phone"
-            class="input phone-input__field"
-            type="tel"
-            [ngModel]="phoneDigits"
-            (ngModelChange)="onPhoneInput($event)"
-            name="phone"
-            placeholder="12345678"
-            autocomplete="tel-national"
-            inputmode="numeric"
-            maxlength="8"
-            [disabled]="loading"
-            required
-          />
+      @if (fromWelcome) {
+        <div class="auth-welcome-banner">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true">
+            <path d="M20 12V22H4V12M22 7H2v5h20V7zM12 22V7M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          ¡Tu cupón de bienvenida te espera! Completa el registro para reclamarlo.
         </div>
-        <p class="form-hint">Solo los 8 dígitos del número, sin espacios.</p>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label" for="password">
-          Contraseña <span class="required">*</span>
-        </label>
-        <div class="auth-form__pass-wrap">
-          <input
-            id="password"
-            class="input"
-            [type]="showPass ? 'text' : 'password'"
-            [(ngModel)]="password"
-            name="password"
-            placeholder="Mínimo 8 caracteres"
-            autocomplete="new-password"
-            [disabled]="loading"
-            required
-          />
-          <button
-            type="button"
-            class="auth-form__pass-toggle"
-            (click)="togglePassword()"
-            [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
-          >
-            <app-icon [name]="showPass ? 'eye-off' : 'eye'" [size]="18" />
-          </button>
-        </div>
-      </div>
-
-      <!-- Error message -->
-      @if (error) {
-        <div class="auth-alert" role="alert">{{ error }}</div>
       }
 
-      <button
-        type="submit"
-        class="btn btn-primary btn-block"
-        [disabled]="loading"
-      >
-        @if (loading) {
-          <span class="auth-form__spinner"></span>
-          Creando cuenta…
-        } @else {
-          Crear cuenta
+      <h1 class="auth-title">Crear cuenta</h1>
+      <p class="auth-sub">Regístrate para cotizar más rápido y revisar tu historial.</p>
+
+      <form (ngSubmit)="onSubmit()" novalidate>
+
+        <div class="auth-fg">
+          <label class="auth-label" for="name">Nombre o razón social</label>
+          <div class="auth-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true">
+              <path d="M4 20a8 8 0 0 1 16 0" stroke-linecap="round"/>
+              <circle cx="12" cy="8" r="4"/>
+            </svg>
+            <input
+              id="name"
+              type="text"
+              [(ngModel)]="name"
+              name="name"
+              placeholder="Refrigeración Andes SpA"
+              autocomplete="name"
+              [disabled]="loading"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="auth-row2">
+          <div class="auth-fg">
+            <label class="auth-label" for="rut">RUT</label>
+            <div class="auth-field">
+              <input
+                id="rut"
+                type="text"
+                [ngModel]="rut"
+                (ngModelChange)="onRutInput($event)"
+                name="rut"
+                placeholder="12.345.678-9"
+                autocomplete="off"
+                inputmode="text"
+                maxlength="12"
+                [disabled]="loading"
+                required
+              />
+            </div>
+            <span class="auth-help">Con puntos y guión</span>
+          </div>
+
+          <div class="auth-fg">
+            <label class="auth-label" for="phone">Teléfono</label>
+            <div class="auth-field auth-field--phone">
+              <span class="auth-field__prefix">+56 9</span>
+              <input
+                id="phone"
+                type="tel"
+                [ngModel]="phoneDigits"
+                (ngModelChange)="onPhoneInput($event)"
+                name="phone"
+                placeholder="12345678"
+                autocomplete="tel-national"
+                inputmode="numeric"
+                maxlength="8"
+                [disabled]="loading"
+                required
+              />
+            </div>
+            <span class="auth-help">8 dígitos sin espacios</span>
+          </div>
+        </div>
+
+        <div class="auth-fg">
+          <label class="auth-label" for="email">Correo electrónico</label>
+          <div class="auth-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true">
+              <rect x="3" y="5" width="18" height="14" rx="2"/>
+              <path d="M4 7l8 6 8-6" stroke-linecap="round"/>
+            </svg>
+            <input
+              id="email"
+              type="email"
+              [(ngModel)]="email"
+              name="email"
+              placeholder="compras@empresa.cl"
+              autocomplete="email"
+              [disabled]="loading"
+              required
+            />
+          </div>
+        </div>
+
+        <div class="auth-fg">
+          <label class="auth-label" for="password">Contraseña</label>
+          <div class="auth-field">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true">
+              <rect x="4" y="11" width="16" height="9" rx="2"/>
+              <path d="M8 11V8a4 4 0 0 1 8 0v3" stroke-linecap="round"/>
+            </svg>
+            <input
+              id="password"
+              [type]="showPass ? 'text' : 'password'"
+              [(ngModel)]="password"
+              name="password"
+              placeholder="Mínimo 8 caracteres"
+              autocomplete="new-password"
+              [disabled]="loading"
+              required
+            />
+            <button
+              type="button"
+              class="auth-field__toggle"
+              (click)="togglePassword()"
+              [attr.aria-label]="showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+            >
+              <app-icon [name]="showPass ? 'eye-off' : 'eye'" [size]="16" />
+            </button>
+          </div>
+        </div>
+
+        @if (error) {
+          <div class="auth-alert" role="alert">{{ error }}</div>
         }
-      </button>
 
-    </form>
+        <button type="submit" class="auth-btn" [disabled]="loading">
+          @if (loading) { <span class="auth-spin"></span>Creando cuenta… }
+          @else { Crear cuenta }
+        </button>
+      </form>
 
-    <!-- Footer links -->
-    <p class="auth-card__footer">
-      ¿Ya tienes cuenta?
-      <a routerLink="/login" class="auth-link">Inicia sesión</a>
-    </p>
-
-  </div>
+      <p class="auth-alt">¿Ya tienes cuenta? <a routerLink="/login" class="auth-alt__link">Ingresar</a></p>
+    </div>
+  </main>
 </div>

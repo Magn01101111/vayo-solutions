@@ -177,6 +177,7 @@
 .qt-detail__tot-row {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   font-size: var(--fs-sm);
   color: var(--ink-2);
 
@@ -188,4 +189,21 @@
     color: var(--ink);
     font-size: var(--fs-body);
   }
+
+  &--discount { color: var(--success); }
+}
+
+.coupon-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  background: color-mix(in srgb, var(--success) 12%, transparent);
+  color: var(--success);
+  padding: 1px 6px;
+  border-radius: var(--r-xs);
+  margin-left: var(--space-2);
+  letter-spacing: 0.04em;
 }

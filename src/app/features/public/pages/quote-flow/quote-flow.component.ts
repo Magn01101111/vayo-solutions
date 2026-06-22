@@ -13,6 +13,9 @@ import {
 
 import { QuotationService } from '../../../../core/services/quotation.service';
 import { ConfirmService } from '../../../../core/services/confirm.service';
+import { AuthService } from '../../../../core/services/auth.service';
+import { CouponService } from '../../../../core/services/coupon.service';
+import { MyCoupon } from '../../../../core/models/app.models';
 import { StepClientComponent } from './components/step-client/step-client.component';
 import { StepDocumentComponent } from './components/step-document/step-document.component';
 import { StepConfirmationComponent } from './components/step-confirmation/step-confirmation.component';
@@ -36,6 +39,8 @@ import { IconComponent } from '../../../../shared/components/icon/icon.component
 export class QuoteFlowComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);
   private readonly confirm = inject(ConfirmService);
+  private readonly authSvc = inject(AuthService);
+  private readonly couponSvc = inject(CouponService);
   qs = inject(QuotationService);
 
   steps: StepFlowItem[] = [
@@ -49,6 +54,7 @@ export class QuoteFlowComponent implements OnInit {
   expandedNotesId = signal<string | null>(null);
   showCouponInput = signal(false);
   couponCode = signal('');
+  myCoupons = signal<MyCoupon[]>([]);
 
   filteredItems = computed(() => {
     const term = this.search().trim().toLowerCase();
@@ -63,7 +69,21 @@ export class QuoteFlowComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // No-op: el carrito ya proviene de QuotationService.
+    if (this.authSvc.currentUser) {
+      this.couponSvc.getMyCoupons().subscribe({
+        next: (res) => { if (res.ok && res.data) this.myCoupons.set(res.data); },
+        error: () => { /* silencioso */ },
+      });
+    }
+  }
+
+  usarCuponSugerido(code: string): void {
+    this.qs.applyCoupon(code);
+  }
+
+  couponValueLabel(c: MyCoupon): string {
+    if (c.type === 'percentage') return `−${c.value}%`;
+    return `−${new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP', maximumFractionDigits: 0 }).format(c.value)}`;
   }
 
   goToStep(step: number) {

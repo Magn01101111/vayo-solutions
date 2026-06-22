@@ -55,6 +55,11 @@ export const API_CONFIG = {
     // Coupons
     coupons: 'coupons',
     couponsValidate: 'coupons/validate',
+    couponsMine: 'coupons/mine',
+
+    // Notifications
+    notifications: 'notifications',
+    notificationsReadAll: 'notifications/read-all',
 
     // Favorites
     favorites: 'favorites',

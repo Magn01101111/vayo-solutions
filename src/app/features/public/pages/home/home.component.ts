@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
 
@@ -15,12 +15,14 @@ import { QuotationService } from '../../../../core/services/quotation.service';
 import { ApiService } from '../../../../core/services/api.service';
 import { API_CONFIG } from '../../../../core/config/api.config';
 import { ApiBanner } from '../../../../core/models/api.models';
+import { AuthService } from '../../../../core/services/auth.service';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
+import { WelcomeBannerComponent } from '../../../../shared/components/welcome-banner/welcome-banner.component';
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, IconComponent],
+  imports: [CommonModule, RouterLink, IconComponent, WelcomeBannerComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.scss',
 })
@@ -28,7 +30,10 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly catalogService = inject(CatalogService);
   private readonly cacheService   = inject(CacheService);
   private readonly apiService     = inject(ApiService);
+  private readonly authSvc        = inject(AuthService);
   qs = inject(QuotationService);
+
+  showWelcomeBanner = signal(WelcomeBannerComponent.shouldShow(this.authSvc));
 
   private readonly destroy$ = new Subject<void>();
 

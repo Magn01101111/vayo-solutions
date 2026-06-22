@@ -270,6 +270,25 @@
 
               <!-- Cupón -->
               <div class="quote-summary__section">
+                <!-- Sugerencia automática: coupones del usuario sin cupón activo -->
+                @if (!qs.coupon() && myCoupons().length > 0) {
+                  <div class="coupon-suggest">
+                    <p class="coupon-suggest__title">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>
+                      {{ myCoupons().length === 1 ? 'Tienes un cupón disponible' : 'Tienes ' + myCoupons().length + ' cupones disponibles' }}
+                    </p>
+                    @for (c of myCoupons(); track c.id) {
+                      <div class="coupon-suggest__item">
+                        <span class="coupon-suggest__code">{{ c.code }}</span>
+                        <span class="coupon-suggest__value">{{ couponValueLabel(c) }}</span>
+                        <button type="button" class="btn btn-primary btn-sm" (click)="usarCuponSugerido(c.code)">
+                          Usar cupón
+                        </button>
+                      </div>
+                    }
+                  </div>
+                }
+
                 @if (qs.coupon(); as c) {
                   <div class="coupon-applied">
                     <div>

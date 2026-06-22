@@ -35,12 +35,6 @@
     }
   </div>
 
-  @if (convertMsg) {
-    <p class="qt-alert qt-alert--ok">{{ convertMsg }}</p>
-  }
-  @if (convertError) {
-    <p class="qt-alert qt-alert--err">{{ convertError }}</p>
-  }
   @if (actionMsg) {
     <p class="qt-alert qt-alert--ok">{{ actionMsg }}</p>
   }
@@ -113,13 +107,16 @@
                         (click)="duplicateQuote(q)">
                   Duplicar
                 </button>
-                @if (q.metadata?.status !== 'accepted') {
+                @if (q.metadata?.status === 'sent') {
                   <button class="btn btn--primary btn--xs" type="button"
-                          [disabled]="convertingId === q._id"
                           (click)="convertToSale(q)">
-                    {{ convertingId === q._id ? 'Convirtiendo…' : 'Convertir' }}
+                    Aceptar
                   </button>
-                } @else {
+                  <button class="btn btn--danger btn--xs" type="button"
+                          (click)="rejectQuote(q)">
+                    Rechazar
+                  </button>
+                } @else if (q.metadata?.status === 'accepted') {
                   <span class="qt-muted">Convertida</span>
                 }
               </td>
@@ -195,6 +192,20 @@
           <span>Subtotal</span>
           <span class="mono">{{ formatCLP(dq.totals?.subtotal) }}</span>
         </div>
+        @if ((dq.totals?.discount ?? 0) > 0) {
+          <div class="qt-detail__tot-row qt-detail__tot-row--discount">
+            <span>
+              Descuento
+              @if (dq.coupon?.code) {
+                <span class="coupon-chip">
+                  {{ dq.coupon?.code }}
+                  @if (dq.coupon?.type === 'percentage') { · {{ dq.coupon?.value }}% }
+                </span>
+              }
+            </span>
+            <span class="mono">− {{ formatCLP(dq.totals?.discount) }}</span>
+          </div>
+        }
         <div class="qt-detail__tot-row">
           <span>IVA</span>
           <span class="mono">{{ formatCLP(dq.totals?.iva) }}</span>

@@ -695,3 +695,54 @@
 }
 
 .text-danger { color: var(--color-danger); display: block; }
+
+// ── Sugerencia de cupón ───────────────────────────────────────────────────────
+
+.coupon-suggest {
+  margin-bottom: var(--space-3);
+  padding: var(--space-3);
+  background: color-mix(in srgb, var(--amber) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--amber) 35%, transparent);
+  border-radius: var(--r-sm);
+}
+
+.coupon-suggest__title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--ink-2);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0 0 var(--space-2);
+
+  svg { color: var(--amber); flex-shrink: 0; }
+}
+
+.coupon-suggest__item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) 0;
+
+  & + & {
+    border-top: 1px solid color-mix(in srgb, var(--amber) 20%, transparent);
+  }
+}
+
+.coupon-suggest__code {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-bold);
+  color: var(--ink);
+  letter-spacing: 0.05em;
+  flex: 1;
+}
+
+.coupon-suggest__value {
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-bold);
+  color: var(--amber);
+  flex-shrink: 0;
+}

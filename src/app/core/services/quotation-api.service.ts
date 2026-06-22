@@ -17,7 +17,8 @@ export interface ApiQuote {
     quantity: number;
     total: number;
   }>;
-  totals?: { subtotal?: number; iva?: number; total?: number };
+  totals?: { subtotal?: number; discount?: number; iva?: number; shipping?: number; total?: number };
+  coupon?: { code?: string; type?: string; value?: number; description?: string };
   metadata?: { status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' };
   viewedAt?: string | null;
   createdAt?: string;

@@ -5,7 +5,7 @@ import { Router }        from '@angular/router';
 
 import { ClientService }                   from '../../../../core/services/client.service';
 import { QuotationService }                from '../../../../core/services/quotation.service';
-import { ConfirmService }                  from '../../../../core/services/confirm.service';
+import { ActionFeedbackService }           from '../../../../core/services/action-feedback.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
 import { IconComponent }       from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
@@ -43,7 +43,7 @@ export class ClientsComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
   private readonly quoteSvc  = inject(QuotationService);
   private readonly router    = inject(Router);
-  private readonly confirm   = inject(ConfirmService);
+  private readonly feedback  = inject(ActionFeedbackService);
 
   /** Navega a /admin/cotizaciones?clientId=... para ver el historial */
   viewQuoteHistory(clientId: string): void {
@@ -221,16 +221,29 @@ export class ClientsComponent implements OnInit {
 
   // ── Deactivate ────────────────────────────────────────────────────────────
 
-  async confirmDeactivate(id: string): Promise<void> {
+  confirmDeactivate(id: string): void {
     const client = this.clients.find((c) => c.id === id);
-    const ok = await this.confirm.ask({
-      title: 'Desactivar cliente',
-      message: `${client?.name ?? 'Este cliente'} dejará de aparecer en el directorio activo${client?.hasPortalAccount ? ' y perderá el acceso al portal' : ''}. Podrás reactivarlo luego.`,
-      confirmLabel: 'Desactivar',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    this.deactivate(id);
+    this.feedback.run({
+      confirm: {
+        title: 'Desactivar cliente',
+        message: `${client?.name ?? 'Este cliente'} dejará de aparecer en el directorio activo${client?.hasPortalAccount ? ' y perderá el acceso al portal' : ''}. Podrás reactivarlo luego.`,
+        confirmLabel: 'Desactivar',
+        tone: 'danger',
+      },
+      action: () => this.clientSvc.deactivateClient(id).toPromise(),
+      outcome: () => ({
+        title: 'Cliente desactivado',
+        message: `${client?.name ?? 'El cliente'} fue desactivado del directorio.`,
+        tone: 'success',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al desactivar',
+        message: 'No se pudo desactivar el cliente.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   deactivate(id: string): void {
@@ -290,16 +303,29 @@ export class ClientsComponent implements OnInit {
 
   // ── Revocar portal ────────────────────────────────────────────────────────
 
-  async confirmRevoke(id: string): Promise<void> {
+  confirmRevoke(id: string): void {
     const client = this.clients.find((c) => c.id === id);
-    const ok = await this.confirm.ask({
-      title: 'Revocar acceso al portal',
-      message: `${client?.name ?? 'Este cliente'} ya no podrá iniciar sesión en el portal. El registro CRM se mantiene.`,
-      confirmLabel: 'Revocar acceso',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    this.revokePortal(id);
+    this.feedback.run({
+      confirm: {
+        title: 'Revocar acceso al portal',
+        message: `${client?.name ?? 'Este cliente'} ya no podrá iniciar sesión en el portal. El registro CRM se mantiene.`,
+        confirmLabel: 'Revocar acceso',
+        tone: 'danger',
+      },
+      action: () => this.clientSvc.revokePortalAccess(id).toPromise(),
+      outcome: () => ({
+        title: 'Acceso revocado',
+        message: `${client?.name ?? 'El cliente'} ya no puede acceder al portal.`,
+        tone: 'success',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al revocar',
+        message: 'No se pudo revocar el acceso al portal.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   revokePortal(id: string): void {

@@ -7,7 +7,7 @@ import { UploadService }   from '../../../../core/services/upload.service';
 import { SupplierService } from '../../../../core/services/supplier.service';
 import { IconComponent }   from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
-import { ConfirmService }   from '../../../../core/services/confirm.service';
+import { ActionFeedbackService } from '../../../../core/services/action-feedback.service';
 import {
   ApiProductListItem,
   ApiProductDetail,
@@ -76,7 +76,7 @@ export class ProductsComponent implements OnInit {
   private readonly catalogSvc  = inject(CatalogService);
   private readonly uploadSvc   = inject(UploadService);
   private readonly supplierSvc = inject(SupplierService);
-  private readonly confirm     = inject(ConfirmService);
+  private readonly feedback    = inject(ActionFeedbackService);
 
   // ── List state ────────────────────────────────────────────────────────────
   products:   ApiProductListItem[] = [];
@@ -363,16 +363,29 @@ export class ProductsComponent implements OnInit {
 
   // ── Deactivate ────────────────────────────────────────────────────────────
 
-  async confirmDeactivate(id: string): Promise<void> {
+  confirmDeactivate(id: string): void {
     const product = this.products.find((p) => p.id === id);
-    const ok = await this.confirm.ask({
-      title: 'Desactivar producto',
-      message: `Se ocultará "${product?.name ?? 'este producto'}" del catálogo. Podrás reactivarlo cuando quieras.`,
-      confirmLabel: 'Desactivar',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    this.deactivate(id);
+    this.feedback.run({
+      confirm: {
+        title: 'Desactivar producto',
+        message: `Se ocultará "${product?.name ?? 'este producto'}" del catálogo. Podrás reactivarlo cuando quieras.`,
+        confirmLabel: 'Desactivar',
+        tone: 'danger',
+      },
+      action: () => this.catalogSvc.deactivateProduct(id).toPromise(),
+      outcome: () => ({
+        title: 'Producto desactivado',
+        message: `"${product?.name ?? 'El producto'}" fue ocultado del catálogo.`,
+        tone: 'success',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al desactivar',
+        message: 'No se pudo desactivar el producto.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   deactivate(id: string): void {

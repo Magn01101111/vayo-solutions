@@ -115,3 +115,24 @@ export interface Sale {
   total: number;
   createdAt: string;
 }
+
+export interface MyCoupon {
+  id: string;
+  code: string;
+  type: 'percentage' | 'fixed';
+  value: number;
+  description: string;
+  validUntil: string | null;
+  origin: 'welcome' | 'scan' | 'admin' | 'promo';
+  minSubtotal?: number;
+}
+
+export interface AppNotification {
+  id: string;
+  type: 'new_quote' | 'low_stock' | 'new_review' | 'new_client';
+  title: string;
+  body: string;
+  link: string;
+  read: boolean;
+  createdAt: string;
+}

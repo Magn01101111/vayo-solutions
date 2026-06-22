@@ -3,11 +3,12 @@ import { CommonModule }  from '@angular/common';
 
 import { AuthService }   from '../../../../core/services/auth.service';
 import { ROLE_LABELS }   from '../../../../core/constants/roles';
+import { NotificationBellComponent } from '../../notification-bell/notification-bell.component';
 
 @Component({
   selector: 'app-admin-topbar',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NotificationBellComponent],
   templateUrl: './admin-topbar.component.html',
   styleUrl: './admin-topbar.component.scss',
 })

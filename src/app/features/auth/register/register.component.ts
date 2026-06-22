@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule }   from '@angular/common';
 import { FormsModule }    from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import { AuthService }    from '../../../core/services/auth.service';
 import { ROLE_REDIRECTS } from '../../../core/constants/roles';
@@ -23,6 +23,9 @@ import { IconComponent }  from '../../../shared/components/icon/icon.component';
 export class RegisterComponent {
   private readonly auth   = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly route  = inject(ActivatedRoute);
+
+  readonly fromWelcome = this.route.snapshot.queryParamMap.get('welcome') === '1';
 
   // Form state
   name        = '';

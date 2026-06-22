@@ -7,11 +7,13 @@ import { SaleService, ApiSale } from '../../../../core/services/sale.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { FavoriteService } from '../../../../core/services/favorite.service';
+import { CouponService } from '../../../../core/services/coupon.service';
 import { ProductCardData } from '../../../../core/models/ui.models';
+import { MyCoupon } from '../../../../core/models/app.models';
 import { mapApiProductToCardData } from '../../mapper';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 
-type PortalTab = 'resumen' | 'cotizaciones' | 'compras' | 'favoritos' | 'datos';
+type PortalTab = 'resumen' | 'cotizaciones' | 'compras' | 'favoritos' | 'cupones' | 'datos';
 
 @Component({
   selector: 'app-client-portal',
@@ -27,6 +29,7 @@ export class ClientPortalComponent implements OnInit {
   private quoteSvc = inject(QuotationService);
   private catalogService = inject(CatalogService);
   private favSvc = inject(FavoriteService);
+  private couponSvc = inject(CouponService);
   private router = inject(Router);
 
   // Getter reactivo: siempre muestra el valor más reciente tras una actualización de perfil
@@ -49,6 +52,11 @@ export class ClientPortalComponent implements OnInit {
   actionMsg = signal<string | null>(null);
   actionError = signal<string | null>(null);
 
+  // ── Cupones ────────────────────────────────────────────────────────────────
+  coupons = signal<MyCoupon[]>([]);
+  couponsLoading = signal(false);
+  couponsError = signal<string | null>(null);
+
   // ── Favoritos ──────────────────────────────────────────────────────────────
   private allProducts = signal<ProductCardData[]>([]);
   favoritesLoading = signal(false);
@@ -60,6 +68,7 @@ export class ClientPortalComponent implements OnInit {
   ngOnInit(): void {
     this.loadSummary();
     this.loadFavorites();
+    this.loadCoupons();
   }
 
   private loadSummary(): void {
@@ -157,6 +166,57 @@ export class ClientPortalComponent implements OnInit {
 
   closeSaleDetail(): void {
     this.selectedSale.set(null);
+  }
+
+  private loadCoupons(): void {
+    this.couponsLoading.set(true);
+    this.couponSvc.getMyCoupons().subscribe({
+      next: (res) => {
+        if (res.ok && res.data) {
+          this.coupons.set(res.data);
+        }
+        this.couponsLoading.set(false);
+      },
+      error: () => {
+        this.couponsError.set('Error al cargar cupones');
+        this.couponsLoading.set(false);
+      },
+    });
+  }
+
+  couponStatus(c: MyCoupon): 'vigente' | 'por-vencer' | 'usado' | 'expirado' {
+    const now = new Date();
+    if (c.validUntil && new Date(c.validUntil) < now) return 'expirado';
+    if (c.validUntil) {
+      const diff = (new Date(c.validUntil).getTime() - now.getTime()) / (1000 * 60 * 60 * 24);
+      if (diff <= 3) return 'por-vencer';
+    }
+    return 'vigente';
+  }
+
+  couponStatusLabel(c: MyCoupon): string {
+    const s = this.couponStatus(c);
+    if (s === 'vigente') return 'Vigente';
+    if (s === 'por-vencer') return 'Por vencer';
+    if (s === 'usado') return 'Usado';
+    return 'Expirado';
+  }
+
+  couponStatusClass(c: MyCoupon): string {
+    const s = this.couponStatus(c);
+    if (s === 'vigente') return 'badge badge-success';
+    if (s === 'por-vencer') return 'badge badge-warning';
+    return 'badge badge-danger';
+  }
+
+  couponValueLabel(c: MyCoupon): string {
+    if (c.type === 'percentage') return `${c.value}% dto.`;
+    return this.formatCLP(c.value) + ' dto.';
+  }
+
+  usarCupon(c: MyCoupon): void {
+    this.quoteSvc.applyCoupon(c.code);
+    this.router.navigate(['/cotizacion']);
   }
 
   private loadFavorites(): void {

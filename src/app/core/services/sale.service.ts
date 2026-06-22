@@ -36,6 +36,7 @@ export interface ApiSale {
     shipping?: number;
     total?: number;
   };
+  coupon?: { code?: string; type?: string; value?: number; description?: string };
   currency?: string;
   paymentMethod?: SalePaymentMethod;
   status?: SaleStatus;

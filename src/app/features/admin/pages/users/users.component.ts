@@ -6,7 +6,7 @@ import { UserService }                 from '../../../../core/services/user.serv
 import { ApiUser, CreateUserPayload }  from '../../../../core/models/api.models';
 import { IconComponent }               from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent }          from '../../../../shared/components/vayo-modal/vayo-modal.component';
-import { ConfirmService }              from '../../../../core/services/confirm.service';
+import { ActionFeedbackService }       from '../../../../core/services/action-feedback.service';
 
 /**
  * Gestiona el personal interno de VAYO con acceso al panel: COTIZADORES.
@@ -38,8 +38,8 @@ function emptyForm(): UserForm {
   styleUrl: './users.component.scss',
 })
 export class UsersComponent implements OnInit {
-  private readonly userSvc = inject(UserService);
-  private readonly confirm = inject(ConfirmService);
+  private readonly userSvc  = inject(UserService);
+  private readonly feedback = inject(ActionFeedbackService);
 
   cotizadores: ApiUser[] = [];
   loading   = true;
@@ -142,16 +142,29 @@ export class UsersComponent implements OnInit {
     }
   }
 
-  async confirmDeactivate(id: string): Promise<void> {
+  confirmDeactivate(id: string): void {
     const user = this.cotizadores.find((u) => u.id === id);
-    const ok = await this.confirm.ask({
-      title: 'Desactivar cotizador',
-      message: `${user?.name ?? 'Este usuario'} perderá el acceso al panel. Podrás reactivarlo cuando quieras.`,
-      confirmLabel: 'Desactivar',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    this.deactivate(id);
+    this.feedback.run({
+      confirm: {
+        title: 'Desactivar cotizador',
+        message: `${user?.name ?? 'Este usuario'} perderá el acceso al panel. Podrás reactivarlo cuando quieras.`,
+        confirmLabel: 'Desactivar',
+        tone: 'danger',
+      },
+      action: () => this.userSvc.deactivateCotizador(id).toPromise(),
+      outcome: () => ({
+        title: 'Cotizador desactivado',
+        message: `${user?.name ?? 'El usuario'} ya no tiene acceso al panel.`,
+        tone: 'success',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al desactivar',
+        message: 'No se pudo desactivar el usuario.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   deactivate(id: string): void {

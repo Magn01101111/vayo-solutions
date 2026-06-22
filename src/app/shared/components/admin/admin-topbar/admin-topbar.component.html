@@ -6,6 +6,7 @@
 
   @if (user) {
     <div class="topbar__user">
+      <app-notification-bell />
       <div class="topbar__info" aria-label="Usuario actual">
         <span class="topbar__name">{{ user.name }}</span>
         <span class="topbar__role">{{ roleLabel }}</span>

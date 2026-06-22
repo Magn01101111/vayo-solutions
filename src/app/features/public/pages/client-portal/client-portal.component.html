@@ -10,7 +10,7 @@
   </header>
 
   <nav class="portal-tabs" role="tablist">
-    @for (tab of ['resumen', 'cotizaciones', 'compras', 'favoritos', 'datos']; track tab) {
+    @for (tab of ['resumen', 'cotizaciones', 'compras', 'favoritos', 'cupones', 'datos']; track tab) {
       <button
         class="portal-tab"
         [class.active]="activeTab() === tab"
@@ -18,7 +18,12 @@
         role="tab"
         (click)="setTab($any(tab))"
       >
-        {{ tab === 'resumen' ? 'Resumen' : tab === 'cotizaciones' ? 'Cotizaciones' : tab === 'compras' ? 'Compras' : tab === 'favoritos' ? 'Favoritos' : 'Mis datos' }}
+        @if (tab === 'resumen') { Resumen }
+        @else if (tab === 'cotizaciones') { Cotizaciones }
+        @else if (tab === 'compras') { Compras }
+        @else if (tab === 'favoritos') { Favoritos }
+        @else if (tab === 'cupones') { Mis cupones @if (coupons().length > 0) { <span class="tab-badge">{{ coupons().length }}</span> } }
+        @else { Mis datos }
       </button>
     }
   </nav>
@@ -146,6 +151,49 @@
               }
             </tbody>
           </table>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══════════ MIS CUPONES ═══════════ -->
+  @if (activeTab() === 'cupones') {
+    <div class="portal-content">
+      @if (couponsLoading()) {
+        <p class="state-msg">Cargando cupones…</p>
+      } @else if (couponsError()) {
+        <p class="portal-error">{{ couponsError() }}</p>
+      } @else if (coupons().length === 0) {
+        <div class="portal-empty">
+          <p>No tienes cupones disponibles en este momento.</p>
+          <p class="portal-hint">Los cupones de bienvenida y del escáner aparecen aquí.</p>
+          <a routerLink="/catalogo" class="btn btn-primary">Explorar catálogo</a>
+        </div>
+      } @else {
+        <div class="coupon-list">
+          @for (c of coupons(); track c.id) {
+            <div class="coupon-card" [class.coupon-card--used]="couponStatus(c) === 'expirado'">
+              <div class="coupon-card__left">
+                <span class="coupon-code">{{ c.code }}</span>
+                <span class="coupon-value">{{ couponValueLabel(c) }}</span>
+              </div>
+              <div class="coupon-card__body">
+                <p class="coupon-desc">{{ c.description }}</p>
+                @if (c.validUntil) {
+                  <p class="coupon-expiry">Vence el {{ formatDate(c.validUntil) }}</p>
+                }
+                @if (c.minSubtotal && c.minSubtotal > 0) {
+                  <p class="coupon-min">Mínimo {{ formatCLP(c.minSubtotal) }}</p>
+                }
+              </div>
+              <div class="coupon-card__right">
+                <span [class]="couponStatusClass(c)">{{ couponStatusLabel(c) }}</span>
+                @if (couponStatus(c) === 'vigente' || couponStatus(c) === 'por-vencer') {
+                  <button class="btn btn-primary btn-sm" (click)="usarCupon(c)">Usar en cotización</button>
+                }
+              </div>
+            </div>
+          }
         </div>
       }
     </div>

@@ -146,6 +146,20 @@
             <span>Subtotal</span>
             <span class="mono">{{ formatCLP(detailSale.totals.subtotal) }}</span>
           </div>
+          @if ((detailSale.totals.discount ?? 0) > 0) {
+            <div class="sa-detail__tot-row sa-detail__tot-row--discount">
+              <span>
+                Descuento
+                @if (detailSale.coupon?.code) {
+                  <span class="coupon-chip">
+                    {{ detailSale.coupon?.code }}
+                    @if (detailSale.coupon?.type === 'percentage') { · {{ detailSale.coupon?.value }}% }
+                  </span>
+                }
+              </span>
+              <span class="mono">− {{ formatCLP(detailSale.totals.discount) }}</span>
+            </div>
+          }
           <div class="sa-detail__tot-row">
             <span>IVA</span>
             <span class="mono">{{ formatCLP(detailSale.totals.iva) }}</span>

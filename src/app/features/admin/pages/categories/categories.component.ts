@@ -6,7 +6,7 @@ import { CatalogService }         from '../../../../core/services/catalog.servic
 import { ApiCategory }            from '../../../../core/models/api.models';
 import { IconComponent }          from '../../../../shared/components/icon/icon.component';
 import { VayoModalComponent }     from '../../../../shared/components/vayo-modal/vayo-modal.component';
-import { ConfirmService }         from '../../../../core/services/confirm.service';
+import { ActionFeedbackService }  from '../../../../core/services/action-feedback.service';
 
 type FormMode = 'create' | 'edit';
 
@@ -24,7 +24,7 @@ interface CategoryForm {
 })
 export class CategoriesComponent implements OnInit {
   private readonly catalogSvc = inject(CatalogService);
-  private readonly confirm    = inject(ConfirmService);
+  private readonly feedback   = inject(ActionFeedbackService);
 
   categories: ApiCategory[] = [];
   loading    = true;
@@ -107,25 +107,35 @@ export class CategoriesComponent implements OnInit {
     });
   }
 
-  async confirmDeactivate(id: string): Promise<void> {
+  confirmDeactivate(id: string): void {
     const cat = this.categories.find((c) => c.id === id);
-    const ok = await this.confirm.ask({
-      title: 'Desactivar categoría',
-      message: `Se desactivará "${cat?.name ?? 'esta categoría'}". Los productos asociados podrían dejar de mostrarse en ella. Podrás reactivarla luego.`,
-      confirmLabel: 'Desactivar',
-      tone: 'danger',
-    });
-    if (!ok) return;
-    this.deactivate(id);
+    this.feedback.run({
+      confirm: {
+        title: 'Desactivar categoría',
+        message: `Se desactivará "${cat?.name ?? 'esta categoría'}". Los productos asociados podrían dejar de mostrarse en ella. Podrás reactivarla luego.`,
+        confirmLabel: 'Desactivar',
+        tone: 'danger',
+      },
+      action: () => this.catalogSvc.deactivateCategory(id).toPromise(),
+      outcome: () => ({
+        title: 'Categoría desactivada',
+        message: `"${cat?.name ?? 'La categoría'}" fue desactivada.`,
+        tone: 'success',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al desactivar',
+        message: 'No se pudo desactivar la categoría.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   deactivate(id: string): void {
     this.catalogSvc.deactivateCategory(id).subscribe({
-      next: () => {
-        this.load();
-      },
-      error: () => {
-      },
+      next: () => { this.load(); },
+      error: () => {},
     });
   }
 

@@ -9,6 +9,7 @@ import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vay
 import { ClientService } from '../../../../core/services/client.service';
 import { SaleService }   from '../../../../core/services/sale.service';
 import { AuthService }   from '../../../../core/services/auth.service';
+import { ActionFeedbackService } from '../../../../core/services/action-feedback.service';
 import { ApiClient }     from '../../../../core/models/api.models';
 
 @Component({
@@ -19,11 +20,12 @@ import { ApiClient }     from '../../../../core/models/api.models';
   styleUrl: './quotes.component.scss',
 })
 export class QuotesComponent implements OnInit {
-  private readonly quoteSvc  = inject(QuotationApiService);
-  private readonly clientSvc = inject(ClientService);
-  private readonly saleSvc   = inject(SaleService);
-  private readonly route     = inject(ActivatedRoute);
-  private readonly authSvc   = inject(AuthService);
+  private readonly quoteSvc   = inject(QuotationApiService);
+  private readonly clientSvc  = inject(ClientService);
+  private readonly saleSvc    = inject(SaleService);
+  private readonly route      = inject(ActivatedRoute);
+  private readonly authSvc    = inject(AuthService);
+  private readonly feedback   = inject(ActionFeedbackService);
 
   quotes: ApiQuote[] = [];
   loading   = true;
@@ -102,25 +104,57 @@ export class QuotesComponent implements OnInit {
     this.load();
   }
 
-  /** Convierte una cotización en venta. */
+  /** Convierte una cotización en venta con flujo confirmar → resultado. */
   convertToSale(quote: ApiQuote): void {
-    this.convertMsg   = '';
-    this.convertError = '';
-    this.convertingId = quote._id;
+    this.feedback.run({
+      confirm: {
+        title: `Aceptar cotización ${quote.folio}`,
+        message: 'Se creará una venta y se descontará el stock de los productos.',
+        confirmLabel: 'Aceptar y crear venta',
+        tone: 'primary',
+      },
+      action: () => this.saleSvc.createFromQuote(quote._id).toPromise().then((res) => res!),
+      outcome: (res) => ({
+        title: `¡Venta creada — ${res.data.folio}!`,
+        message: `La cotización ${quote.folio} fue aceptada y la venta quedó registrada.`,
+        tone: 'success',
+        actions: [
+          { label: 'Ver venta creada', route: ['/admin/ventas'], dismiss: true, tone: 'primary' },
+          { label: 'Seguir en cotizaciones', dismiss: true, tone: 'ghost' },
+        ],
+      }),
+      onError: (e: any) => ({
+        title: 'No se pudo crear la venta',
+        message: e?.error?.error ?? 'Verifica que la cotización no haya sido convertida antes.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
+  }
 
-    this.saleSvc.createFromQuote(quote._id).subscribe({
-      next: (res) => {
-        this.convertingId = '';
-        this.convertMsg = `Venta ${res.data.folio} creada a partir de ${quote.folio}.`;
-        this.load(); // refresca: la cotización pasa a "aceptada"
-        setTimeout(() => (this.convertMsg = ''), 5000);
+  /** Rechaza una cotización con flujo confirmar → resultado. */
+  rejectQuote(quote: ApiQuote): void {
+    this.feedback.run({
+      confirm: {
+        title: `Rechazar cotización ${quote.folio}`,
+        message: '¿Seguro que deseas rechazar esta cotización?',
+        confirmLabel: 'Rechazar',
+        tone: 'danger',
       },
-      error: (err) => {
-        this.convertingId = '';
-        this.convertError = err?.error?.error ?? 'No se pudo convertir la cotización.';
-        setTimeout(() => (this.convertError = ''), 6000);
-      },
-    });
+      action: () => this.quoteSvc.updateStatus(quote._id, 'rejected').toPromise().then((res) => res!),
+      outcome: () => ({
+        title: 'Cotización rechazada',
+        message: `La cotización ${quote.folio} fue rechazada.`,
+        tone: 'primary',
+        actions: [{ label: 'Aceptar', dismiss: true }],
+      }),
+      onError: () => ({
+        title: 'Error al rechazar',
+        message: 'No se pudo actualizar el estado.',
+        tone: 'danger',
+        actions: [{ label: 'Cerrar', dismiss: true }],
+      }),
+    }).then(() => this.load());
   }
 
   clearFilters(): void {
