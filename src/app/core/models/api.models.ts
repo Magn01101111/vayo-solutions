@@ -171,6 +171,12 @@ export interface CreateProductPayload {
   brand: string;
   model?: string;
   price: number | null;
+  /** Precio de oferta vigente (null = sin oferta). Debe ser menor al precio normal. */
+  offerPrice?: number | null;
+  /** Inicio de vigencia de la oferta (ISO o YYYY-MM-DD). null = sin restricción. */
+  offerStartsAt?: string | null;
+  /** Término de vigencia de la oferta (ISO o YYYY-MM-DD). null = sin restricción. */
+  offerEndsAt?: string | null;
   currency?: 'CLP';
   stock: number;
   availabilityStatus: ApiProductAvailabilityStatus;

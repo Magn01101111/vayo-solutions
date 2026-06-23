@@ -1,9 +1,19 @@
 import { Injectable } from '@angular/core';
-import { ProductCardData } from '../models/ui.models';
 
 const STORAGE_KEY = 'vayo_behavior';
 const MAX_RECENT = 20;
 const DECAY = 0.85;
+
+/**
+ * Forma mínima que necesita el tracking. Compatible estructuralmente con
+ * `ProductCardData` y `ProductDetailData` (ambos exponen estos campos).
+ */
+export interface TrackableProduct {
+  id: string;
+  category?: string;
+  categorySlug?: string;
+  tags?: string[];
+}
 
 interface BehaviorStore {
   categories: Record<string, number>;
@@ -23,7 +33,7 @@ export class BehaviorService {
     this.load();
   }
 
-  trackProductView(product: ProductCardData): void {
+  trackProductView(product: TrackableProduct): void {
     const slug = product.categorySlug ?? product.category ?? '';
     if (slug) this.increment('categories', slug);
     for (const tag of product.tags ?? []) this.increment('tags', tag);

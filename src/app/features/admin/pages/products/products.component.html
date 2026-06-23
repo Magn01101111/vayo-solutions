@@ -26,6 +26,10 @@
         <option [value]="cat.slug">{{ cat.name }}</option>
       }
     </select>
+    <label class="pr-offer-filter" [class.is-on]="filterOffer">
+      <input type="checkbox" [(ngModel)]="filterOffer" name="filterOffer" />
+      <span class="pr-offer-filter__tag">Solo ofertas</span>
+    </label>
     <button class="btn btn--outline btn--sm" type="button" (click)="onSearch()">
       Buscar
     </button>
@@ -35,8 +39,8 @@
     <p class="state-txt">Cargando productos…</p>
   } @else if (loadError) {
     <p class="state-txt state-txt--error">{{ loadError }}</p>
-  } @else if (products.length === 0) {
-    <p class="state-txt">No se encontraron productos.</p>
+  } @else if (displayedProducts.length === 0) {
+    <p class="state-txt">{{ filterOffer ? 'No hay productos con oferta vigente.' : 'No se encontraron productos.' }}</p>
   } @else {
     <div class="tbl-wrap">
       <table class="data-table" aria-label="Listado de productos">
@@ -55,7 +59,7 @@
           </tr>
         </thead>
         <tbody>
-          @for (product of products; track product.id) {
+          @for (product of displayedProducts; track product.id) {
             <tr [class.row--inactive]="!product.isActive">
               <td class="td--thumb">
                 @if (product.imageUrl) {
@@ -75,7 +79,20 @@
               </td>
               <td>{{ product.categoryName || categoryName(product.categoryId) }}</td>
               <td>{{ product.brand }}</td>
-              <td class="td--price mono">{{ formatPrice(product.price) }}</td>
+              <td class="td--price mono">
+                @if (isOnOffer(product)) {
+                  <div class="pr-price-offer">
+                    <span class="pr-price-now">{{ formatPrice(product.offerPrice ?? null) }}</span>
+                    <span class="pr-off-badge">−{{ offerPercent(product) }}%</span>
+                  </div>
+                  <span class="pr-price-old">{{ formatPrice(product.price) }}</span>
+                } @else if (hasScheduledOffer(product)) {
+                  {{ formatPrice(product.price) }}
+                  <span class="pr-off-badge pr-off-badge--idle" title="Oferta configurada fuera de vigencia">−{{ offerPercent(product) }}%</span>
+                } @else {
+                  {{ formatPrice(product.price) }}
+                }
+              </td>
               <td class="td--num mono">{{ product.stock }}</td>
               <td>
                 <span class="badge" [class.badge--ok]="product.availabilityStatus === 'in_stock'"
@@ -169,6 +186,30 @@
       </div>
     </div>
 
+    <!-- ── Oferta ─────────────────────────────────────────────────────────── -->
+    <div class="form-field">
+      <label class="form-label" for="pr-offer">Precio de oferta (CLP)</label>
+      <input id="pr-offer" class="form-control mono" type="number" min="0"
+             [(ngModel)]="form.offerPrice" name="offerPrice"
+             placeholder="Vacío = sin oferta" />
+      <small>Debe ser menor al precio normal. Define una oferta para que el producto aparezca en la sección "Ofertas" de la portada y el catálogo.</small>
+    </div>
+
+    @if (form.offerPrice) {
+      <div class="form-grid">
+        <div class="form-field">
+          <label class="form-label" for="pr-offer-start">Inicio de oferta (opcional)</label>
+          <input id="pr-offer-start" class="form-control" type="date"
+                 [(ngModel)]="form.offerStartsAt" name="offerStartsAt" />
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="pr-offer-end">Término de oferta (opcional)</label>
+          <input id="pr-offer-end" class="form-control" type="date"
+                 [(ngModel)]="form.offerEndsAt" name="offerEndsAt" />
+        </div>
+      </div>
+    }
+
     <div class="form-field">
       <label class="form-label" for="pr-avail">Disponibilidad</label>
       <select id="pr-avail" class="form-control" [(ngModel)]="form.availabilityStatus" name="availabilityStatus">
@@ -195,7 +236,7 @@
         <input type="checkbox" [(ngModel)]="form.isFeatured" name="isFeatured" />
         <span>
           <strong>Producto destacado</strong>
-          <small>Aparecerá en la portada de ofertas del sitio público.</small>
+          <small>Aparecerá en la sección "Productos destacados" de la portada.</small>
         </span>
       </label>
     </div>

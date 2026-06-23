@@ -10,6 +10,9 @@
         }
       </p>
     </div>
+    <button class="btn btn--primary" type="button" (click)="nuevaCotizacion()">
+      + Nueva cotización
+    </button>
   </div>
 
   <div class="qt-toolbar">
@@ -21,14 +24,38 @@
       name="folioQ"
       (keyup.enter)="searchByFolio()"
     />
+
+    <select class="form-control qt-toolbar__sel" [(ngModel)]="statusQ" name="statusQ" (change)="load()" aria-label="Filtrar por estado">
+      <option value="">Todos los estados</option>
+      @for (opt of statusOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    <select class="form-control qt-toolbar__sel" [(ngModel)]="sourceQ" name="sourceQ" (change)="load()" aria-label="Filtrar por origen">
+      <option value="">Todos los orígenes</option>
+      @for (opt of sourceOptions; track opt.value) {
+        <option [value]="opt.value">{{ opt.label }}</option>
+      }
+    </select>
+
+    @if (isAdmin) {
+      <select class="form-control qt-toolbar__sel" [(ngModel)]="cotizadorQ" name="cotizadorQ" (change)="mineOnly = false; load()" aria-label="Filtrar por cotizador">
+        <option value="">Todos los cotizadores</option>
+        @for (c of cotizadores; track c.id) {
+          <option [value]="c.id">{{ c.name }}</option>
+        }
+      </select>
+    }
+
     <button class="btn btn--outline btn--sm" type="button" (click)="searchByFolio()">
       Buscar
     </button>
     <label class="qt-toolbar__mine">
-      <input type="checkbox" [(ngModel)]="mineOnly" name="mineOnly" (change)="load()" />
+      <input type="checkbox" [(ngModel)]="mineOnly" name="mineOnly" (change)="cotizadorQ = ''; load()" />
       <span>Solo mis cotizaciones</span>
     </label>
-    @if (folioQ || clientIdQ) {
+    @if (hasActiveFilters) {
       <button class="btn btn--ghost btn--sm" type="button" (click)="clearFilters()">
         Limpiar filtros
       </button>
@@ -56,7 +83,8 @@
             <th scope="col">Folio</th>
             <th scope="col">Fecha</th>
             <th scope="col">Cliente</th>
-            <th scope="col">Email</th>
+            <th scope="col">Origen</th>
+            <th scope="col">Cotizador</th>
             <th scope="col" class="td--num">Items</th>
             <th scope="col">Total</th>
             <th scope="col">Estado</th>
@@ -68,8 +96,18 @@
             <tr>
               <td class="td--folio mono">{{ q.folio || '—' }}</td>
               <td>{{ formatDate(q.createdAt) }}</td>
-              <td class="td--name">{{ q.client?.name || '—' }}</td>
-              <td class="mono td--email">{{ q.client?.email || '—' }}</td>
+              <td class="td--name">
+                {{ q.client?.name || '—' }}
+                @if (q.client?.email) {
+                  <span class="qt-subtle mono">{{ q.client?.email }}</span>
+                }
+              </td>
+              <td>
+                <span class="badge" [class]="sourceBadge(q.source)">
+                  <span class="dot" aria-hidden="true"></span>{{ sourceLabel(q.source) }}
+                </span>
+              </td>
+              <td class="td--name">{{ authorName(q) }}</td>
               <td class="td--num">{{ q.items?.length || 0 }}</td>
               <td class="td--price mono">{{ formatCLP(q.totals?.total) }}</td>
               <td>
@@ -163,6 +201,23 @@
           <span class="qt-detail__label mono">FECHA</span>
           <p class="qt-detail__val">{{ formatDate(dq.createdAt) }}</p>
         </div>
+      </div>
+
+      <div class="qt-detail__row">
+        <div>
+          <span class="qt-detail__label mono">ORIGEN</span>
+          <span class="badge" [class]="sourceBadge(dq.source)">
+            <span class="dot" aria-hidden="true"></span>{{ sourceLabel(dq.source) }}
+          </span>
+        </div>
+        <div>
+          <span class="qt-detail__label mono">ATENDIDO POR</span>
+          <p class="qt-detail__val">{{ authorName(dq) }}</p>
+          @if (dq.source === 'client') {
+            <p class="qt-detail__sub mono">Autogestión del cliente</p>
+          }
+        </div>
+        <div></div>
       </div>
 
       <span class="qt-detail__label mono">PRODUCTOS ({{ dq.items?.length || 0 }})</span>

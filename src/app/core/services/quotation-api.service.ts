@@ -4,11 +4,17 @@ import { API_CONFIG } from '../config/api.config';
 import { ApiResponse } from '../models/api.models';
 import { Observable } from 'rxjs';
 
+export type QuoteSource = 'client' | 'guest' | 'assisted';
+
 export interface ApiQuote {
   _id: string;
   folio: string;
   clientId?: string | null;
-  createdBy?: string | null;
+  /** Cotizador que la creó (poblado). null = autogestión del cliente/invitado. */
+  createdBy?: { id: string; name: string; email?: string } | string | null;
+  createdByName?: string | null;
+  /** Origen: cliente con cuenta, invitado, o venta asistida por cotizador. */
+  source?: QuoteSource;
   client?: { name?: string; email?: string; phone?: string };
   items?: Array<{
     productId: string;
@@ -35,7 +41,7 @@ export class QuotationApiService {
   }
 
   /** Lista cotizaciones con filtros opcionales (folio, clientId, status). */
-  getQuotes(params?: { folio?: string; clientId?: string; status?: string; mine?: string; createdBy?: string }): Observable<ApiResponse<ApiQuote[]>> {
+  getQuotes(params?: { folio?: string; clientId?: string; status?: string; mine?: string; createdBy?: string; source?: string }): Observable<ApiResponse<ApiQuote[]>> {
     return this.api.get<ApiResponse<ApiQuote[]>>(API_CONFIG.endpoints.quotes, params);
   }
 

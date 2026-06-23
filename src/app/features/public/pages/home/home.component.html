@@ -114,6 +114,9 @@
               </span>
             </div>
             <div class="catx__name">{{ cat.label }}</div>
+            @if (cat.refs) {
+              <div class="catx__refs mono">{{ cat.refs }} {{ cat.refs === 1 ? 'ref' : 'refs' }}</div>
+            }
             <div class="catx__go">
               <span class="mono">Ver familia</span>
               <span class="catx__arr" aria-hidden="true">→</span>
@@ -124,6 +127,27 @@
     }
   </div>
 </section>
+
+<!-- ── RECOMENDADO PARA TI (F3-2) ────────────────────────────────────────── -->
+@if (recommended.length > 0) {
+  <section class="section">
+    <div class="container">
+      <div class="block-head">
+        <div>
+          <h2 class="block-head__title">Recomendado para ti</h2>
+          <p class="block-head__sub mono">Según los repuestos que has explorado</p>
+        </div>
+        <a routerLink="/catalogo" class="block-head__opt">Ver catálogo completo →</a>
+      </div>
+
+      <div class="pgrid">
+        @for (product of recommended; track product.id) {
+          <ng-container *ngTemplateOutlet="productCard; context: { $implicit: product, recommended: true }" />
+        }
+      </div>
+    </div>
+  </section>
+}
 
 <!-- ── PRODUCTOS DESTACADOS ──────────────────────────────────────────────── -->
 <section class="section">
@@ -229,10 +253,13 @@
 </section>
 
 <!-- ── Plantilla reutilizable de card de producto ─────────────────────────── -->
-<ng-template #productCard let-product>
+<ng-template #productCard let-product let-recommended="recommended">
   <article class="pcard">
     <a [routerLink]="['/catalogo', product.id]" class="pcard__media">
       <span class="pcard__grid" aria-hidden="true"></span>
+      @if (recommended) {
+        <span class="pcard__ribbon mono">Recomendado</span>
+      }
       @if (product.offerPrice) {
         <span class="pcard__flag mono">−{{ product.offerDiscountPercent }}%</span>
       }
@@ -255,7 +282,10 @@
     }
 
     <div class="pcard__b">
-      <div class="pcard__cat mono">{{ product.category }}</div>
+      <div class="pcard__meta">
+        <span class="pcard__cat mono">{{ product.category }}</span>
+        <span [class]="stockBadgeClass(product.shortStatus)">{{ product.shortStatus }}</span>
+      </div>
       <h3 class="pcard__name"><a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a></h3>
       <div class="pcard__sku mono">Ref: {{ product.sku }}</div>
 

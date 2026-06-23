@@ -11,151 +11,355 @@
       </p>
     </header>
 
-    <!-- ── Toolbar: búsqueda + orden + ofertas ────────────────────────────── -->
-    <div class="cat-toolbar">
-      <div class="cat-toolbar__search">
-        <input
-          type="search"
-          class="form-control search"
-          [ngModel]="searchQuery"
-          (ngModelChange)="onSearchInput($event)"
-          placeholder="Buscar por nombre, SKU o marca…"
-          autocomplete="off"
-        />
-        @if (searchQuery) {
-          <button
-            type="button"
-            class="cat-toolbar__clear"
-            (click)="clearSearch()"
-            aria-label="Limpiar búsqueda"
-          ><app-icon name="close" [size]="15" /></button>
-        }
-      </div>
+    <!-- ── Layout: panel lateral + grilla ─────────────────────────────────── -->
+    <div class="cat-layout">
 
-      <select
-        class="form-control cat-toolbar__sort"
-        [ngModel]="sortBy()"
-        (ngModelChange)="sortBy.set($event); currentPage.set(1); doSearch()"
-        aria-label="Ordenar por"
-      >
-        <option value="newest">Más recientes</option>
-        <option value="price_asc">Precio: menor a mayor</option>
-        <option value="price_desc">Precio: mayor a menor</option>
-        <option value="name">Nombre A-Z</option>
-      </select>
-
-      <label class="cat-switch" [class.is-on]="onlyOffers()">
-        <input
-          type="checkbox"
-          class="cat-switch__input"
-          [ngModel]="onlyOffers()"
-          (ngModelChange)="onlyOffers.set($event); currentPage.set(1); doSearch()"
-        />
-        <span class="cat-switch__track" aria-hidden="true"><span class="cat-switch__thumb"></span></span>
-        <span class="cat-switch__label">Solo ofertas</span>
-      </label>
-    </div>
-
-    <!-- ── Filtro por categoría (chips) ───────────────────────────────────── -->
-    <div class="cat-chips" role="group" aria-label="Filtrar por categoría">
-      @for (category of categories; track category.id) {
-        <button
-          type="button"
-          class="cat-chip"
-          [class.is-active]="isCategoryActive(category)"
-          (click)="selectCategory(category.label)"
-        >{{ category.label }}</button>
-      }
-    </div>
-
-    <!-- ── Conteo ─────────────────────────────────────────────────────────── -->
-    <p class="cat-count mono">
-      {{ searchQuery ? totalProducts() : filteredProducts.length }}
-      {{ (searchQuery ? totalProducts() : filteredProducts.length) === 1 ? 'producto' : 'productos' }}
-    </p>
-
-    <!-- ── Estados / grilla ───────────────────────────────────────────────── -->
-    @if (isLoading) {
-      <div class="cat-state"><div class="cat-state__spinner" aria-label="Cargando…"></div></div>
-    } @else if (errorMessage) {
-      <div class="cat-state cat-state--error">{{ errorMessage }}</div>
-    } @else if (filteredProducts.length === 0) {
-      <div class="cat-state">
-        <h3>Sin resultados</h3>
-        <p>No se encontraron productos con esos filtros. Prueba con otros términos o quita el filtro de ofertas.</p>
-      </div>
-    } @else {
-      <div class="cat-grid">
-        @for (product of displayedProducts; track product.id) {
-          <article class="card card--product cat-card">
-
-            <button
-              type="button"
-              class="cat-card__fav"
-              [class.is-active]="favSvc.isFavorite(product.id)"
-              (click)="favSvc.toggle(product.id); $event.stopPropagation()"
-              [attr.aria-label]="favSvc.isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
-              [attr.aria-pressed]="favSvc.isFavorite(product.id)"
-            >
-              <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"/>
-              </svg>
+      <!-- ── PANEL DE FILTROS (sticky) ────────────────────────────────────── -->
+      <aside class="cat-filters" aria-label="Filtros">
+        <div class="cat-filters__head">
+          <h2 class="cat-filters__title">Filtros</h2>
+          @if (activeFilterCount() > 0) {
+            <button type="button" class="cat-filters__clear" (click)="clearAllFilters()">
+              Limpiar ({{ activeFilterCount() }})
             </button>
+          }
+        </div>
 
-            <a [routerLink]="['/catalogo', product.id]" class="cat-card__media">
-              @if (product.imageUrl) {
-                <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
-              } @else {
-                <div class="cat-card__placeholder" aria-hidden="true"><span class="mono">{{ product.sku }}</span></div>
-              }
-              @if (product.offerPrice) {
-                <span class="badge badge--offer cat-card__flag">−{{ product.offerDiscountPercent }}%</span>
-              }
-            </a>
+        <!-- Categoría -->
+        <section class="fgroup">
+          <h3 class="fgroup__title">Categoría</h3>
+          <div class="fgroup__body">
+            @for (category of categories; track category.id) {
+              <label class="fcheck">
+                <input
+                  type="checkbox"
+                  [checked]="isCategorySelected(category.slug)"
+                  (change)="toggleCategory(category.slug)"
+                />
+                <span class="fcheck__box" aria-hidden="true"></span>
+                <span class="fcheck__label">{{ category.label }}</span>
+                <span class="fcheck__count mono">{{ countForCategory(category.slug) }}</span>
+              </label>
+            }
+          </div>
+        </section>
 
-            <div class="card__body cat-card__body">
-              <span class="eyebrow">{{ product.category }}</span>
-              <h3 class="cat-card__title">
-                <a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a>
-              </h3>
-              <p class="cat-card__sku mono">Ref: {{ product.sku }}</p>
+        <!-- Disponibilidad -->
+        <section class="fgroup">
+          <h3 class="fgroup__title">Disponibilidad</h3>
+          <div class="fgroup__body">
+            @for (opt of availabilityOptions; track opt.value) {
+              <label class="fcheck">
+                <input
+                  type="checkbox"
+                  [checked]="isAvailabilitySelected(opt.value)"
+                  (change)="toggleAvailability(opt.value)"
+                />
+                <span class="fcheck__box" aria-hidden="true"></span>
+                <span class="fcheck__label">{{ opt.label }}</span>
+              </label>
+            }
+            <label class="fcheck">
+              <input
+                type="checkbox"
+                [checked]="onlyOffers()"
+                (change)="toggleOffers(!onlyOffers())"
+              />
+              <span class="fcheck__box" aria-hidden="true"></span>
+              <span class="fcheck__label">Solo ofertas</span>
+            </label>
+          </div>
+        </section>
 
-              <div class="cat-card__price">
-                @if (product.offerPrice) {
-                  <span class="cat-card__price-old mono">{{ product.price }}</span>
-                  <span class="cat-card__price-now mono">{{ product.offerPrice }}</span>
-                } @else {
-                  <span class="cat-card__price-now mono">{{ product.price }}</span>
-                }
-              </div>
+        <!-- Rango de precio -->
+        <section class="fgroup">
+          <h3 class="fgroup__title">Rango de precio (CLP)</h3>
+          <div class="fgroup__body">
+            <div class="fprice">
+              <input
+                type="number"
+                class="form-control fprice__in"
+                placeholder="Mín"
+                min="0"
+                [ngModel]="priceMin()"
+                (ngModelChange)="onPriceMin($event)"
+                aria-label="Precio mínimo"
+              />
+              <span class="fprice__sep" aria-hidden="true">–</span>
+              <input
+                type="number"
+                class="form-control fprice__in"
+                placeholder="Máx"
+                min="0"
+                [ngModel]="priceMax()"
+                (ngModelChange)="onPriceMax($event)"
+                aria-label="Precio máximo"
+              />
+            </div>
+          </div>
+        </section>
 
-              <div class="cat-card__foot">
-                <span [class]="stockBadgeClass(product.shortStatus)">
-                  <span class="dot" aria-hidden="true"></span>{{ product.shortStatus }}
-                </span>
-              </div>
+        <!-- Origen (FUNCIÓN PROPUESTA — sin dato OEM/compatible en backend) -->
+        <section class="fgroup fgroup--proposed">
+          <h3 class="fgroup__title">Origen <span class="fp">Función propuesta</span></h3>
+          <div class="fgroup__body">
+            <label class="fcheck is-disabled"><input type="checkbox" disabled /><span class="fcheck__box" aria-hidden="true"></span><span class="fcheck__label">Original (OEM)</span></label>
+            <label class="fcheck is-disabled"><input type="checkbox" disabled /><span class="fcheck__box" aria-hidden="true"></span><span class="fcheck__label">Compatible</span></label>
+          </div>
+        </section>
 
-              <div class="cat-card__actions">
+        <!-- Compatibilidad por equipo (FUNCIÓN PROPUESTA) -->
+        <section class="fgroup fgroup--proposed">
+          <h3 class="fgroup__title">Compatibilidad <span class="fp">Función propuesta</span></h3>
+          <div class="fgroup__body">
+            <select class="form-control" disabled aria-label="Compatibilidad por equipo">
+              <option>Seleccionar equipo…</option>
+            </select>
+          </div>
+        </section>
+      </aside>
+
+      <!-- ── COLUMNA PRINCIPAL ────────────────────────────────────────────── -->
+      <div class="cat-main">
+
+        <!-- Toolbar: búsqueda + orden -->
+        <div class="cat-toolbar">
+          <div class="cat-toolbar__search">
+            <input
+              type="search"
+              class="form-control search"
+              [ngModel]="searchQuery()"
+              (ngModelChange)="onSearchInput($event)"
+              placeholder="Buscar por nombre, SKU o categoría…"
+              autocomplete="off"
+            />
+            @if (searchQuery()) {
+              <button
+                type="button"
+                class="cat-toolbar__clear"
+                (click)="clearSearch()"
+                aria-label="Limpiar búsqueda"
+              ><app-icon name="close" [size]="15" /></button>
+            }
+          </div>
+
+          <select
+            class="form-control cat-toolbar__sort"
+            [ngModel]="sortBy()"
+            (ngModelChange)="setSort($event)"
+            aria-label="Ordenar por"
+          >
+            <option value="newest">Más recientes</option>
+            <option value="price_asc">Precio: menor a mayor</option>
+            <option value="price_desc">Precio: mayor a menor</option>
+            <option value="name">Nombre A-Z</option>
+          </select>
+        </div>
+
+        <!-- Conteo -->
+        <p class="cat-count mono">
+          {{ resultCount() }} {{ resultCount() === 1 ? 'producto' : 'productos' }}
+        </p>
+
+        <!-- Estados / grilla -->
+        @if (isLoading) {
+          <div class="cat-state"><div class="cat-state__spinner" aria-label="Cargando…"></div></div>
+        } @else if (errorMessage) {
+          <div class="cat-state cat-state--error">{{ errorMessage }}</div>
+        } @else if (resultCount() === 0) {
+          <div class="cat-state">
+            <h3>Sin resultados</h3>
+            <p>No se encontraron productos con esos filtros. Prueba con otros términos o limpia los filtros.</p>
+            @if (activeFilterCount() > 0) {
+              <button type="button" class="btn btn--ghost btn--sm" (click)="clearAllFilters()">Limpiar filtros</button>
+            }
+          </div>
+        } @else {
+          <div class="cat-grid">
+            @for (product of displayedProducts(); track product.id) {
+              <article class="card card--product cat-card" [class.is-comparing]="isComparing(product.id)">
+
                 <button
                   type="button"
-                  class="btn btn--ghost btn--sm"
-                  [disabled]="product.shortStatus === 'Sin stock'"
-                  (click)="qs.addItem(product)"
-                >Agregar</button>
-                <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>
-              </div>
-            </div>
-          </article>
+                  class="cat-card__fav"
+                  [class.is-active]="favSvc.isFavorite(product.id)"
+                  (click)="favSvc.toggle(product.id); $event.stopPropagation()"
+                  [attr.aria-label]="favSvc.isFavorite(product.id) ? 'Quitar de favoritos' : 'Agregar a favoritos'"
+                  [attr.aria-pressed]="favSvc.isFavorite(product.id)"
+                >
+                  <svg viewBox="0 0 24 24" width="17" height="17" aria-hidden="true">
+                    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 1 0-7.78 7.78L12 21.23l8.84-8.84a5.5 5.5 0 0 0 0-7.78Z"/>
+                  </svg>
+                </button>
+
+                <a [routerLink]="['/catalogo', product.id]" class="cat-card__media">
+                  @if (product.imageUrl) {
+                    <img [src]="product.imageUrl" [alt]="product.name" loading="lazy" />
+                  } @else {
+                    <div class="cat-card__placeholder" aria-hidden="true"><span class="mono">{{ product.sku }}</span></div>
+                  }
+                  @if (product.offerPrice) {
+                    <span class="badge badge--offer cat-card__flag">−{{ product.offerDiscountPercent }}%</span>
+                  }
+                </a>
+
+                <div class="card__body cat-card__body">
+                  <span class="eyebrow">{{ product.category }}</span>
+                  <h3 class="cat-card__title">
+                    <a [routerLink]="['/catalogo', product.id]">{{ product.name }}</a>
+                  </h3>
+                  <p class="cat-card__sku mono">Ref: {{ product.sku }}</p>
+
+                  <div class="cat-card__price">
+                    @if (product.offerPrice) {
+                      <span class="cat-card__price-old mono">{{ product.price }}</span>
+                      <span class="cat-card__price-now mono">{{ product.offerPrice }}</span>
+                    } @else {
+                      <span class="cat-card__price-now mono">{{ product.price }}</span>
+                    }
+                  </div>
+
+                  <div class="cat-card__foot">
+                    <span [class]="stockBadgeClass(product.shortStatus)">
+                      <span class="dot" aria-hidden="true"></span>{{ product.shortStatus }}
+                    </span>
+                    <label class="cat-card__compare" [class.is-on]="isComparing(product.id)">
+                      <input
+                        type="checkbox"
+                        [checked]="isComparing(product.id)"
+                        (change)="toggleCompare(product.id)"
+                      />
+                      Comparar
+                    </label>
+                  </div>
+
+                  <div class="cat-card__actions">
+                    <button
+                      type="button"
+                      class="btn btn--ghost btn--sm"
+                      [disabled]="product.shortStatus === 'Sin stock'"
+                      (click)="qs.addItem(product)"
+                    >Agregar</button>
+                    <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+
+          <!-- Paginación numerada -->
+          <vayo-pagination
+            [page]="currentPage()"
+            [pageCount]="pageCount()"
+            (pageChange)="goToPage($event)"
+          />
         }
       </div>
-
-      <!-- ── Paginación numerada ──────────────────────────────────────────── -->
-      <vayo-pagination
-        [page]="currentPage()"
-        [pageCount]="pageCount"
-        (pageChange)="goToPage($event)"
-      />
-    }
-
+    </div>
   </div>
+
+  <!-- ── BARRA DE COMPARACIÓN (sticky inferior) ───────────────────────────── -->
+  @if (compareItems().length > 0) {
+    <div class="cmpbar" role="region" aria-label="Comparador de productos">
+      <div class="container cmpbar__in">
+        <div class="cmpbar__items">
+          <span class="cmpbar__count mono">{{ compareItems().length }}/4</span>
+          @for (item of compareItems(); track item.id) {
+            <span class="cmpbar__chip">
+              <span class="cmpbar__chip-name">{{ item.name }}</span>
+              <button type="button" (click)="toggleCompare(item.id)" aria-label="Quitar de comparación">
+                <app-icon name="close" [size]="13" />
+              </button>
+            </span>
+          }
+          @if (compareLimitHit()) {
+            <span class="cmpbar__limit mono">Máximo 4 productos</span>
+          }
+        </div>
+        <div class="cmpbar__actions">
+          <button type="button" class="btn btn--ghost btn--sm" (click)="clearCompare()">Limpiar</button>
+          <button type="button" class="btn btn--primary btn--sm" [disabled]="compareItems().length < 2" (click)="openCompare()">
+            Comparar ({{ compareItems().length }})
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ── MODAL DE COMPARACIÓN ─────────────────────────────────────────────── -->
+  @if (compareOpen()) {
+    <div class="cmp-overlay" (click)="closeCompare()">
+      <div class="cmp-modal" role="dialog" aria-modal="true" aria-label="Comparación de productos" (click)="$event.stopPropagation()">
+        <div class="cmp-modal__head">
+          <h2>Comparar productos</h2>
+          <button type="button" class="cmp-modal__close" (click)="closeCompare()" aria-label="Cerrar">
+            <app-icon name="close" [size]="18" />
+          </button>
+        </div>
+        <div class="cmp-modal__body">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th></th>
+                @for (item of compareItems(); track item.id) {
+                  <th>
+                    <div class="cmp-th">
+                      @if (item.imageUrl) {
+                        <img [src]="item.imageUrl" [alt]="item.name" />
+                      } @else {
+                        <div class="cmp-th__ph mono">{{ item.sku }}</div>
+                      }
+                      <a [routerLink]="['/catalogo', item.id]" (click)="closeCompare()">{{ item.name }}</a>
+                    </div>
+                  </th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <th class="cmp-row">Categoría</th>
+                @for (item of compareItems(); track item.id) { <td>{{ item.category }}</td> }
+              </tr>
+              <tr>
+                <th class="cmp-row">Referencia (SKU)</th>
+                @for (item of compareItems(); track item.id) { <td class="mono">{{ item.sku }}</td> }
+              </tr>
+              <tr>
+                <th class="cmp-row">Precio</th>
+                @for (item of compareItems(); track item.id) {
+                  <td class="mono">
+                    @if (item.offerPrice) {
+                      <span class="cmp-now">{{ item.offerPrice }}</span>
+                      <span class="cmp-old">{{ item.price }}</span>
+                    } @else {
+                      {{ item.price }}
+                    }
+                  </td>
+                }
+              </tr>
+              <tr>
+                <th class="cmp-row">Disponibilidad</th>
+                @for (item of compareItems(); track item.id) {
+                  <td><span [class]="stockBadgeClass(item.shortStatus)">{{ item.shortStatus }}</span></td>
+                }
+              </tr>
+              <tr>
+                <th class="cmp-row"></th>
+                @for (item of compareItems(); track item.id) {
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn--primary btn--sm"
+                      [disabled]="item.shortStatus === 'Sin stock'"
+                      (click)="qs.addItem(item)"
+                    >Agregar</button>
+                  </td>
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  }
 </div>

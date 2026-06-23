@@ -37,6 +37,11 @@ interface ProductForm {
   model:              string;
   description:        string;
   price:              string;
+  /** Precio de oferta (vacío = sin oferta). */
+  offerPrice:         string;
+  /** Vigencia de la oferta en formato YYYY-MM-DD (vacío = sin límite). */
+  offerStartsAt:      string;
+  offerEndsAt:        string;
   stock:              string;
   availabilityStatus: ApiProductAvailabilityStatus;
   tags:               string;
@@ -56,6 +61,9 @@ function emptyForm(): ProductForm {
     model:              '',
     description:        '',
     price:              '',
+    offerPrice:         '',
+    offerStartsAt:      '',
+    offerEndsAt:        '',
     stock:              '0',
     availabilityStatus: 'in_stock',
     tags:               '',
@@ -87,6 +95,8 @@ export class ProductsComponent implements OnInit {
   loadError  = '';
   searchQ    = '';
   filterCat  = '';
+  /** Filtro: mostrar solo productos con oferta vigente. */
+  filterOffer = false;
 
   // ── Modal ─────────────────────────────────────────────────────────────────
   showModal  = false;
@@ -160,7 +170,39 @@ export class ProductsComponent implements OnInit {
   clearSearch(): void {
     this.searchQ  = '';
     this.filterCat = '';
+    this.filterOffer = false;
     this.load();
+  }
+
+  // ── Ofertas ─────────────────────────────────────────────────────────────────
+
+  /** ¿El producto tiene una oferta vigente? (precio oferta < precio y dentro de fechas). */
+  isOnOffer(p: ApiProductListItem): boolean {
+    if (p.offerPrice == null || p.offerPrice <= 0) return false;
+    if (p.price == null || p.offerPrice >= p.price) return false;
+    const now = Date.now();
+    if (p.offerStartsAt && new Date(p.offerStartsAt).getTime() > now) return false;
+    if (p.offerEndsAt && new Date(p.offerEndsAt).getTime() < now) return false;
+    return true;
+  }
+
+  /** ¿Tiene oferta configurada pero aún no vigente o ya expirada? (para distinguir en la tabla). */
+  hasScheduledOffer(p: ApiProductListItem): boolean {
+    return p.offerPrice != null && p.offerPrice > 0 &&
+      p.price != null && p.offerPrice < p.price && !this.isOnOffer(p);
+  }
+
+  /** Porcentaje de descuento de la oferta (0 si no aplica). */
+  offerPercent(p: ApiProductListItem): number {
+    if (p.offerPrice == null || p.price == null || p.price <= 0) return 0;
+    if (p.offerPrice >= p.price) return 0;
+    return Math.round(((p.price - p.offerPrice) / p.price) * 100);
+  }
+
+  /** Lista visible aplicando el filtro de ofertas (los demás filtros van al backend). */
+  get displayedProducts(): ApiProductListItem[] {
+    if (!this.filterOffer) return this.products;
+    return this.products.filter((p) => this.isOnOffer(p));
   }
 
   // ── Modal ─────────────────────────────────────────────────────────────────
@@ -194,6 +236,9 @@ export class ProductsComponent implements OnInit {
       model:              product.model ?? '',
       description:        product.description ?? '',
       price:              product.price != null ? String(product.price) : '',
+      offerPrice:         product.offerPrice != null ? String(product.offerPrice) : '',
+      offerStartsAt:      product.offerStartsAt ? product.offerStartsAt.slice(0, 10) : '',
+      offerEndsAt:        product.offerEndsAt ? product.offerEndsAt.slice(0, 10) : '',
       stock:              String(product.stock),
       availabilityStatus: product.availabilityStatus,
       tags:               product.tags.join(', '),
@@ -316,6 +361,25 @@ export class ProductsComponent implements OnInit {
       return;
     }
 
+    // Validación de oferta: si hay precio de oferta, debe haber precio normal y ser menor.
+    const offerNum = this.form.offerPrice !== '' ? Number(this.form.offerPrice) : null;
+    if (offerNum != null) {
+      const priceNum = price !== '' ? Number(price) : null;
+      if (priceNum == null) {
+        this.formError = 'Para fijar una oferta primero define el precio normal.';
+        return;
+      }
+      if (offerNum <= 0 || offerNum >= priceNum) {
+        this.formError = 'El precio de oferta debe ser mayor a 0 y menor al precio normal.';
+        return;
+      }
+      if (this.form.offerStartsAt && this.form.offerEndsAt &&
+          this.form.offerStartsAt > this.form.offerEndsAt) {
+        this.formError = 'La fecha de inicio de la oferta no puede ser posterior al término.';
+        return;
+      }
+    }
+
     this.saving    = true;
     this.formError = '';
 
@@ -332,6 +396,9 @@ export class ProductsComponent implements OnInit {
       model:              this.form.model.trim() || undefined,
       description:        this.form.description.trim() || undefined,
       price:              price !== '' ? Number(price) : null,
+      offerPrice:         offerNum,
+      offerStartsAt:      offerNum != null && this.form.offerStartsAt ? this.form.offerStartsAt : null,
+      offerEndsAt:        offerNum != null && this.form.offerEndsAt ? this.form.offerEndsAt : null,
       stock:              Number(stock) || 0,
       availabilityStatus: this.form.availabilityStatus,
       tags,

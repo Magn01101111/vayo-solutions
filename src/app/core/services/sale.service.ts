@@ -41,6 +41,9 @@ export interface ApiSale {
   paymentMethod?: SalePaymentMethod;
   status?: SaleStatus;
   notes?: string;
+  /** Cotizador/admin que registró la venta (poblado). */
+  createdBy?: { id: string; name: string } | string | null;
+  createdByName?: string | null;
   createdAt?: string;
   updatedAt?: string;
 }

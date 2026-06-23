@@ -5,6 +5,7 @@ import { DashboardComponent }   from './pages/dashboard/dashboard.component';
 import { ProductsComponent }    from './pages/products/products.component';
 import { CategoriesComponent }  from './pages/categories/categories.component';
 import { QuotesComponent }      from './pages/quotes/quotes.component';
+import { QuoteCreateComponent } from './pages/quote-create/quote-create.component';
 import { ClientsComponent }     from './pages/clients/clients.component';
 import { UsersComponent }       from './pages/users/users.component';
 import { SalesComponent }       from './pages/sales/sales.component';
@@ -17,6 +18,7 @@ export const ADMIN_ROUTES: Routes = [
   { path: '',             component: DashboardComponent },
   { path: 'productos',    component: ProductsComponent },
   { path: 'categorias',   component: CategoriesComponent },
+  { path: 'cotizaciones/nueva', component: QuoteCreateComponent },
   { path: 'cotizaciones', component: QuotesComponent },
   { path: 'clientes',     component: ClientsComponent },
   {

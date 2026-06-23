@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import {
   mapApiProductDetailToProductDetailData,
+  mapApiProductToCardData,
   mapApiProductToRelatedProduct,
 } from '../../mapper';
 import {
@@ -16,6 +17,7 @@ import {
   RelatedProduct,
 } from '../../../../core/models/ui.models';
 import { CatalogService } from '../../../../core/services/catalog.service';
+import { BehaviorService } from '../../../../core/services/behavior.service';
 import { QuotationService } from '../../../../core/services/quotation.service';
 import { IconComponent }                from '../../../../shared/components/icon/icon.component';
 import { VayoPriceComponent }          from '../../../../shared/components/vayo-price/vayo-price.component';
@@ -38,6 +40,7 @@ export class ProductDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly catalogService = inject(CatalogService);
+  private readonly behavior = inject(BehaviorService);
   private readonly reviewService = inject(ReviewService);
   private readonly auth = inject(AuthService);
   private qs = inject(QuotationService);
@@ -147,7 +150,6 @@ export class ProductDetailComponent implements OnInit {
       this.showAddToCartFeedback.set(false);
 
       this.loadProduct(id);
-      this.loadRelatedProducts(id);
       this.loadReviews(id);
     });
   }
@@ -425,7 +427,12 @@ export class ProductDetailComponent implements OnInit {
 
     this.catalogService.getProductById(id).subscribe({
       next: (response) => {
-        this.product.set(mapApiProductDetailToProductDetailData(response.data));
+        const detail = mapApiProductDetailToProductDetailData(response.data);
+        this.product.set(detail);
+        // F3-1: alimentar el motor de recomendaciones con la vista de ficha.
+        this.behavior.trackProductView(detail);
+        // F3-3: relacionados por categoría/tags del producto ya cargado.
+        this.loadRelatedProducts(detail);
         this.isLoading.set(false);
       },
       error: () => {
@@ -435,15 +442,38 @@ export class ProductDetailComponent implements OnInit {
     });
   }
 
-  private loadRelatedProducts(currentId: string): void {
+  /**
+   * F3-3: relacionados coherentes — primero misma categoría, luego por
+   * solapamiento de tags. Si no hay coincidencias, completa con otros productos
+   * para no dejar la sección vacía.
+   */
+  private loadRelatedProducts(current: ProductDetailData): void {
     this.catalogService.getProducts().subscribe({
       next: (response) => {
-        this.relatedProducts.set(
-          response.data
-            .filter((item) => item.id !== currentId)
-            .slice(0, 3)
-            .map((item) => mapApiProductToRelatedProduct(item)),
-        );
+        const currentTags = new Set(current.tags ?? []);
+
+        const scored = response.data
+          .filter((item) => item.id !== current.id)
+          .map((item) => {
+            const card = mapApiProductToCardData(item);
+            const sameCategory = card.categorySlug === current.categorySlug;
+            const tagOverlap = (card.tags ?? []).filter((t) => currentTags.has(t)).length;
+            // Misma categoría pesa fuerte; cada tag compartido suma.
+            const score = (sameCategory ? 10 : 0) + tagOverlap;
+            return { item, card, score };
+          })
+          .sort((a, b) => b.score - a.score);
+
+        // Preferimos los que tienen alguna relación real; si no hay, igual
+        // mostramos los primeros para no dejar hueco.
+        const related = (scored.some((s) => s.score > 0)
+          ? scored.filter((s) => s.score > 0)
+          : scored
+        )
+          .slice(0, 4)
+          .map((s) => mapApiProductToRelatedProduct(s.item));
+
+        this.relatedProducts.set(related);
       },
       error: () => {
         this.relatedProducts.set([]);

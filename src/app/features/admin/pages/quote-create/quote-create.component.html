@@ -1,0 +1,210 @@
+<div class="admin-page">
+
+  <div class="block-head">
+    <div>
+      <h2 class="block-head__title">Nueva cotización</h2>
+      <p class="block-head__sub mono">Cotización asistida — elige un cliente y arma los productos</p>
+    </div>
+    <button class="btn btn--ghost" type="button" (click)="cancel()">Cancelar</button>
+  </div>
+
+  <div class="qc-layout">
+    <div class="qc-main">
+
+      <!-- ── 1. Cliente ─────────────────────────────────────────────────── -->
+      <section class="card panel--pad">
+        <div class="block-head">
+          <span class="block-head__bar" aria-hidden="true"></span>
+          <h3 class="block-head__title">1 · Cliente</h3>
+        </div>
+
+        @if (selectedClient(); as c) {
+          <div class="qc-client-sel">
+            <div>
+              <strong>{{ c.name }}</strong>
+              @if (c.company) { <span class="qc-muted"> · {{ c.company }}</span> }
+              <div class="qc-muted mono">
+                {{ c.rut || 'Sin RUT' }}
+                @if (c.email) { · {{ c.email }} }
+                @if (c.hasPortalAccount) { · <span class="badge badge--ok">Con portal</span> }
+                @else { · <span class="badge badge--soft">Solo CRM</span> }
+              </div>
+            </div>
+            <button class="btn btn--ghost btn--sm" type="button" (click)="clearClient()">Cambiar</button>
+          </div>
+        } @else {
+          <div class="qc-client-search">
+            <input
+              class="form-control search"
+              type="search"
+              placeholder="Buscar cliente por RUT, nombre o empresa…"
+              [ngModel]="clientSearch()"
+              (ngModelChange)="clientSearch.set($event); searchClients()"
+              autocomplete="off"
+            />
+            @if (searchingClient()) { <p class="qc-muted mono">Buscando…</p> }
+            @if (clientResults().length > 0) {
+              <ul class="qc-results">
+                @for (c of clientResults(); track c.id) {
+                  <li>
+                    <button type="button" (click)="selectClient(c)">
+                      <strong>{{ c.name }}</strong>
+                      <span class="qc-muted mono">{{ c.rut || 'Sin RUT' }}{{ c.company ? ' · ' + c.company : '' }}</span>
+                    </button>
+                  </li>
+                }
+              </ul>
+            } @else if (clientSearch().trim().length >= 2 && !searchingClient()) {
+              <p class="qc-muted">Sin resultados. Puedes crear el cliente abajo.</p>
+            }
+
+            <button class="qc-newclient-toggle" type="button" (click)="toggleNewClient()">
+              {{ showNewClient() ? '− Cancelar nuevo cliente' : '+ Crear cliente nuevo' }}
+            </button>
+
+            @if (showNewClient()) {
+              <div class="qc-newclient">
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label class="form-label">Nombre / Razón social <span class="qc-req">*</span></label>
+                    <input class="form-control" [(ngModel)]="newClient.name" name="ncName" />
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label">RUT</label>
+                    <input class="form-control mono" [(ngModel)]="newClient.rut" name="ncRut" placeholder="12.345.678-9" />
+                  </div>
+                </div>
+                <div class="form-grid">
+                  <div class="form-field">
+                    <label class="form-label">Email</label>
+                    <input class="form-control" [(ngModel)]="newClient.email" name="ncEmail" />
+                  </div>
+                  <div class="form-field">
+                    <label class="form-label">Teléfono</label>
+                    <input class="form-control mono" [(ngModel)]="newClient.phone" name="ncPhone" placeholder="+56 9 1234 5678" />
+                  </div>
+                </div>
+                <div class="form-field">
+                  <label class="form-label">Empresa (opcional)</label>
+                  <input class="form-control" [(ngModel)]="newClient.company" name="ncCompany" />
+                </div>
+                @if (clientError()) { <p class="qc-error">{{ clientError() }}</p> }
+                <button class="btn btn--primary btn--sm" type="button" [disabled]="creatingClient()" (click)="createClient()">
+                  {{ creatingClient() ? 'Creando…' : 'Crear y seleccionar' }}
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- ── 2. Productos ───────────────────────────────────────────────── -->
+      <section class="card panel--pad">
+        <div class="block-head">
+          <span class="block-head__bar" aria-hidden="true"></span>
+          <h3 class="block-head__title">2 · Productos</h3>
+        </div>
+
+        <div class="qc-prod-search">
+          <input
+            class="form-control search"
+            type="search"
+            placeholder="Buscar producto por nombre, SKU o marca…"
+            [ngModel]="productSearch()"
+            (ngModelChange)="productSearch.set($event)"
+            autocomplete="off"
+          />
+          @if (filteredProducts().length > 0) {
+            <ul class="qc-results">
+              @for (p of filteredProducts(); track p.id) {
+                <li>
+                  <button type="button" (click)="addProduct(p)">
+                    <strong>{{ p.name }}</strong>
+                    <span class="qc-muted mono">{{ p.sku }} · {{ formatCLP(unitPrice(p)) }}</span>
+                  </button>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+
+        @if (lines().length === 0) {
+          <p class="qc-muted qc-empty">Aún no agregas productos. Búscalos arriba.</p>
+        } @else {
+          <table class="data-table data-table--compact qc-lines">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th class="td--num">Cant.</th>
+                <th class="td--right">P. unit.</th>
+                <th class="td--right">Total</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (l of lines(); track l.product.id) {
+                <tr>
+                  <td>
+                    {{ l.product.name }}
+                    <span class="qc-muted mono">{{ l.product.sku }}</span>
+                  </td>
+                  <td class="td--num">
+                    <input class="form-control qc-qty mono" type="number" min="1"
+                           [ngModel]="l.qty" (ngModelChange)="setLineQty(l.product.id, $event)" />
+                  </td>
+                  <td class="td--right mono">{{ formatCLP(unitPrice(l.product)) }}</td>
+                  <td class="td--right mono">{{ formatCLP(lineTotal(l)) }}</td>
+                  <td class="td--right">
+                    <button class="btn btn--ghost-danger btn--xs" type="button" (click)="removeLine(l.product.id)">Quitar</button>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        }
+      </section>
+    </div>
+
+    <!-- ── Resumen ──────────────────────────────────────────────────────── -->
+    <aside class="qc-summary">
+      <div class="card panel--pad">
+        <h3 class="qc-summary__title">Resumen</h3>
+
+        <div class="qc-summary__client">
+          @if (selectedClient(); as c) {
+            <span class="qc-muted mono">Cliente</span>
+            <strong>{{ c.name }}</strong>
+          } @else {
+            <span class="qc-muted">Selecciona un cliente</span>
+          }
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Cupón (opcional)</label>
+          <input class="form-control mono" [ngModel]="couponCode()" (ngModelChange)="couponCode.set($event)" placeholder="CÓDIGO" />
+        </div>
+
+        <div class="form-field">
+          <label class="form-label">Observaciones (opcional)</label>
+          <textarea class="form-control" rows="2" [ngModel]="generalNotes()" (ngModelChange)="generalNotes.set($event)"></textarea>
+        </div>
+
+        <div class="qc-summary__row">
+          <span>Subtotal ({{ lines().length }} ítem(s))</span>
+          <span class="mono">{{ formatCLP(subtotal()) }}</span>
+        </div>
+        <p class="qc-summary__note mono">IVA, descuentos y envío se calculan al generar.</p>
+
+        @if (submitError()) { <p class="qc-error">{{ submitError() }}</p> }
+
+        <button class="btn btn--primary btn--block" type="button"
+                [disabled]="!canSubmit() || submitting()" (click)="submit()">
+          {{ submitting() ? 'Generando…' : 'Generar cotización' }}
+        </button>
+        @if (!canSubmit()) {
+          <p class="qc-summary__hint mono">Necesitas un cliente y al menos un producto.</p>
+        }
+      </div>
+    </aside>
+  </div>
+</div>

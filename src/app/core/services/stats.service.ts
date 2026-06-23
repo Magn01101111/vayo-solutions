@@ -26,6 +26,11 @@ export interface DashboardStats {
     expired: number;
   };
   topProducts: Array<{ name: string; qty: number; revenue: number }>;
+  /** Métricas del "viaje del cupón" (F5-1). */
+  coupons?: {
+    redeemed: number;
+    savings: number;
+  };
 }
 
 @Injectable({ providedIn: 'root' })

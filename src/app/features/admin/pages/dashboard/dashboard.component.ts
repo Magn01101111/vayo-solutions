@@ -93,6 +93,12 @@ export class DashboardComponent implements OnInit {
     return Math.round((s.quotesByStatus.accepted / total) * 100);
   });
 
+  /** Cupones efectivamente canjeados (F5-1). */
+  couponsRedeemed = computed(() => this.stats()?.coupons?.redeemed ?? 0);
+
+  /** Ahorro total otorgado vía cupones (F5-1). */
+  couponSavings = computed(() => this.stats()?.coupons?.savings ?? 0);
+
   /** Ticket promedio = ingresos / ventas. */
   ticketProm = computed(() => {
     const s = this.stats();

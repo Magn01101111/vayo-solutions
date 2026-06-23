@@ -39,6 +39,8 @@ export interface CatalogCategory {
   label: string;
   slug: string;
   active?: boolean;
+  /** Nº de productos en la categoría (para el tile "N refs" del Home). */
+  refs?: number;
 }
 
 export interface ProductSpec {

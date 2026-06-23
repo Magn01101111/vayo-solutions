@@ -72,6 +72,64 @@
   white-space: nowrap;
 }
 
+// ── Oferta en la tabla ──────────────────────────────────────────────────────
+.pr-price-offer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.pr-price-now {
+  font-weight: var(--fw-bold);
+  color: var(--offer);
+}
+
+.pr-price-old {
+  display: block;
+  font-size: var(--fs-2xs);
+  color: var(--ink-3);
+  text-decoration: line-through;
+}
+
+.pr-off-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-bold);
+  letter-spacing: .02em;
+  color: #fff;
+  background: var(--offer);
+  padding: 2px 6px;
+  border-radius: var(--r-xs);
+  line-height: 1.4;
+
+  // Oferta configurada pero fuera de vigencia → atenuada
+  &--idle {
+    color: var(--ink-3);
+    background: var(--paper-3);
+    border: var(--bw) solid var(--line);
+  }
+}
+
+// ── Filtro "Solo ofertas" en la toolbar ─────────────────────────────────────
+.pr-offer-filter {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+
+  input { width: 16px; height: 16px; accent-color: var(--offer); cursor: pointer; }
+
+  &__tag {
+    font-size: var(--fs-sm);
+    font-weight: var(--fw-medium);
+    color: var(--ink-2);
+  }
+
+  &.is-on &__tag { color: var(--offer); font-weight: var(--fw-bold); }
+}
+
 .td--num {
   text-align: right;
 }

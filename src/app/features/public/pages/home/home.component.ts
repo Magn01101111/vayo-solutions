@@ -16,6 +16,7 @@ import { ApiService } from '../../../../core/services/api.service';
 import { API_CONFIG } from '../../../../core/config/api.config';
 import { ApiBanner } from '../../../../core/models/api.models';
 import { AuthService } from '../../../../core/services/auth.service';
+import { BehaviorService } from '../../../../core/services/behavior.service';
 import { IconComponent } from '../../../../shared/components/icon/icon.component';
 import { WelcomeBannerComponent } from '../../../../shared/components/welcome-banner/welcome-banner.component';
 
@@ -31,6 +32,7 @@ export class HomeComponent implements OnInit, OnDestroy {
   private readonly cacheService   = inject(CacheService);
   private readonly apiService     = inject(ApiService);
   private readonly authSvc        = inject(AuthService);
+  private readonly behavior       = inject(BehaviorService);
   qs = inject(QuotationService);
 
   showWelcomeBanner = signal(WelcomeBannerComponent.shouldShow(this.authSvc));
@@ -41,6 +43,8 @@ export class HomeComponent implements OnInit, OnDestroy {
   featured: ProductCardData[] = [];
   /** Productos en oferta vigente. */
   offers: ProductCardData[] = [];
+  /** Recomendaciones personalizadas según el comportamiento (F3-2). */
+  recommended: ProductCardData[] = [];
   /** Banners promocionales activos. */
   banners: ApiBanner[] = [];
   /** Categorías para la sección "explora por categoría". */
@@ -102,6 +106,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   trackByCategory(_: number, item: CatalogCategory): string { return item.id; }
   trackByStep(_: number, item: StepItem): number { return item.number; }
 
+  /** Clase de badge según disponibilidad (F4-1). */
+  stockBadgeClass(shortStatus: string): string {
+    if (shortStatus === 'En stock')  return 'badge badge--ok';
+    if (shortStatus === 'A pedido')  return 'badge badge--warn';
+    if (shortStatus === 'Sin stock') return 'badge badge--danger';
+    return 'badge badge--soft';
+  }
+
   /** "Ahorras $X" para ofertas (precio normal − precio oferta). null si no aplica. */
   savings(p: ProductCardData): string | null {
     if (p.priceRaw == null || p.offerPriceRaw == null) return null;
@@ -119,6 +131,34 @@ export class HomeComponent implements OnInit, OnDestroy {
     return new Intl.DateTimeFormat('es-CL', { day: '2-digit', month: '2-digit', year: 'numeric' }).format(d);
   }
 
+  /**
+   * F3-2: ordena el catálogo por afinidad con el comportamiento guardado.
+   * Pondera categorías y tags preferidos; excluye los ya vistos recientemente
+   * para sugerir piezas nuevas. Devuelve [] si no hay historial (la sección se
+   * oculta y no queda un estado vacío feo).
+   */
+  private computeRecommended(products: ProductCardData[]): ProductCardData[] {
+    const topCats = this.behavior.topCategories();
+    const topTags = this.behavior.topTags();
+    if (topCats.length === 0 && topTags.length === 0) return [];
+
+    const recentIds = new Set(this.behavior.recent());
+    const catRank = new Map(topCats.map((slug, i) => [slug, topCats.length - i]));
+    const tagRank = new Map(topTags.map((tag, i) => [tag, topTags.length - i]));
+
+    const scored = products
+      .filter((p) => !recentIds.has(p.id))
+      .map((p) => {
+        const catScore = (catRank.get(p.categorySlug) ?? 0) * 3;
+        const tagScore = (p.tags ?? []).reduce((acc, t) => acc + (tagRank.get(t) ?? 0), 0);
+        return { p, score: catScore + tagScore };
+      })
+      .filter((s) => s.score > 0)
+      .sort((a, b) => b.score - a.score);
+
+    return scored.slice(0, 4).map((s) => s.p);
+  }
+
   private loadData(): void {
     this.isLoading = true;
     this.errorMessage = '';
@@ -127,9 +167,10 @@ export class HomeComponent implements OnInit, OnDestroy {
       categoriesResponse: this.catalogService.getCategories(),
       featuredResponse:   this.catalogService.getFeaturedProducts(),
       offersResponse:     this.catalogService.getOffers(),
+      productsResponse:   this.catalogService.getProducts(),
       bannersResponse:    this.apiService.get<{ ok: boolean; data: ApiBanner[] }>(API_CONFIG.endpoints.banners),
     }).subscribe({
-      next: ({ categoriesResponse, featuredResponse, offersResponse, bannersResponse }) => {
+      next: ({ categoriesResponse, featuredResponse, offersResponse, productsResponse, bannersResponse }) => {
         this.categories = categoriesResponse.data.map(mapApiCategoryToCatalogCategory);
 
         this.featured = featuredResponse.data.map((product) => {
@@ -151,6 +192,26 @@ export class HomeComponent implements OnInit, OnDestroy {
         if (bannersResponse.ok && bannersResponse.data) {
           this.banners = bannersResponse.data.filter((b) => b.isActive).sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
         }
+
+        // F3-2: recomendaciones según historial de navegación.
+        const allProducts = productsResponse.data.map((product) => {
+          const category = this.categories.find((c) => c.id === product.categoryId);
+          return mapApiProductToCardData(
+            product,
+            category ? { name: category.label, slug: category.slug } : undefined,
+          );
+        });
+        this.recommended = this.computeRecommended(allProducts);
+
+        // F4-1: conteo real de "N refs" por categoría para los tiles del Home.
+        const refsBySlug = new Map<string, number>();
+        for (const p of allProducts) {
+          refsBySlug.set(p.categorySlug, (refsBySlug.get(p.categorySlug) ?? 0) + 1);
+        }
+        this.categories = this.categories.map((c) => ({
+          ...c,
+          refs: refsBySlug.get(c.slug) ?? 0,
+        }));
 
         this.isLoading = false;
       },

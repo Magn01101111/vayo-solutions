@@ -108,6 +108,18 @@
         </div>
       </a>
 
+      <!-- KPI · Viaje del cupón (datos reales F5-1) -->
+      <a class="card-s kpi" routerLink="/admin/cotizaciones">
+        <div class="kpi__top">
+          <span class="kpi__ic"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7" aria-hidden="true"><path d="M20 12V22H4V12"/><path d="M22 7H2v5h20V7z"/><path d="M12 22V7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z" stroke-linejoin="round"/></svg></span>
+        </div>
+        <div class="kpi__v">{{ couponsRedeemed() }}</div>
+        <div class="kpi__l">Cupones canjeados</div>
+        <div class="kpi__foot">
+          <span class="kpi__hint">Ahorro otorgado {{ formatCompactCLP(couponSavings()) }}</span>
+        </div>
+      </a>
+
       <!-- COBRANZA · pagado vs total (dato real, antes ignorado) -->
       <section class="card-s pay">
         <div class="ch"><span class="ch__bar" aria-hidden="true"></span><h3>Cobranza del período</h3><div class="right"><span class="tag">Pagado / total</span></div></div>

@@ -241,6 +241,10 @@
   }
   &__code-txt { position: relative; font-size: var(--fs-md); font-weight: var(--fw-bold); text-transform: uppercase; color: var(--blueprint-art); }
   &__name { font-size: 15px; font-weight: var(--fw-bold); line-height: 1.25; position: relative; color: var(--ink); }
+  &__refs {
+    position: relative; margin-top: 3px;
+    font-size: 10.5px; letter-spacing: .04em; color: var(--ink-3);
+  }
   &__go {
     display: flex; align-items: center; justify-content: space-between;
     margin-top: auto; padding-top: 13px; border-top: var(--bw) solid var(--line-2); position: relative;
@@ -348,6 +352,18 @@
     box-shadow: var(--shadow-sm);
   }
 
+  /* Ribbon "Recomendado" (F3-2) — esquina superior izquierda en navy */
+  &__ribbon {
+    position: absolute; top: 10px; left: 10px; z-index: 2;
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: var(--fs-2xs); font-weight: var(--fw-bold);
+    letter-spacing: var(--ls-wide); text-transform: uppercase;
+    color: var(--navy-100); background: var(--navy-900);
+    padding: 4px 8px; border-radius: var(--r-xs);
+    border-left: var(--bw-3) solid var(--amber);
+    box-shadow: var(--shadow-sm);
+  }
+
   &__qv {
     position: absolute; inset: 0; z-index: 2;
     display: flex; align-items: center; justify-content: center;
@@ -377,6 +393,7 @@
   }
 
   &__b { padding: 14px; display: flex; flex-direction: column; flex: 1; }
+  &__meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
   &__cat { font-size: 9.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-3); }
   &__name {
     font-size: 14px; font-weight: var(--fw-bold); line-height: 1.32; margin: 6px 0 5px; min-height: 37px;

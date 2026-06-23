@@ -43,6 +43,7 @@
             <th scope="col">Fecha</th>
             <th scope="col">Cliente</th>
             <th scope="col">Cotización</th>
+            <th scope="col">Registró</th>
             <th scope="col">Pago</th>
             <th scope="col">Total</th>
             <th scope="col">Estado</th>
@@ -56,6 +57,7 @@
               <td>{{ formatDate(sale.createdAt) }}</td>
               <td class="td--name">{{ sale.client?.name || sale.client?.company || '—' }}</td>
               <td class="mono">{{ sale.quoteFolio || '—' }}</td>
+              <td class="td--name">{{ sale.createdByName || '—' }}</td>
               <td>{{ paymentLabel(sale.paymentMethod) }}</td>
               <td class="td--price mono">{{ formatCLP(sale.totals?.total) }}</td>
               <td>
