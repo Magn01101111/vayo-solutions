@@ -29,7 +29,6 @@ describe('3.Crear Categoría ', function() {
       const element = await driver.findElement(By.CSS_SELECTOR, "body")
       await driver.actions({ bridge: true }).moveToElement(element, 0, 0).perform()
     }
-    await driver.get("https://vayo-solutions.netlify.app/")
     await driver.manage().window().setRect(1024, 536)
     await driver.findElement(By.linkText("Categorías")).click()
     await driver.findElement(By.css(".btn--primary")).click()

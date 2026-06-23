@@ -8,14 +8,34 @@ describe('7. Descargas', function() {
   let vars
   beforeEach(async function() {
     driver = await new Builder().forBrowser('chrome').build()
-    await driver.manage().setTimeouts({ implicit: 10000 })
     vars = {}
   })
   afterEach(async function() {
     await driver.quit();
   })
   it('7. Descargas', async function() {
-    await driver.get("https://vayo-solutions.netlify.app/admin")
+    await driver.get("https://vayo-solutions.netlify.app/")
+    await driver.findElement(By.linkText("Ingresar")).click()
+    await driver.findElement(By.id("email")).click()
+    {
+      const element = await driver.findElement(By.id("email"))
+      await driver.actions({ bridge: true }).moveToElement(element).clickAndHold().perform()
+    }
+    {
+      const element = await driver.findElement(By.id("email"))
+      await driver.actions({ bridge: true }).moveToElement(element).perform()
+    }
+    {
+      const element = await driver.findElement(By.id("email"))
+      await driver.actions({ bridge: true }).moveToElement(element).release().perform()
+    }
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.id("email")).click()
+    await driver.findElement(By.css(".login-card")).click()
+    await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
+    await driver.findElement(By.id("password")).click()
+    await driver.findElement(By.id("password")).sendKeys("Admin2026!")
+    await driver.findElement(By.css(".btn")).click()
     await driver.manage().window().setRect(1024, 536)
     await driver.findElement(By.linkText("Cotizaciones")).click()
     await driver.findElement(By.css("tr:nth-child(1) .btn:nth-child(2)")).click()
@@ -23,5 +43,7 @@ describe('7. Descargas', function() {
     await driver.findElement(By.css(".panel:nth-child(1) > .btn")).click()
     await driver.findElement(By.css(".panel:nth-child(2) > .btn")).click()
     await driver.findElement(By.css(".btn--primary:nth-child(3)")).click()
+    await driver.findElement(By.css(".btn--ghost")).click()
+    await driver.close()
   })
 })

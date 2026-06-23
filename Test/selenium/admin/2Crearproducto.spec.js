@@ -8,7 +8,6 @@ describe('2. Crear producto', function() {
   let vars
   beforeEach(async function() {
     driver = await new Builder().forBrowser('chrome').build()
-    await driver.manage().setTimeouts({ implicit: 10000 })
     vars = {}
   })
   afterEach(async function() {
@@ -17,12 +16,15 @@ describe('2. Crear producto', function() {
   it('2. Crear producto', async function() {
     await driver.get("https://vayo-solutions.netlify.app/")
     await driver.manage().window().setRect(1024, 536)
-    await driver.findElement(By.linkText("Productos")).click()
+    await driver.findElement(By.linkText("Ingresar")).click()
     await driver.findElement(By.id("email")).click()
     await driver.findElement(By.id("email")).sendKeys("admin@vayo.cl")
     await driver.findElement(By.id("password")).click()
     await driver.findElement(By.id("password")).sendKeys("Admin2026!")
     await driver.findElement(By.css(".btn")).click()
+    await driver.findElement(By.linkText("Productos")).click()
+    await driver.findElement(By.css(".block-head")).click()
+    await driver.findElement(By.css(".btn--primary")).click()
     await driver.findElement(By.css(".btn--primary")).click()
     await driver.findElement(By.id("pr-cat")).click()
     {
