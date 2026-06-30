@@ -4,7 +4,6 @@ import { FormsModule }   from '@angular/forms';
 import { Router }        from '@angular/router';
 
 import { ClientService }                   from '../../../../core/services/client.service';
-import { QuotationService }                from '../../../../core/services/quotation.service';
 import { ActionFeedbackService }           from '../../../../core/services/action-feedback.service';
 import { ApiClient, CreateClientPayload }  from '../../../../core/models/api.models';
 import { IconComponent }       from '../../../../shared/components/icon/icon.component';
@@ -41,7 +40,6 @@ function emptyForm(): ClientForm {
 })
 export class ClientsComponent implements OnInit {
   private readonly clientSvc = inject(ClientService);
-  private readonly quoteSvc  = inject(QuotationService);
   private readonly router    = inject(Router);
   private readonly feedback  = inject(ActionFeedbackService);
 
@@ -50,17 +48,12 @@ export class ClientsComponent implements OnInit {
     this.router.navigate(['/admin/cotizaciones'], { queryParams: { clientId } });
   }
 
+  /**
+   * Crea una cotización asistida para este cliente: abre el builder del panel
+   * con el cliente ya preseleccionado (/admin/cotizaciones/nueva?clientId=...).
+   */
   cotizarParaCliente(client: ApiClient): void {
-    this.quoteSvc.setClient({
-      customerType: client.company ? 'company' : 'person',
-      name: client.name || '',
-      email: client.email || '',
-      phone: client.phone || '',
-      company: client.company || '',
-      taxId: client.rut || '',
-    });
-    this.quoteSvc.setStep(2);
-    this.router.navigate(['/cotizacion']);
+    this.router.navigate(['/admin/cotizaciones/nueva'], { queryParams: { clientId: client.id } });
   }
 
   // ── List state ────────────────────────────────────────────────────────────

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule }  from '@angular/forms';
 
 import { SaleService, ApiSale, SaleStatus } from '../../../../core/services/sale.service';
+import { PaymentService } from '../../../../core/services/payment.service';
 import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vayo-modal.component';
 
 @Component({
@@ -13,7 +14,8 @@ import { VayoModalComponent } from '../../../../shared/components/vayo-modal/vay
   styleUrl: './sales.component.scss',
 })
 export class SalesComponent implements OnInit {
-  private readonly saleSvc = inject(SaleService);
+  private readonly saleSvc    = inject(SaleService);
+  private readonly paymentSvc = inject(PaymentService);
 
   sales: ApiSale[] = [];
   loading   = true;
@@ -24,6 +26,9 @@ export class SalesComponent implements OnInit {
 
   // Cambio de estado en proceso (para deshabilitar botones)
   updatingId = '';
+  // Inicio de pago Webpay en proceso
+  payingId = '';
+  payError = '';
 
   // Modal detalle
   showDetail = false;
@@ -73,6 +78,29 @@ export class SalesComponent implements OnInit {
         this.updatingId = '';
       },
       error: () => { this.updatingId = ''; },
+    });
+  }
+
+  /**
+   * Inicia el pago con Webpay: pide el token al backend y redirige el navegador
+   * al formulario de pago de Transbank. Al terminar, Webpay vuelve a
+   * /pago/resultado con el resultado.
+   */
+  payWithWebpay(sale: ApiSale): void {
+    if (sale.status !== 'pending' || this.payingId) return;
+    this.payingId = sale.id;
+    this.payError = '';
+
+    this.paymentSvc.initWebpay(sale.id).subscribe({
+      next: (res) => {
+        const { url, token } = res.data;
+        // Navegación de página completa hacia Webpay (no resetea payingId a propósito).
+        this.paymentSvc.redirectToWebpay(url, token);
+      },
+      error: (err) => {
+        this.payingId = '';
+        this.payError = err?.error?.error ?? 'No se pudo iniciar el pago con Webpay.';
+      },
     });
   }
 

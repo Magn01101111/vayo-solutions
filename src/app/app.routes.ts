@@ -36,6 +36,18 @@ export const routes: Routes = [
     title: 'Nueva contraseña — VAYO',
   },
 
+  // ── Resultado de pago Webpay ──────────────────────────────────────────────
+  // Ruta de nivel superior (fuera del shell público) para que funcione con
+  // cualquier rol: Webpay redirige aquí tras el commit del backend.
+  {
+    path: 'pago/resultado',
+    loadComponent: () =>
+      import('./features/payment/payment-result.component').then(
+        (m) => m.PaymentResultComponent,
+      ),
+    title: 'Resultado del pago — VAYO',
+  },
+
   // ── Portal público ────────────────────────────────────────────────────────
   // publicShellGuard: el ADMIN no puede navegar el portal (se va a /admin).
   // Cotizador, proveedor, cliente y visitantes anónimos sí pueden.

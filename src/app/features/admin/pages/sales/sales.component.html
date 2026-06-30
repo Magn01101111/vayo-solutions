@@ -28,6 +28,10 @@
     }
   </div>
 
+  @if (payError) {
+    <p class="state-txt state-txt--error">{{ payError }}</p>
+  }
+
   @if (loading) {
     <p class="state-txt">Cargando ventas…</p>
   } @else if (loadError) {
@@ -72,6 +76,13 @@
                 <button class="btn btn--ghost btn--xs" type="button" (click)="openDetail(sale)">
                   Ver
                 </button>
+                @if (sale.status === 'pending') {
+                  <button class="btn btn--primary btn--xs" type="button"
+                          [disabled]="payingId === sale.id"
+                          (click)="payWithWebpay(sale)">
+                    {{ payingId === sale.id ? 'Redirigiendo…' : 'Pagar con Webpay' }}
+                  </button>
+                }
                 @if (sale.status !== 'paid') {
                   <button class="btn btn--success btn--xs" type="button"
                           [disabled]="updatingId === sale.id"

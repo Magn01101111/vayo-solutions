@@ -1,0 +1,71 @@
+<div class="pay-result" [attr.data-status]="status()">
+  <div class="pay-card">
+
+    <!-- Icono según estado -->
+    <div class="pay-icon" [class]="'pay-icon--' + status()">
+      @switch (status()) {
+        @case ('ok') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20 6 9 17l-5-5"/>
+          </svg>
+        }
+        @case ('rejected') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="m15 9-6 6"/><path d="m9 9 6 6"/>
+          </svg>
+        }
+        @case ('cancelled') {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10"/><path d="M8 12h8"/>
+          </svg>
+        }
+        @default {
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M12 9v4"/><path d="M12 17h.01"/>
+            <path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          </svg>
+        }
+      }
+    </div>
+
+    <h1 class="pay-title">{{ title() }}</h1>
+    <p class="pay-msg">{{ message() }}</p>
+
+    <!-- Detalle de la transacción exitosa -->
+    @if (status() === 'ok') {
+      <dl class="pay-detail">
+        @if (folio()) {
+          <div class="pay-detail__row">
+            <dt class="mono">VENTA</dt>
+            <dd class="mono">{{ folio() }}</dd>
+          </div>
+        }
+        @if (auth$()) {
+          <div class="pay-detail__row">
+            <dt class="mono">CÓD. AUTORIZACIÓN</dt>
+            <dd class="mono">{{ auth$() }}</dd>
+          </div>
+        }
+      </dl>
+    }
+
+    @if (status() === 'rejected' && code()) {
+      <p class="pay-code mono">Código de respuesta: {{ code() }}</p>
+    }
+
+    <div class="pay-actions">
+      <button type="button" class="btn btn--primary" (click)="primaryAction()">
+        {{ primaryLabel() }}
+      </button>
+      <button type="button" class="btn btn--ghost" (click)="goHome()">
+        Volver al inicio
+      </button>
+    </div>
+
+    <p class="pay-brand mono">Pago procesado por Webpay Plus · Transbank</p>
+  </div>
+</div>

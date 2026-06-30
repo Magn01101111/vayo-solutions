@@ -70,6 +70,16 @@ export class QuoteCreateComponent implements OnInit {
       },
       error: () => { this.loadingProducts.set(false); },
     });
+
+    // Cliente preseleccionado al venir desde la ficha de cliente
+    // (/admin/cotizaciones/nueva?clientId=...).
+    const clientId = this.route.snapshot.queryParamMap.get('clientId');
+    if (clientId) {
+      this.clientSvc.getClientById(clientId).subscribe({
+        next: (res) => { if (res.data) this.selectedClient.set(res.data); },
+        error: () => { /* silencioso: el cotizador puede buscar manualmente */ },
+      });
+    }
   }
 
   // ── Cliente ─────────────────────────────────────────────────────────────────
