@@ -31,6 +31,7 @@ export class StepDocumentComponent {
     { value: '15-dias', label: '15 días' },
     { value: '30-dias', label: '30 días' },
     { value: '60-dias', label: '60 días' },
+    { value: '90-dias', label: '90 dias' },
   ];
 
   deliveryOptions: DeliveryOption[] = [
@@ -74,9 +75,28 @@ export class StepDocumentComponent {
     return this.qs.parsePrice(item.price) * item.qty;
   }
 
+  deliveryLabel(): string {
+    const map: Record<DeliveryTerms, string> = {
+      pickup: 'Retiro en tienda',
+      delivery: 'Despacho local',
+      shipping: 'Envio nacional',
+    };
+    return map[this.qs.deliveryTerms()];
+  }
+
+  paymentLabel(): string {
+    const map: Record<PaymentTerms, string> = {
+      contado: 'Contado',
+      '15-dias': '15 dias',
+      '30-dias': '30 dias',
+      '60-dias': '60 dias',
+      '90-dias': '90 dias',
+    };
+    return map[this.qs.paymentTerms()];
+  }
+
   setValidity(days: number) { this.qs.setValidityDays(days); }
   setPayment(t: PaymentTerms) { this.qs.setPaymentTerms(t); }
-  setDelivery(t: DeliveryTerms) { this.qs.setDeliveryTerms(t); }
   setCurrency(c: QuotationCurrency) { this.qs.setCurrency(c); }
   setNotes(n: string) { this.qs.setGeneralNotes(n); }
 

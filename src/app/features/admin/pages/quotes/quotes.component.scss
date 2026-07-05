@@ -118,6 +118,21 @@
   font-style: italic;
 }
 
+.qt-detail__adjust {
+  padding: var(--space-4);
+  background: var(--paper-2);
+  border: var(--bw) solid var(--line);
+
+  .qt-toolbar {
+    margin-top: var(--space-3);
+    align-items: stretch;
+  }
+
+  .form-control {
+    min-width: 12rem;
+  }
+}
+
 .qt-stsel {
   font-family: var(--font-mono);
   font-size: var(--fs-xs);

@@ -152,15 +152,20 @@
     <div class="form-row form-row--3">
       <div class="form-group">
         <label class="form-label">Ciudad / Comuna *</label>
-        <input class="input" formControlName="billingCity" placeholder="Providencia">
+        <select class="select" formControlName="billingCity">
+          <option value="">Selecciona comuna</option>
+          @for (c of billingCommunes(); track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
         @if (isInvalid('billingCity')) { <small class="text-danger">{{ errorOf('billingCity') }}</small> }
       </div>
 
       <div class="form-group">
         <label class="form-label">Región *</label>
         <select class="select" formControlName="billingRegion">
-          @for (r of regions; track r) {
-            <option [value]="r">{{ r }}</option>
+          @for (r of regions; track r.name) {
+            <option [value]="r.name">{{ r.name }}</option>
           }
         </select>
       </div>
@@ -216,15 +221,20 @@
       <div class="form-row form-row--3">
         <div class="form-group">
           <label class="form-label">Ciudad / Comuna *</label>
-          <input class="input" formControlName="shippingCity">
+          <select class="select" formControlName="shippingCity">
+            <option value="">Selecciona comuna</option>
+            @for (c of shippingCommunes(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
           @if (isInvalid('shippingCity')) { <small class="text-danger">{{ errorOf('shippingCity') }}</small> }
         </div>
 
         <div class="form-group">
           <label class="form-label">Región *</label>
           <select class="select" formControlName="shippingRegion">
-            @for (r of regions; track r) {
-              <option [value]="r">{{ r }}</option>
+            @for (r of regions; track r.name) {
+              <option [value]="r.name">{{ r.name }}</option>
             }
           </select>
         </div>

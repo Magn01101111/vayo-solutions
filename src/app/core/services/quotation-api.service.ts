@@ -25,6 +25,13 @@ export interface ApiQuote {
   }>;
   totals?: { subtotal?: number; discount?: number; iva?: number; shipping?: number; total?: number };
   coupon?: { code?: string; type?: string; value?: number; description?: string };
+  manualDiscount?: { amount?: number; reason?: string; appliedBy?: string | null; appliedAt?: string | null };
+  shipping?: { methodId?: string; methodLabel?: string; estimatedDays?: string; cost?: number };
+  paymentTerms?: 'contado' | '15-dias' | '30-dias' | '60-dias' | '90-dias';
+  deliveryTerms?: 'pickup' | 'delivery' | 'shipping';
+  billingAddress?: { street?: string; number?: string; apt?: string; city?: string; region?: string; zip?: string; reference?: string };
+  shippingAddress?: { street?: string; number?: string; apt?: string; city?: string; region?: string; zip?: string; reference?: string };
+  shippingSameAsBilling?: boolean;
   metadata?: { status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' };
   viewedAt?: string | null;
   createdAt?: string;
@@ -61,6 +68,22 @@ export class QuotationApiService {
     return this.api.patch<ApiResponse<ApiQuote>, { status: QuoteStatus }>(
       `${API_CONFIG.endpoints.quotes}/${id}/status`,
       { status },
+    );
+  }
+
+  updateCommercialTerms(
+    id: string,
+    payload: {
+      discount?: number;
+      reason?: string;
+      paymentTerms?: ApiQuote['paymentTerms'];
+      deliveryTerms?: ApiQuote['deliveryTerms'];
+      shipping?: ApiQuote['shipping'];
+    },
+  ): Observable<ApiResponse<ApiQuote>> {
+    return this.api.patch<ApiResponse<ApiQuote>, typeof payload>(
+      `${API_CONFIG.endpoints.quotes}/${id}/commercial-terms`,
+      payload,
     );
   }
 

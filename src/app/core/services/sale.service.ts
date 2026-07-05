@@ -37,6 +37,13 @@ export interface ApiSale {
     total?: number;
   };
   coupon?: { code?: string; type?: string; value?: number; description?: string };
+  manualDiscount?: { amount?: number; reason?: string; appliedBy?: string | null; appliedAt?: string | null };
+  shipping?: { methodId?: string; methodLabel?: string; estimatedDays?: string; cost?: number };
+  paymentTerms?: 'contado' | '15-dias' | '30-dias' | '60-dias' | '90-dias';
+  deliveryTerms?: 'pickup' | 'delivery' | 'shipping';
+  billingAddress?: { street?: string; number?: string; apt?: string; city?: string; region?: string; zip?: string; reference?: string };
+  shippingAddress?: { street?: string; number?: string; apt?: string; city?: string; region?: string; zip?: string; reference?: string };
+  shippingSameAsBilling?: boolean;
   currency?: string;
   paymentMethod?: SalePaymentMethod;
   status?: SaleStatus;

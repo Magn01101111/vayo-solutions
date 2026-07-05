@@ -37,16 +37,9 @@
 
       <div class="form-group">
         <label class="form-label">Tipo de entrega</label>
-        <div class="chip-group">
-          @for (d of deliveryOptions; track d.value) {
-            <button
-              type="button"
-              class="chip"
-              [class.chip--active]="qs.deliveryTerms() === d.value"
-              (click)="setDelivery(d.value)">
-              {{ d.label }}
-            </button>
-          }
+        <div class="form-static">
+          <strong>{{ deliveryLabel() }}</strong>
+          <small>{{ qs.shippingMethod().label }} · {{ qs.shippingCost() === 0 ? 'Sin costo' : formatCurrency(qs.shippingCost()) }}</small>
         </div>
       </div>
 
@@ -170,13 +163,13 @@
       <div class="doc-totals__terms">
         <div class="doc-block">
           <h4 class="doc-block__title">Términos comerciales</h4>
-          <small><strong>Pago:</strong>
-            @switch (qs.paymentTerms()) {
+          <small><strong>Pago:</strong> {{ paymentLabel() }}
+            @if (false) { @switch (qs.paymentTerms()) {
               @case ('contado') { Contado }
               @case ('15-dias') { 15 días }
               @case ('30-dias') { 30 días }
               @case ('60-dias') { 60 días }
-            }
+            } }
           </small>
           <small><strong>Entrega:</strong>
             @switch (qs.deliveryTerms()) {

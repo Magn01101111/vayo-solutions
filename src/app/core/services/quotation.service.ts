@@ -27,6 +27,19 @@ export const SHIPPING_METHODS: ShippingMethod[] = [
   { id: 'express', label: 'Express 24h', cost: 24990, estimatedDays: '24 horas' },
 ];
 
+function deliveryTermForShipping(id: string): DeliveryTerms {
+  if (id === 'pickup') return 'pickup';
+  if (id === 'national') return 'shipping';
+  return 'delivery';
+}
+
+function shippingMethodForDelivery(term: DeliveryTerms, currentId: string): string {
+  if (term === 'pickup') return 'pickup';
+  if (term === 'shipping') return 'national';
+  if (currentId === 'rm' || currentId === 'express') return currentId;
+  return 'rm';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -115,6 +128,7 @@ export class QuotationService {
       this._currency.set(parsed.currency ?? 'CLP');
       this._paymentTerms.set(parsed.paymentTerms ?? 'contado');
       this._deliveryTerms.set(parsed.deliveryTerms ?? 'pickup');
+      this._deliveryTerms.set(deliveryTermForShipping(this._shippingMethodId()));
       this._validityDays.set(parsed.validityDays ?? 30);
       this._generalNotes.set(parsed.generalNotes ?? '');
       this._reservationStartedAt.set(parsed.reservationStartedAt ?? null);
@@ -359,6 +373,7 @@ export class QuotationService {
   setShippingMethod(id: string) {
     if (!SHIPPING_METHODS.some((m) => m.id === id)) return;
     this._shippingMethodId.set(id);
+    this._deliveryTerms.set(deliveryTermForShipping(id));
   }
 
   shippingMethod = computed<ShippingMethod>(
@@ -376,6 +391,7 @@ export class QuotationService {
   }
   setDeliveryTerms(t: DeliveryTerms) {
     this._deliveryTerms.set(t);
+    this._shippingMethodId.set(shippingMethodForDelivery(t, this._shippingMethodId()));
   }
   setValidityDays(d: number) {
     if (!Number.isFinite(d) || d < 1) return;

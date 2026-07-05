@@ -106,6 +106,19 @@
                       <button class="btn btn-sm btn-success" (click)="acceptQuote(q)">Aceptar</button>
                       <button class="btn btn-sm btn-danger" (click)="rejectQuote(q)">Rechazar</button>
                     }
+                    @if (q.metadata?.status === 'accepted') {
+                      @if (saleForQuote(q); as sale) {
+                        @if (sale.status === 'pending') {
+                          <button class="btn btn-sm btn-success" [disabled]="payingSaleId() === sale.id" (click)="paySale(sale)">
+                            {{ payingSaleId() === sale.id ? 'Redirigiendo...' : 'Pagar Webpay' }}
+                          </button>
+                        } @else if (sale.status === 'paid') {
+                          <span class="badge badge-success">Pagada</span>
+                        }
+                      } @else {
+                        <span class="portal-hint">Pago pendiente de habilitacion</span>
+                      }
+                    }
                   </td>
                 </tr>
               }
@@ -119,6 +132,12 @@
   <!-- ═══════════ COMPRAS ═══════════ -->
   @if (activeTab() === 'compras') {
     <div class="portal-content">
+      @if (actionMsg()) {
+        <div class="portal-msg portal-msg--success">{{ actionMsg() }}</div>
+      }
+      @if (actionError()) {
+        <div class="portal-msg portal-msg--error">{{ actionError() }}</div>
+      }
       @if (sales().length === 0) {
         <div class="portal-empty">
           <p>Aún no tienes compras registradas.</p>
@@ -146,6 +165,11 @@
                   <td>{{ formatCLP(s.totals?.total) }}</td>
                   <td class="portal-actions">
                     <button class="btn btn-sm btn-light" (click)="openSaleDetail(s)">Ver</button>
+                    @if (s.status === 'pending') {
+                      <button class="btn btn-sm btn-success" [disabled]="payingSaleId() === s.id" (click)="paySale(s)">
+                        {{ payingSaleId() === s.id ? 'Redirigiendo...' : 'Pagar Webpay' }}
+                      </button>
+                    }
                   </td>
                 </tr>
               }
@@ -361,6 +385,19 @@
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(q.totals?.total) }}</p>
         <div class="modal-actions">
           <button class="btn btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
+          @if (q.metadata?.status === 'accepted') {
+            @if (saleForQuote(q); as sale) {
+              @if (sale.status === 'pending') {
+                <button class="btn btn-success" [disabled]="payingSaleId() === sale.id" (click)="paySale(sale)">
+                  {{ payingSaleId() === sale.id ? 'Redirigiendo...' : 'Pagar con Webpay' }}
+                </button>
+              } @else if (sale.status === 'paid') {
+                <span class="badge badge-success">Venta pagada</span>
+              }
+            } @else {
+              <span class="portal-hint">El cotizador aun no ha habilitado el pago.</span>
+            }
+          }
           @if (q.metadata?.status === 'sent') {
             <button class="btn btn-success" (click)="acceptQuote(q)">Aceptar cotización</button>
             <button class="btn btn-danger" (click)="rejectQuote(q)">Rechazar cotización</button>
@@ -401,6 +438,13 @@
           </table>
         }
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(s.totals?.total) }}</p>
+        @if (s.status === 'pending') {
+          <div class="modal-actions">
+            <button class="btn btn-success" [disabled]="payingSaleId() === s.id" (click)="paySale(s)">
+              {{ payingSaleId() === s.id ? 'Redirigiendo...' : 'Pagar con Webpay' }}
+            </button>
+          </div>
+        }
       </div>
     </div>
   </div>

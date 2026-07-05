@@ -8,6 +8,7 @@ import { QuotationService } from '../../../../core/services/quotation.service';
 import { CatalogService } from '../../../../core/services/catalog.service';
 import { FavoriteService } from '../../../../core/services/favorite.service';
 import { CouponService } from '../../../../core/services/coupon.service';
+import { PaymentService } from '../../../../core/services/payment.service';
 import { ProductCardData } from '../../../../core/models/ui.models';
 import { MyCoupon } from '../../../../core/models/app.models';
 import { mapApiProductToCardData } from '../../mapper';
@@ -30,6 +31,7 @@ export class ClientPortalComponent implements OnInit {
   private catalogService = inject(CatalogService);
   private favSvc = inject(FavoriteService);
   private couponSvc = inject(CouponService);
+  private paymentSvc = inject(PaymentService);
   private router = inject(Router);
 
   // Getter reactivo: siempre muestra el valor más reciente tras una actualización de perfil
@@ -51,6 +53,7 @@ export class ClientPortalComponent implements OnInit {
 
   actionMsg = signal<string | null>(null);
   actionError = signal<string | null>(null);
+  payingSaleId = signal<string | null>(null);
 
   // ── Cupones ────────────────────────────────────────────────────────────────
   coupons = signal<MyCoupon[]>([]);
@@ -367,6 +370,37 @@ export class ClientPortalComponent implements OnInit {
         this.loadSummary();
       },
       error: () => this.actionError.set('Error al rechazar cotización'),
+    });
+  }
+
+  saleForQuote(quote: ApiQuote): ApiSale | null {
+    return this.sales().find((sale) => String(sale.quoteId ?? '') === String(quote._id)) ?? null;
+  }
+
+  payQuote(quote: ApiQuote): void {
+    const sale = this.saleForQuote(quote);
+    if (!sale) {
+      this.actionError.set('El pago aun no esta habilitado. El cotizador debe aceptar y crear la venta.');
+      return;
+    }
+    this.paySale(sale);
+  }
+
+  paySale(sale: ApiSale): void {
+    if (!sale.id || sale.status !== 'pending' || this.payingSaleId()) return;
+    this.actionMsg.set(null);
+    this.actionError.set(null);
+    this.payingSaleId.set(sale.id);
+
+    this.paymentSvc.initWebpay(sale.id).subscribe({
+      next: (res) => {
+        const { url, token } = res.data;
+        this.paymentSvc.redirectToWebpay(url, token);
+      },
+      error: (err) => {
+        this.payingSaleId.set(null);
+        this.actionError.set(err?.error?.error ?? 'No se pudo iniciar el pago con Webpay.');
+      },
     });
   }
 }

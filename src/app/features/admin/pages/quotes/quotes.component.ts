@@ -71,6 +71,11 @@ export class QuotesComponent implements OnInit {
   // Modal de detalle
   detailQuote: ApiQuote | null = null;
   showDetail  = false;
+  commercialDiscount = 0;
+  commercialReason = '';
+  commercialSaving = false;
+  commercialError = '';
+  commercialMsg = '';
 
   readonly statusOptions: { value: QuoteStatus; label: string }[] = [
     { value: 'sent',     label: 'Enviada' },
@@ -236,9 +241,13 @@ export class QuotesComponent implements OnInit {
   openDetail(quote: ApiQuote): void {
     this.showDetail  = true;
     this.detailQuote = quote;
+    this.prepareCommercialForm(quote);
     // Recargar el detalle completo desde el backend (trae items completos).
     this.quoteSvc.getQuoteById(quote._id).subscribe({
-      next: (res) => { this.detailQuote = res.data; },
+      next: (res) => {
+        this.detailQuote = res.data;
+        this.prepareCommercialForm(res.data);
+      },
       error: () => { /* se queda con el resumen que ya tenía */ },
     });
   }
@@ -246,9 +255,44 @@ export class QuotesComponent implements OnInit {
   closeDetail(): void {
     this.showDetail = false;
     this.detailQuote = null;
+    this.commercialError = '';
+    this.commercialMsg = '';
   }
 
   // ── Descargar PDF ───────────────────────────────────────────────────────────
+
+  private prepareCommercialForm(quote: ApiQuote): void {
+    this.commercialDiscount = quote.manualDiscount?.amount ?? quote.totals?.discount ?? 0;
+    this.commercialReason = quote.manualDiscount?.reason ?? '';
+    this.commercialError = '';
+    this.commercialMsg = '';
+  }
+
+  saveCommercialTerms(): void {
+    if (!this.detailQuote || this.commercialSaving) return;
+    const discount = Math.max(0, Math.round(Number(this.commercialDiscount) || 0));
+    this.commercialSaving = true;
+    this.commercialError = '';
+    this.commercialMsg = '';
+
+    this.quoteSvc.updateCommercialTerms(this.detailQuote._id, {
+      discount,
+      reason: this.commercialReason.trim(),
+    }).subscribe({
+      next: (res) => {
+        this.commercialSaving = false;
+        this.detailQuote = res.data;
+        this.prepareCommercialForm(res.data);
+        const idx = this.quotes.findIndex((q) => q._id === res.data._id);
+        if (idx >= 0) this.quotes[idx] = res.data;
+        this.commercialMsg = 'Ajuste comercial guardado.';
+      },
+      error: (err) => {
+        this.commercialSaving = false;
+        this.commercialError = err?.error?.error ?? 'No se pudo guardar el ajuste comercial.';
+      },
+    });
+  }
 
   downloadPdf(quote: ApiQuote): void {
     this.actionMsg = '';
@@ -340,6 +384,26 @@ export class QuotesComponent implements OnInit {
   }
 
   // ── Helpers ───────────────────────────────────────────────────────────────
+
+  paymentTermsLabel(value?: string): string {
+    const map: Record<string, string> = {
+      contado: 'Contado',
+      '15-dias': '15 dias',
+      '30-dias': '30 dias',
+      '60-dias': '60 dias',
+      '90-dias': '90 dias',
+    };
+    return map[value ?? 'contado'] ?? 'Contado';
+  }
+
+  deliveryTermsLabel(value?: string): string {
+    const map: Record<string, string> = {
+      pickup: 'Retiro en tienda',
+      delivery: 'Despacho local',
+      shipping: 'Envio nacional',
+    };
+    return map[value ?? 'pickup'] ?? 'Retiro en tienda';
+  }
 
   formatCLP(value: number | undefined): string {
     if (value == null) return '—';

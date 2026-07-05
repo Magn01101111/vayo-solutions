@@ -14,6 +14,7 @@ import { QuotationService } from '../../../../../../core/services/quotation.serv
 import { AuthService } from '../../../../../../core/services/auth.service';
 import { CustomerType } from '../../../../../../core/models/app.models';
 import { IconComponent } from '../../../../../../shared/components/icon/icon.component';
+import { CHILE_REGIONS, communesForRegion } from '../../../../../../core/data/chile-locations.data';
 
 /** Valida RUT chileno con dígito verificador (formato 12.345.678-K). */
 function rutValidator(ctrl: AbstractControl): ValidationErrors | null {
@@ -66,7 +67,11 @@ export class StepClientComponent implements OnInit {
   readonly qs = inject(QuotationService);
   readonly auth = inject(AuthService);
 
-  regions = REGIONS;
+  regions = CHILE_REGIONS.length ? CHILE_REGIONS : REGIONS.map((name) => ({ name, communes: [] }));
+  billingRegion = signal('Metropolitana');
+  shippingRegion = signal('Metropolitana');
+  billingCommunes = computed(() => communesForRegion(this.billingRegion()));
+  shippingCommunes = computed(() => communesForRegion(this.shippingRegion()));
   customerType = signal<CustomerType>('person');
 
   /**
@@ -157,6 +162,7 @@ export class StepClientComponent implements OnInit {
       });
     }
 
+    this.wireAddressSelects();
     this.applyCustomerTypeRules(this.customerType());
 
     this.form.controls.shippingSameAsBilling.valueChanges.subscribe((same) => {
@@ -212,6 +218,31 @@ export class StepClientComponent implements OnInit {
       ctrl.setValidators(required ? [Validators.required] : null);
       ctrl.updateValueAndValidity({ emitEvent: false });
     });
+  }
+
+  private wireAddressSelects(): void {
+    this.billingRegion.set(this.form.controls.billingRegion.value);
+    this.shippingRegion.set(this.form.controls.shippingRegion.value);
+    this.clearCommuneIfNotInRegion('billingCity', this.form.controls.billingRegion.value);
+    this.clearCommuneIfNotInRegion('shippingCity', this.form.controls.shippingRegion.value);
+
+    this.form.controls.billingRegion.valueChanges.subscribe((region) => {
+      this.billingRegion.set(region);
+      this.clearCommuneIfNotInRegion('billingCity', region);
+    });
+
+    this.form.controls.shippingRegion.valueChanges.subscribe((region) => {
+      this.shippingRegion.set(region);
+      this.clearCommuneIfNotInRegion('shippingCity', region);
+    });
+  }
+
+  private clearCommuneIfNotInRegion(controlName: 'billingCity' | 'shippingCity', region: string): void {
+    const communes = communesForRegion(region);
+    const ctrl = this.form.controls[controlName];
+    if (ctrl.value && !communes.includes(ctrl.value)) {
+      ctrl.setValue('', { emitEvent: false });
+    }
   }
 
   formatRutOnBlur() {

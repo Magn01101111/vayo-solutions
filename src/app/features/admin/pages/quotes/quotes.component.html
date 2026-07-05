@@ -155,7 +155,10 @@
                     Rechazar
                   </button>
                 } @else if (q.metadata?.status === 'accepted') {
-                  <span class="qt-muted">Convertida</span>
+                  <button class="btn btn--primary btn--xs" type="button"
+                          (click)="convertToSale(q)">
+                    Crear venta
+                  </button>
                 }
               </td>
             </tr>
@@ -218,6 +221,63 @@
           }
         </div>
         <div></div>
+      </div>
+
+      <div class="qt-detail__row">
+        <div>
+          <span class="qt-detail__label mono">PAGO</span>
+          <p class="qt-detail__val">{{ paymentTermsLabel(dq.paymentTerms) }}</p>
+          <p class="qt-detail__sub mono">Webpay cobra el total como pago inmediato.</p>
+        </div>
+        <div>
+          <span class="qt-detail__label mono">ENTREGA</span>
+          <p class="qt-detail__val">{{ deliveryTermsLabel(dq.deliveryTerms) }}</p>
+          <p class="qt-detail__sub mono">{{ dq.shipping?.methodLabel || 'Retiro en tienda' }}</p>
+        </div>
+        <div>
+          <span class="qt-detail__label mono">COSTO ENVIO</span>
+          <p class="qt-detail__val mono">{{ formatCLP(dq.totals?.shipping ?? dq.shipping?.cost) }}</p>
+        </div>
+      </div>
+
+      <div class="card qt-detail__adjust">
+        <span class="qt-detail__label mono">AJUSTE COMERCIAL</span>
+        @if (commercialMsg) {
+          <p class="qt-alert qt-alert--ok">{{ commercialMsg }}</p>
+        }
+        @if (commercialError) {
+          <p class="qt-alert qt-alert--err">{{ commercialError }}</p>
+        }
+        <div class="qt-toolbar">
+          <input
+            class="form-control"
+            type="number"
+            min="0"
+            step="1"
+            [(ngModel)]="commercialDiscount"
+            name="commercialDiscount"
+            placeholder="Descuento CLP"
+          />
+          <input
+            class="form-control"
+            type="text"
+            maxlength="300"
+            [(ngModel)]="commercialReason"
+            name="commercialReason"
+            placeholder="Motivo del descuento"
+          />
+          <button
+            class="btn btn--primary btn--sm"
+            type="button"
+            [disabled]="commercialSaving || dq.metadata?.status === 'accepted'"
+            (click)="saveCommercialTerms()"
+          >
+            {{ commercialSaving ? 'Guardando...' : 'Guardar descuento' }}
+          </button>
+        </div>
+        @if (dq.metadata?.status === 'accepted') {
+          <p class="qt-detail__sub mono">La cotizacion ya fue aceptada; crea una nueva cotizacion si necesitas cambiar el monto.</p>
+        }
       </div>
 
       <span class="qt-detail__label mono">PRODUCTOS ({{ dq.items?.length || 0 }})</span>

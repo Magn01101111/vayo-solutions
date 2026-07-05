@@ -53,6 +53,24 @@
 }
 
 /* ───── Documento ───── */
+.form-static {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  min-height: 2.35rem;
+  padding: 0.4rem 0;
+
+  strong {
+    color: var(--color-brand-900);
+    font-size: 0.875rem;
+  }
+
+  small {
+    color: var(--color-text-muted);
+    font-size: 0.75rem;
+  }
+}
+
 .step-doc__doc {
   padding: var(--space-6);
   background: var(--color-white);
