@@ -40,7 +40,6 @@ export const API_CONFIG = {
 
     // Pagos (Transbank Webpay Plus)
     paymentsWebpayInit: 'payments/webpay/init',
-    paymentsBySale:     'payments/sale',
 
     // Stats
     statsDashboard: 'stats/dashboard',

@@ -76,9 +76,9 @@ export class SaleService {
     quoteId: string,
     payload?: { paymentMethod?: SalePaymentMethod; notes?: string },
   ): Observable<ApiResponse<ApiSale>> {
-    return this.api.post<ApiResponse<ApiSale>, { paymentMethod?: SalePaymentMethod; notes?: string }>(
-      `${API_CONFIG.endpoints.salesFromQuote}/${quoteId}`,
-      payload ?? {},
+    return this.api.post<ApiResponse<ApiSale>, { quoteId: string; paymentMethod?: SalePaymentMethod; notes?: string }>(
+      API_CONFIG.endpoints.salesFromQuote,
+      { quoteId, ...(payload ?? {}) },
     );
   }
 
