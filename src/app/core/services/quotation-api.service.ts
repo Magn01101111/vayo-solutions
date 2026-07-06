@@ -19,13 +19,18 @@ export interface ApiQuote {
   items?: Array<{
     productId: string;
     name: string;
+    sku?: string;
     price: number;
+    listPrice?: number | null;
+    offerPrice?: number | null;
+    offerApplied?: boolean;
+    offerDiscountPercent?: number;
     quantity: number;
     total: number;
   }>;
   totals?: { subtotal?: number; discount?: number; iva?: number; shipping?: number; total?: number };
   coupon?: { code?: string; type?: string; value?: number; description?: string };
-  manualDiscount?: { amount?: number; reason?: string; appliedBy?: string | null; appliedAt?: string | null };
+  manualDiscount?: { percent?: number; amount?: number; reason?: string; appliedBy?: string | null; appliedAt?: string | null };
   shipping?: { methodId?: string; methodLabel?: string; estimatedDays?: string; cost?: number };
   paymentTerms?: 'contado' | '15-dias' | '30-dias' | '60-dias' | '90-dias';
   deliveryTerms?: 'pickup' | 'delivery' | 'shipping';
@@ -35,6 +40,7 @@ export interface ApiQuote {
   metadata?: { status?: 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired' };
   viewedAt?: string | null;
   createdAt?: string;
+  generalNotes?: string;
 }
 
 export type QuoteStatus = 'sent' | 'accepted' | 'rejected' | 'expired';
@@ -75,6 +81,7 @@ export class QuotationApiService {
     id: string,
     payload: {
       discount?: number;
+      discountPercent?: number;
       reason?: string;
       paymentTerms?: ApiQuote['paymentTerms'];
       deliveryTerms?: ApiQuote['deliveryTerms'];
@@ -88,13 +95,6 @@ export class QuotationApiService {
   }
 
   /** Envía la cotización por correo con el PDF adjunto. */
-  sendByEmail(id: string, to?: string): Observable<ApiResponse<{ message: string; simulated?: boolean }>> {
-    return this.api.post<ApiResponse<{ message: string; simulated?: boolean }>, { to?: string }>(
-      `${API_CONFIG.endpoints.quotes}/${id}/send-email`,
-      to ? { to } : {},
-    );
-  }
-
   /**
    * Descarga el PDF de una cotización.
    * Si recibe `token`, lo agrega como `?token=` para autorizar el flujo público
@@ -105,6 +105,13 @@ export class QuotationApiService {
       ? `${API_CONFIG.endpoints.quotes}/${id}/pdf?token=${encodeURIComponent(token)}`
       : `${API_CONFIG.endpoints.quotes}/${id}/pdf`;
     return this.api.getBlob(path);
+  }
+
+  publicPdfUrl(id: string, token?: string | null): string {
+    const path = token
+      ? `${API_CONFIG.endpoints.quotes}/${id}/pdf?token=${encodeURIComponent(token)}`
+      : `${API_CONFIG.endpoints.quotes}/${id}/pdf`;
+    return `${API_CONFIG.baseUrl.replace(/\/$/, '')}/${path}`;
   }
 
   duplicateQuote(id: string): Observable<ApiResponse<ApiQuote>> {

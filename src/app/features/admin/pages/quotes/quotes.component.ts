@@ -62,9 +62,8 @@ export class QuotesComponent implements OnInit {
   // Cambio de estado
   updatingStatusId = '';
 
-  // Acciones de PDF / email
+  // Acciones de PDF
   downloadingId = '';
-  emailSendingId = '';
   actionMsg   = '';
   actionError = '';
 
@@ -79,7 +78,6 @@ export class QuotesComponent implements OnInit {
 
   readonly statusOptions: { value: QuoteStatus; label: string }[] = [
     { value: 'sent',     label: 'Enviada' },
-    { value: 'accepted', label: 'Aceptada' },
     { value: 'rejected', label: 'Rechazada' },
     { value: 'expired',  label: 'Vencida' },
   ];
@@ -125,7 +123,7 @@ export class QuotesComponent implements OnInit {
     else if (this.cotizadorQ)  params.createdBy = this.cotizadorQ;
 
     this.quoteSvc.getQuotes(params).subscribe({
-      next: (res) => {
+      next: (res: any) => {
         this.quotes  = res.data ?? [];
         this.loading = false;
       },
@@ -262,7 +260,11 @@ export class QuotesComponent implements OnInit {
   // ── Descargar PDF ───────────────────────────────────────────────────────────
 
   private prepareCommercialForm(quote: ApiQuote): void {
-    this.commercialDiscount = quote.manualDiscount?.amount ?? quote.totals?.discount ?? 0;
+    this.commercialDiscount = quote.manualDiscount?.percent ?? (
+      quote.totals?.subtotal
+        ? Math.round(((quote.manualDiscount?.amount ?? quote.totals?.discount ?? 0) / quote.totals.subtotal) * 10000) / 100
+        : 0
+    );
     this.commercialReason = quote.manualDiscount?.reason ?? '';
     this.commercialError = '';
     this.commercialMsg = '';
@@ -270,13 +272,13 @@ export class QuotesComponent implements OnInit {
 
   saveCommercialTerms(): void {
     if (!this.detailQuote || this.commercialSaving) return;
-    const discount = Math.max(0, Math.round(Number(this.commercialDiscount) || 0));
+    const discountPercent = Math.max(0, Math.min(100, Number(this.commercialDiscount) || 0));
     this.commercialSaving = true;
     this.commercialError = '';
     this.commercialMsg = '';
 
     this.quoteSvc.updateCommercialTerms(this.detailQuote._id, {
-      discount,
+      discountPercent,
       reason: this.commercialReason.trim(),
     }).subscribe({
       next: (res) => {
@@ -287,7 +289,7 @@ export class QuotesComponent implements OnInit {
         if (idx >= 0) this.quotes[idx] = res.data;
         this.commercialMsg = 'Ajuste comercial guardado.';
       },
-      error: (err) => {
+      error: (err: any) => {
         this.commercialSaving = false;
         this.commercialError = err?.error?.error ?? 'No se pudo guardar el ajuste comercial.';
       },
@@ -321,33 +323,6 @@ export class QuotesComponent implements OnInit {
       error: (err) => {
         this.downloadingId = '';
         this.actionError = err?.error?.error ?? 'No se pudo descargar el PDF.';
-        setTimeout(() => (this.actionError = ''), 6000);
-      },
-    });
-  }
-
-  // ── Reenviar por email ──────────────────────────────────────────────────────
-
-  resendEmail(quote: ApiQuote): void {
-    const to = quote.client?.email;
-    if (!to) {
-      this.actionError = 'Esta cotización no tiene email de cliente.';
-      setTimeout(() => (this.actionError = ''), 5000);
-      return;
-    }
-    this.actionMsg = '';
-    this.actionError = '';
-    this.emailSendingId = quote._id;
-
-    this.quoteSvc.sendByEmail(quote._id, to).subscribe({
-      next: (res) => {
-        this.emailSendingId = '';
-        this.actionMsg = res.data?.message ?? `Cotización enviada a ${to}.`;
-        setTimeout(() => (this.actionMsg = ''), 6000);
-      },
-      error: (err) => {
-        this.emailSendingId = '';
-        this.actionError = err?.error?.error ?? 'No se pudo enviar el correo.';
         setTimeout(() => (this.actionError = ''), 6000);
       },
     });

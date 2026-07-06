@@ -329,6 +329,26 @@ export class ClientPortalComponent implements OnInit {
     return map[method] || method;
   }
 
+  paymentTermsLabel(value: string | undefined): string {
+    const map: Record<string, string> = {
+      contado: 'Contado',
+      '15-dias': '15 dias',
+      '30-dias': '30 dias',
+      '60-dias': '60 dias',
+      '90-dias': '90 dias',
+    };
+    return map[value ?? 'contado'] ?? 'Contado';
+  }
+
+  deliveryTermsLabel(value: string | undefined): string {
+    const map: Record<string, string> = {
+      pickup: 'Retiro en tienda',
+      delivery: 'Despacho local',
+      shipping: 'Envio nacional',
+    };
+    return map[value ?? 'pickup'] ?? 'Retiro en tienda';
+  }
+
   downloadPDF(quoteId: string): void {
     this.quoteApi.downloadPDF(quoteId).subscribe({
       next: (blob) => {
@@ -347,30 +367,6 @@ export class ClientPortalComponent implements OnInit {
     if (!quote.items || quote.items.length === 0) return;
     this.quoteSvc.repeatFromQuote(quote.items);
     this.router.navigate(['/cotizacion']);
-  }
-
-  acceptQuote(quote: ApiQuote): void {
-    this.actionMsg.set(null);
-    this.actionError.set(null);
-    this.quoteApi.updateStatus(quote._id, 'accepted').subscribe({
-      next: () => {
-        this.actionMsg.set(`Cotización ${quote.folio} aceptada`);
-        this.loadSummary();
-      },
-      error: () => this.actionError.set('Error al aceptar cotización'),
-    });
-  }
-
-  rejectQuote(quote: ApiQuote): void {
-    this.actionMsg.set(null);
-    this.actionError.set(null);
-    this.quoteApi.updateStatus(quote._id, 'rejected').subscribe({
-      next: () => {
-        this.actionMsg.set(`Cotización ${quote.folio} rechazada`);
-        this.loadSummary();
-      },
-      error: () => this.actionError.set('Error al rechazar cotización'),
-    });
   }
 
   saleForQuote(quote: ApiQuote): ApiSale | null {

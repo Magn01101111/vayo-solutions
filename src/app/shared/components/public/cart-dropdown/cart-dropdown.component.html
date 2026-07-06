@@ -133,14 +133,15 @@
 
                     <div class="cart-item__pricing">
                       @if (item.qty > 1) {
-                        <span class="cart-item__unit">{{ formatPrice(parsePrice(item.price)) }} c/u</span>
+                        <span class="cart-item__unit">{{ formatPrice(itemUnitPrice(item)) }} c/u</span>
                       }
-                      <span class="cart-item__price">{{ formatPrice(itemSubtotal(item.price, item.qty)) }}</span>
+                      <span class="cart-item__price">{{ formatPrice(itemSubtotal(item)) }}</span>
                     </div>
                   </div>
 
                   <div class="cart-item__meta-actions">
                     <button
+                      hidden
                       type="button"
                       class="cart-item__link"
                       (click)="toggleNotes(item.id)">
@@ -154,14 +155,14 @@
                     </button>
                   </div>
 
-                  @if (expandedItem() === item.id) {
+                  @if (false && expandedItem() === item.id) {
                     <textarea
                       class="cart-item__notes"
                       placeholder="Especificaciones, urgencia, observaciones…"
                       [value]="item.notes || ''"
                       (input)="onNotesInput(item.id, $any($event.target).value)"
                       rows="2"></textarea>
-                  } @else if (item.notes) {
+                  } @else if (false && item.notes) {
                     <p class="cart-item__notes-preview" (click)="toggleNotes(item.id)">
                       <em>“{{ item.notes }}”</em>
                     </p>

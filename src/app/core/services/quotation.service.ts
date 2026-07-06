@@ -143,9 +143,21 @@ export class QuotationService {
     return Number(price.replace(/[^\d]/g, '')) || 0;
   }
 
+  itemUnitPrice(item: Pick<ProductCardData, 'price' | 'priceRaw' | 'offerPriceRaw'>): number {
+    return item.offerPriceRaw ?? item.priceRaw ?? this.parsePrice(item.price);
+  }
+
   // ─────────────── CART ACTIONS ───────────────
   addItem(product: ProductCardData) {
-    const priceNum = this.parsePrice(product.price);
+    const priceNum = this.itemUnitPrice(product);
+    const canBuy =
+      product.isPurchasable !== false &&
+      (product.availabilityStatus == null || product.availabilityStatus === 'in_stock') &&
+      (product.stockRaw ?? MAX_QTY_DEFAULT) > 0;
+    if (!canBuy) {
+      this._couponError.set(`"${product.name}" no esta disponible para agregar. Revisa stock o solicita apoyo comercial.`);
+      return;
+    }
     if (priceNum <= 0 || product.price === 'Consultar') {
       this._couponError.set(`"${product.name}" no tiene precio definido. Solicita una cotización personalizada.`);
       return;
@@ -173,7 +185,7 @@ export class QuotationService {
         qty: 1,
         notes: '',
         addedAt: new Date().toISOString(),
-        maxQty: MAX_QTY_DEFAULT,
+        maxQty: product.stockRaw ?? MAX_QTY_DEFAULT,
       },
     ]);
     this.startReservationIfNeeded();
@@ -398,7 +410,7 @@ export class QuotationService {
     this._validityDays.set(Math.floor(d));
   }
   setGeneralNotes(n: string) {
-    this._generalNotes.set(n);
+    this._generalNotes.set((n ?? '').slice(0, 50));
   }
 
   // ─────────────── RESERVATION TIMER ───────────────
@@ -440,7 +452,7 @@ export class QuotationService {
   // ─────────────── COMPUTED TOTALS ───────────────
   subtotal = computed(() =>
     this._items().reduce(
-      (acc, item) => acc + this.parsePrice(item.price) * item.qty,
+      (acc, item) => acc + this.itemUnitPrice(item) * item.qty,
       0,
     ),
   );
@@ -502,9 +514,14 @@ export class QuotationService {
       items: this._items().map((i) => ({
         productId: i.id,
         name: i.name,
-        price: this.parsePrice(i.price),
+        sku: i.sku,
+        price: this.itemUnitPrice(i),
+        listPrice: i.priceRaw ?? this.parsePrice(i.price),
+        offerPrice: i.offerPriceRaw ?? null,
+        offerApplied: i.offerPriceRaw != null,
+        offerDiscountPercent: i.offerDiscountPercent ?? 0,
         quantity: i.qty,
-        total: this.parsePrice(i.price) * i.qty,
+        total: this.itemUnitPrice(i) * i.qty,
       })),
 
       totals: {
@@ -528,7 +545,6 @@ export class QuotationService {
         shippingSameAsBilling: c?.shippingSameAsBilling,
         acceptsTerms: c?.acceptsTerms,
         acceptsMarketing: c?.acceptsMarketing,
-        itemNotes: this._items().map((i) => ({ productId: i.id, note: i.notes ?? '' })),
         coupon: this._coupon(),
         discount: this.discount(),
         shipping: {

@@ -161,13 +161,16 @@
                         </div>
 
                         <div class="quote-row__pricing">
-                          <span class="quote-row__unit">{{ formatCLP(qs.parsePrice(item.price)) }} c/u</span>
-                          <strong class="quote-row__total">{{ formatCLP(itemSubtotal(item.price, item.qty)) }}</strong>
+                          <span class="quote-row__unit">{{ formatCLP(qs.itemUnitPrice(item)) }} c/u</span>
+                          @if (item.offerPriceRaw) {
+                            <small class="text-success">Oferta aplicada{{ item.offerDiscountPercent ? ' -' + item.offerDiscountPercent + '%' : '' }}</small>
+                          }
+                          <strong class="quote-row__total">{{ formatCLP(qs.itemUnitPrice(item) * item.qty) }}</strong>
                         </div>
                       </div>
 
                       <div class="quote-row__sub-actions">
-                        <button type="button" class="link-btn" (click)="toggleItemNotes(item.id)">
+                        <button type="button" class="link-btn" hidden (click)="toggleItemNotes(item.id)">
                           {{ expandedNotesId() === item.id ? 'Ocultar nota' : (item.notes ? 'Editar nota' : '+ Agregar nota') }}
                         </button>
                         <button type="button" class="link-btn" (click)="saveForLater(item.id)">
@@ -175,14 +178,14 @@
                         </button>
                       </div>
 
-                      @if (expandedNotesId() === item.id) {
+                      @if (false && expandedNotesId() === item.id) {
                         <textarea
                           class="textarea quote-row__notes"
                           rows="2"
                           placeholder="Especificaciones, urgencia, observaciones para este producto…"
                           [value]="item.notes || ''"
                           (input)="onItemNotesInput(item.id, $any($event.target).value)"></textarea>
-                      } @else if (item.notes) {
+                      } @else if (false && item.notes) {
                         <p class="quote-row__notes-preview" (click)="toggleItemNotes(item.id)">
                           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />

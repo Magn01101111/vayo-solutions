@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Subject, forkJoin, takeUntil, filter } from 'rxjs';
 
@@ -49,6 +49,15 @@ export class HomeComponent implements OnInit, OnDestroy {
   banners: ApiBanner[] = [];
   /** Categorías para la sección "explora por categoría". */
   categories: CatalogCategory[] = [];
+  categoryPage = signal(0);
+  readonly categoryPageSize = 4;
+
+  visibleCategories = computed(() => {
+    const start = this.categoryPage() * this.categoryPageSize;
+    return this.categories.slice(start, start + this.categoryPageSize);
+  });
+  canPrevCategory = computed(() => this.categoryPage() > 0);
+  canNextCategory = computed(() => (this.categoryPage() + 1) * this.categoryPageSize < this.categories.length);
 
   isLoading = false;
   errorMessage = '';
@@ -105,6 +114,14 @@ export class HomeComponent implements OnInit, OnDestroy {
   trackByProduct(_: number, item: ProductCardData): string { return item.id; }
   trackByCategory(_: number, item: CatalogCategory): string { return item.id; }
   trackByStep(_: number, item: StepItem): number { return item.number; }
+
+  prevCategoryPage(): void {
+    if (this.canPrevCategory()) this.categoryPage.update((p) => p - 1);
+  }
+
+  nextCategoryPage(): void {
+    if (this.canNextCategory()) this.categoryPage.update((p) => p + 1);
+  }
 
   /** Clase de badge según disponibilidad (F4-1). */
   stockBadgeClass(shortStatus: string): string {
@@ -212,6 +229,7 @@ export class HomeComponent implements OnInit, OnDestroy {
           ...c,
           refs: refsBySlug.get(c.slug) ?? 0,
         }));
+        this.categoryPage.set(0);
 
         this.isLoading = false;
       },

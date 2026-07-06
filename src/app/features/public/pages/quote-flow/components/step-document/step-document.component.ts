@@ -72,7 +72,7 @@ export class StepDocumentComponent {
   }
 
   itemTotal(item: QuotationItem): number {
-    return this.qs.parsePrice(item.price) * item.qty;
+    return this.qs.itemUnitPrice(item) * item.qty;
   }
 
   deliveryLabel(): string {

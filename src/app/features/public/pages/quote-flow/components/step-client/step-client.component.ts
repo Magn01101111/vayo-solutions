@@ -112,7 +112,7 @@ export class StepClientComponent implements OnInit {
     shippingZip: [''],
     shippingReference: [''],
 
-    notes: [''],
+    notes: ['', [Validators.maxLength(50)]],
     acceptsTerms: [false, [Validators.requiredTrue]],
     acceptsMarketing: [false],
   });
@@ -156,7 +156,7 @@ export class StepClientComponent implements OnInit {
         shippingRegion: client.shippingAddress?.region ?? 'Metropolitana',
         shippingZip: client.shippingAddress?.zip ?? '',
         shippingReference: client.shippingAddress?.reference ?? '',
-        notes: client.notes ?? '',
+        notes: this.qs.generalNotes() ?? '',
         acceptsTerms: client.acceptsTerms ?? false,
         acceptsMarketing: client.acceptsMarketing ?? false,
       });
@@ -277,6 +277,7 @@ export class StepClientComponent implements OnInit {
     if (ctrl.errors['email']) return 'Email no válido';
     if (ctrl.errors['minlength']) return `Mínimo ${ctrl.errors['minlength'].requiredLength} caracteres`;
     if (ctrl.errors['pattern']) return 'Formato no válido';
+    if (ctrl.errors['maxlength']) return `Maximo ${ctrl.errors['maxlength'].requiredLength} caracteres`;
     if (ctrl.errors['rut']) return ctrl.errors['rut'];
     return 'Valor no válido';
   }
@@ -319,10 +320,10 @@ export class StepClientComponent implements OnInit {
             reference: v.shippingReference || undefined,
           },
       shippingSameAsBilling: v.shippingSameAsBilling,
-      notes: v.notes || undefined,
       acceptsTerms: v.acceptsTerms,
       acceptsMarketing: v.acceptsMarketing,
     });
+    this.qs.setGeneralNotes(v.notes || '');
     this.qs.nextStep();
   }
 

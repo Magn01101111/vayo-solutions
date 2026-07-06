@@ -36,8 +36,6 @@ export class StepConfirmationComponent {
   folio = signal<string | null>(null);
   pdfToken = signal<string | null>(null);
   copied = signal(false);
-  emailSending = signal(false);
-  emailSent = signal(false);
   pdfDownloading = signal(false);
 
   total = this.qs.total;
@@ -48,9 +46,7 @@ export class StepConfirmationComponent {
     const id = this.quoteId();
     if (!id) return '';
     if (typeof window === 'undefined') return '';
-    const base = `${window.location.origin}/cotizacion/ver/${id}`;
-    const token = this.pdfToken();
-    return token ? `${base}?token=${encodeURIComponent(token)}` : base;
+    return this.quoteApi.publicPdfUrl(id, this.pdfToken());
   });
 
   formatCLP(value: number): string {
@@ -90,7 +86,7 @@ export class StepConfirmationComponent {
         this.success.set(true);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: (err: any) => {
         console.error('[StepConfirmation] error al enviar cotización', err);
         const msg =
           err?.error?.message ??
@@ -177,35 +173,6 @@ export class StepConfirmationComponent {
     const msg = `Hola${c?.name ? ' ' + c.name : ''}, aquí tienes tu cotización VAYO #${this.folio() ?? this.quoteId()}: ${this.shareUrl()}`;
     const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
     window.open(url, '_blank', 'noopener,noreferrer');
-  }
-
-  shareEmail() {
-    const subject = `Cotización VAYO #${this.folio() ?? this.quoteId()}`;
-    const body = `Hola,\n\nTe comparto la cotización solicitada:\n${this.shareUrl()}\n\nSaludos.`;
-    const url = `mailto:${this.qs.client()?.email ?? ''}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = url;
-  }
-
-  resendByEmail() {
-    const id = this.quoteId();
-    if (!id) {
-      this.error.set('No hay cotización generada para enviar.');
-      return;
-    }
-    this.emailSending.set(true);
-    // Envía al email del cliente registrado en la cotización (el backend lo resuelve).
-    this.quoteApi.sendByEmail(id, this.qs.client()?.email).subscribe({
-      next: () => {
-        this.emailSending.set(false);
-        this.emailSent.set(true);
-        setTimeout(() => this.emailSent.set(false), 3500);
-      },
-      error: (err) => {
-        this.emailSending.set(false);
-        const msg = err?.error?.error ?? err?.message ?? 'No se pudo enviar el correo.';
-        this.error.set(msg);
-      },
-    });
   }
 
   // ── Crear cuenta tras la compra (invitado → cliente registrado) ───────────

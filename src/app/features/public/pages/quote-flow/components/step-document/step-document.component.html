@@ -65,8 +65,10 @@
         class="textarea"
         rows="2"
         placeholder="Plazos especiales, condiciones generales, etc."
+        maxlength="50"
         [value]="qs.generalNotes()"
         (input)="setNotes($any($event.target).value)"></textarea>
+      <small class="text-muted">{{ qs.generalNotes().length }}/50 caracteres</small>
     </div>
   </div>
 
@@ -145,12 +147,15 @@
               <td>
                 <strong>{{ item.name }}</strong>
                 <small class="text-muted">SKU: {{ item.sku }}</small>
-                @if (item.notes) {
+                @if (false && item.notes) {
                   <small class="doc-table__note">Nota: {{ item.notes }}</small>
+                }
+                @if (item.offerPriceRaw) {
+                  <small class="doc-table__note text-success">Oferta aplicada{{ item.offerDiscountPercent ? ' -' + item.offerDiscountPercent + '%' : '' }}</small>
                 }
               </td>
               <td class="doc-table__col-qty">{{ item.qty }}</td>
-              <td class="doc-table__col-price">{{ formatCurrency(qs.parsePrice(item.price)) }}</td>
+              <td class="doc-table__col-price">{{ formatCurrency(qs.itemUnitPrice(item)) }}</td>
               <td class="doc-table__col-price"><strong>{{ formatCurrency(itemTotal(item)) }}</strong></td>
             </tr>
           }

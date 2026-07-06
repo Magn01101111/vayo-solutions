@@ -99,9 +99,14 @@
       <a routerLink="/catalogo" class="block-head__opt">Ver catálogo completo →</a>
     </div>
 
+    <div class="catx-nav catx-nav--standalone">
+      <button type="button" class="catx-nav__btn" [disabled]="!canPrevCategory()" (click)="prevCategoryPage()" aria-label="Categorias anteriores">‹</button>
+      <button type="button" class="catx-nav__btn" [disabled]="!canNextCategory()" (click)="nextCategoryPage()" aria-label="Categorias siguientes">›</button>
+    </div>
+
     @if (categories.length > 0) {
       <div class="catx-grid">
-        @for (cat of categories; track cat.id) {
+        @for (cat of visibleCategories(); track cat.id) {
           <a
             class="catx"
             [routerLink]="['/catalogo']"
@@ -306,7 +311,7 @@
       }
 
       <div class="pcard__actions">
-        <button type="button" class="btn btn--ghost btn--sm pcard__add" (click)="qs.addItem(product)" title="Agregar a cotización" aria-label="Agregar a cotización">
+        <button type="button" class="btn btn--ghost btn--sm pcard__add" [disabled]="!product.isPurchasable" (click)="qs.addItem(product)" title="Agregar a cotización" aria-label="Agregar a cotización">
           <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" aria-hidden="true"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>
         </button>
         <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>

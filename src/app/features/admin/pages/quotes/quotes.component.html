@@ -121,6 +121,7 @@
                   [disabled]="updatingStatusId === q._id"
                   (change)="onStatusChange(q, $any($event.target).value)"
                 >
+                  <option value="accepted" disabled>Aceptada</option>
                   @for (opt of statusOptions; track opt.value) {
                     <option [value]="opt.value">{{ opt.label }}</option>
                   }
@@ -134,12 +135,6 @@
                         [disabled]="downloadingId === q._id"
                         (click)="downloadPdf(q)">
                   {{ downloadingId === q._id ? 'PDF…' : 'PDF' }}
-                </button>
-                <button class="btn btn--ghost btn--xs" type="button"
-                        [disabled]="emailSendingId === q._id || !q.client?.email"
-                        [title]="q.client?.email ? 'Enviar a ' + q.client?.email : 'Sin email de cliente'"
-                        (click)="resendEmail(q)">
-                  {{ emailSendingId === q._id ? 'Enviando…' : 'Email' }}
                 </button>
                 <button class="btn btn--ghost btn--xs" type="button"
                         (click)="duplicateQuote(q)">
@@ -253,10 +248,11 @@
             class="form-control"
             type="number"
             min="0"
-            step="1"
+            max="100"
+            step="0.1"
             [(ngModel)]="commercialDiscount"
             name="commercialDiscount"
-            placeholder="Descuento CLP"
+            placeholder="Descuento %"
           />
           <input
             class="form-control"
@@ -338,11 +334,6 @@
     <button class="btn btn--outline btn--sm" type="button"
             [disabled]="downloadingId === detailQuote?._id" (click)="downloadPdf(detailQuote!)">
       {{ downloadingId === detailQuote?._id ? 'Descargando…' : 'Descargar PDF' }}
-    </button>
-    <button class="btn btn--primary btn--sm" type="button"
-            [disabled]="emailSendingId === detailQuote?._id || !detailQuote?.client?.email"
-            (click)="resendEmail(detailQuote!)">
-      {{ emailSendingId === detailQuote?._id ? 'Enviando…' : 'Reenviar por email' }}
     </button>
   </div>
 </vayo-modal>

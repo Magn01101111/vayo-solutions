@@ -131,6 +131,28 @@
     </h3>
 
     <div class="form-row form-row--3">
+      <div class="form-group">
+        <label class="form-label">Region *</label>
+        <select class="select" formControlName="billingRegion">
+          @for (r of regions; track r.name) {
+            <option [value]="r.name">{{ r.name }}</option>
+          }
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Ciudad / Comuna *</label>
+        <select class="select" formControlName="billingCity">
+          <option value="">Selecciona comuna</option>
+          @for (c of billingCommunes(); track c) {
+            <option [value]="c">{{ c }}</option>
+          }
+        </select>
+        @if (isInvalid('billingCity')) { <small class="text-danger">{{ errorOf('billingCity') }}</small> }
+      </div>
+    </div>
+
+    <div class="form-row form-row--3">
       <div class="form-group form-group--street">
         <label class="form-label">Calle *</label>
         <input class="input" formControlName="billingStreet" placeholder="Av. Providencia">
@@ -150,6 +172,13 @@
     </div>
 
     <div class="form-row form-row--3">
+      <div class="form-group">
+        <label class="form-label">Codigo postal</label>
+        <input class="input" formControlName="billingZip" placeholder="7500000">
+      </div>
+    </div>
+
+    <div class="form-row form-row--3" hidden>
       <div class="form-group">
         <label class="form-label">Ciudad / Comuna *</label>
         <select class="select" formControlName="billingCity">
@@ -200,6 +229,28 @@
       </button>
 
       <div class="form-row form-row--3">
+        <div class="form-group">
+          <label class="form-label">Region *</label>
+          <select class="select" formControlName="shippingRegion">
+            @for (r of regions; track r.name) {
+              <option [value]="r.name">{{ r.name }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Ciudad / Comuna *</label>
+          <select class="select" formControlName="shippingCity">
+            <option value="">Selecciona comuna</option>
+            @for (c of shippingCommunes(); track c) {
+              <option [value]="c">{{ c }}</option>
+            }
+          </select>
+          @if (isInvalid('shippingCity')) { <small class="text-danger">{{ errorOf('shippingCity') }}</small> }
+        </div>
+      </div>
+
+      <div class="form-row form-row--3">
         <div class="form-group form-group--street">
           <label class="form-label">Calle *</label>
           <input class="input" formControlName="shippingStreet">
@@ -212,13 +263,20 @@
           @if (isInvalid('shippingNumber')) { <small class="text-danger">{{ errorOf('shippingNumber') }}</small> }
         </div>
 
+      <div class="form-group">
+        <label class="form-label">Depto / Oficina</label>
+        <input class="input" formControlName="shippingApt">
+      </div>
+    </div>
+
+      <div class="form-row form-row--3">
         <div class="form-group">
-          <label class="form-label">Depto / Oficina</label>
-          <input class="input" formControlName="shippingApt">
+          <label class="form-label">Codigo postal</label>
+          <input class="input" formControlName="shippingZip">
         </div>
       </div>
 
-      <div class="form-row form-row--3">
+      <div class="form-row form-row--3" hidden>
         <div class="form-group">
           <label class="form-label">Ciudad / Comuna *</label>
           <select class="select" formControlName="shippingCity">
@@ -259,6 +317,7 @@
       <textarea
         class="textarea"
         formControlName="notes"
+        maxlength="50"
         placeholder="Requerimientos especiales, urgencia, observaciones…"></textarea>
     </div>
 

@@ -237,7 +237,7 @@
                     <button
                       type="button"
                       class="btn btn--ghost btn--sm"
-                      [disabled]="product.shortStatus === 'Sin stock'"
+                      [disabled]="!product.isPurchasable"
                       (click)="qs.addItem(product)"
                     >Agregar</button>
                     <a class="btn btn--primary btn--sm" [routerLink]="['/catalogo', product.id]">Ver ficha</a>
@@ -350,7 +350,7 @@
                     <button
                       type="button"
                       class="btn btn--primary btn--sm"
-                      [disabled]="item.shortStatus === 'Sin stock'"
+                      [disabled]="!item.isPurchasable"
                       (click)="qs.addItem(item)"
                     >Agregar</button>
                   </td>

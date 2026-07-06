@@ -107,6 +107,9 @@ export interface ProductCardData {
   images?: string[];
   shortStatus: string;
   stockLabel: string;
+  stockRaw?: number;
+  availabilityStatus?: 'in_stock' | 'out_of_stock' | 'on_request' | 'discontinued';
+  isPurchasable?: boolean;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
   /** Producto destacado (home de ofertas). */
   isFeatured?: boolean;
@@ -129,10 +132,18 @@ export interface ProductDetailData {
   sku: string;
   description?: string;
   price: string;
+  priceRaw?: number | null;
+  offerPrice?: string | null;
+  offerPriceRaw?: number | null;
+  offerEndsAt?: string | null;
+  offerDiscountPercent?: number;
   imageUrl?: string;
   images?: string[];
   shortStatus: string;
   stockLabel: string;
+  stockRaw?: number;
+  availabilityStatus?: 'in_stock' | 'out_of_stock' | 'on_request' | 'discontinued';
+  isPurchasable?: boolean;
   icon?: 'compressor' | 'fan' | 'valve' | 'sensor' | 'filter' | 'generic';
   brand: string;
   model?: string;

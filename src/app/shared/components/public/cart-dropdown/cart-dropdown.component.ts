@@ -164,8 +164,12 @@ export class CartDropdownComponent {
     return this.qs.parsePrice(price);
   }
 
-  itemSubtotal(price: string, qty: number): number {
-    return this.qs.parsePrice(price) * qty;
+  itemUnitPrice(item: Parameters<QuotationService['itemUnitPrice']>[0]): number {
+    return this.qs.itemUnitPrice(item);
+  }
+
+  itemSubtotal(item: Parameters<QuotationService['itemUnitPrice']>[0] & { qty: number }): number {
+    return this.qs.itemUnitPrice(item) * item.qty;
   }
 
   formatPrice(price: number): string {

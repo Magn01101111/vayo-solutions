@@ -160,6 +160,18 @@
   font-size: 1.125rem;
 }
 
+.portal-breakdown {
+  display: grid;
+  gap: .35rem;
+  margin-top: .75rem;
+  padding: .75rem;
+  background: var(--paper-2, var(--color-surface, #f6f8fb));
+  border: 1px solid var(--line, var(--color-border, #d6dee8));
+  border-radius: var(--radius-md);
+
+  p { margin: 0; }
+}
+
 // ── Favoritos ──
 .portal-fav-grid {
   display: grid;
@@ -393,7 +405,9 @@
 }
 
 .modal {
-  background: var(--color-bg);
+  background: var(--paper, var(--color-bg, #ffffff));
+  color: var(--ink, var(--color-text, #1f2937));
+  border: 1px solid var(--line, var(--color-border, #d6dee8));
   border-radius: var(--radius-lg);
   max-width: 640px;
   width: 100%;

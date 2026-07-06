@@ -113,7 +113,7 @@
             <!-- Precio -->
             @if (unitPrice() > 0) {
               <div class="pd-rail__price">
-                <vayo-price class="vp--lg" [price]="unitPrice()" [offerPrice]="null" />
+                <vayo-price class="vp--lg" [price]="p.priceRaw || unitPrice()" [offerPrice]="p.offerPriceRaw ?? null" />
               </div>
             } @else {
               <p class="pd-rail__consultar">Precio a consultar</p>
@@ -127,7 +127,7 @@
                   <vayo-quantity-stepper
                     [value]="quantity()"
                     [min]="1"
-                    [max]="999"
+                    [max]="p.stockRaw || 999"
                     (valueChange)="quantity.set($event)"
                   />
                 </div>
@@ -142,7 +142,7 @@
                 <button
                   type="button"
                   class="btn btn--amber btn--block"
-                  [disabled]="p.shortStatus === 'Sin stock'"
+                  [disabled]="!p.isPurchasable"
                   (click)="addToQuote()"
                 >
                   Agregar a cotización
@@ -163,7 +163,7 @@
                   <vayo-quantity-stepper
                     [value]="currentCartQty()"
                     [min]="1"
-                    [max]="999"
+                    [max]="p.stockRaw || 999"
                     (valueChange)="updateCartQuantity($event)"
                   />
                 </div>
@@ -178,7 +178,7 @@
             }
 
             <!-- Descuentos por volumen (FUNCIÓN PROPUESTA) -->
-            <div class="pd-rail__vol">
+            <div class="pd-rail__vol" hidden>
               <div class="block-head block-head--sm">
                 <span class="block-head__title">Descuentos por volumen</span>
                 <span class="chip chip--proposed">FUNCIÓN PROPUESTA</span>

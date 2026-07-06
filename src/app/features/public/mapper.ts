@@ -216,6 +216,10 @@ export function mapApiProductToCardData(
   const offerDiscountPercent = hasOffer && product.price
     ? Math.round(((product.price - product.offerPrice!) / product.price) * 100)
     : undefined;
+  const isPurchasable =
+    product.availabilityStatus === 'in_stock' &&
+    product.stock > 0 &&
+    ((hasOffer ? product.offerPrice : product.price) ?? 0) > 0;
 
   return {
     id: product.id,
@@ -233,6 +237,9 @@ export function mapApiProductToCardData(
       product.availabilityStatus,
       product.stock,
     ),
+    stockRaw: product.stock,
+    availabilityStatus: product.availabilityStatus,
+    isPurchasable,
     icon: mapCategorySlugToIcon(categorySlug),
     isFeatured: product.isFeatured,
     offerPrice: hasOffer ? formatCurrency(product.offerPrice!, product.currency) : null,
@@ -246,6 +253,25 @@ export function mapApiProductDetailToProductDetailData(
   product: ApiProductDetail,
 ): ProductDetailData {
   const imageUrls = resolveImageUrls(product);
+  const now = Date.now();
+  const offerStarted =
+    !product.offerStartsAt || new Date(product.offerStartsAt).getTime() <= now;
+  const offerNotEnded =
+    !product.offerEndsAt || new Date(product.offerEndsAt).getTime() >= now;
+  const hasOffer =
+    product.offerPrice != null &&
+    product.offerPrice > 0 &&
+    (product.price == null || product.offerPrice < product.price) &&
+    offerStarted &&
+    offerNotEnded;
+  const offerDiscountPercent = hasOffer && product.price
+    ? Math.round(((product.price - product.offerPrice!) / product.price) * 100)
+    : undefined;
+  const isPurchasable =
+    product.availabilityStatus === 'in_stock' &&
+    product.stock > 0 &&
+    ((hasOffer ? product.offerPrice : product.price) ?? 0) > 0;
+
   return {
     id: product.id,
     category: product.category.name,
@@ -254,6 +280,11 @@ export function mapApiProductDetailToProductDetailData(
     sku: product.sku,
     description: product.description,
     price: formatCurrency(product.price, product.currency),
+    priceRaw: product.price ?? null,
+    offerPrice: hasOffer ? formatCurrency(product.offerPrice!, product.currency) : null,
+    offerPriceRaw: hasOffer ? product.offerPrice! : null,
+    offerEndsAt: product.offerEndsAt ?? undefined,
+    offerDiscountPercent,
     imageUrl: imageUrls[0],
     images: imageUrls,
     shortStatus: mapAvailabilityToShortStatus(product.availabilityStatus),
@@ -261,6 +292,9 @@ export function mapApiProductDetailToProductDetailData(
       product.availabilityStatus,
       product.stock,
     ),
+    stockRaw: product.stock,
+    availabilityStatus: product.availabilityStatus,
+    isPurchasable,
     icon: mapCategorySlugToIcon(product.category.slug),
     brand: product.brand,
     model: product.model,

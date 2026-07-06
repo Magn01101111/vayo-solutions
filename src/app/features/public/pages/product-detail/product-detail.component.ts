@@ -82,6 +82,12 @@ export class ProductDetailComponent implements OnInit {
   // Computed signals para precios
   unitPrice = computed(() => {
     const currentProduct = this.product();
+    if (currentProduct?.offerPriceRaw != null) {
+      return currentProduct.offerPriceRaw;
+    }
+    if (currentProduct?.priceRaw != null) {
+      return currentProduct.priceRaw;
+    }
     if (!currentProduct?.price || currentProduct.price === 'Consultar') {
       return 0;
     }
@@ -251,19 +257,7 @@ export class ProductDetailComponent implements OnInit {
 
     // Agregar la cantidad seleccionada
     for (let i = 0; i < this.quantity(); i++) {
-      this.qs.addItem({
-        id: currentProduct.id,
-        name: currentProduct.name,
-        sku: currentProduct.sku,
-        price: currentProduct.price,
-        category: currentProduct.category,
-        categorySlug: currentProduct.categorySlug,
-        imageUrl: currentProduct.imageUrl,
-        shortStatus: currentProduct.shortStatus,
-        stockLabel: currentProduct.stockLabel,
-        icon: currentProduct.icon,
-        tags: currentProduct.tags,
-      });
+      this.qs.addItem(currentProduct);
     }
 
     // Mostrar feedback
@@ -280,19 +274,7 @@ export class ProductDetailComponent implements OnInit {
     const currentProduct = this.product();
     if (!currentProduct) return;
 
-    this.qs.addItem({
-      id: currentProduct.id,
-      name: currentProduct.name,
-      sku: currentProduct.sku,
-      price: currentProduct.price,
-      category: currentProduct.category,
-      categorySlug: currentProduct.categorySlug,
-      imageUrl: currentProduct.imageUrl,
-      shortStatus: currentProduct.shortStatus,
-      stockLabel: currentProduct.stockLabel,
-      icon: currentProduct.icon,
-      tags: currentProduct.tags,
-    });
+    this.qs.addItem(currentProduct);
 
     this.showFeedback(
       `✓ ${currentProduct.name} agregado al carrito`,
@@ -310,19 +292,7 @@ export class ProductDetailComponent implements OnInit {
       // Agregar items
       const diff = newQty - currentQty;
       for (let i = 0; i < diff; i++) {
-        this.qs.addItem({
-          id: currentProduct.id,
-          name: currentProduct.name,
-          sku: currentProduct.sku,
-          price: currentProduct.price,
-          category: currentProduct.category,
-          categorySlug: currentProduct.categorySlug,
-          imageUrl: currentProduct.imageUrl,
-          shortStatus: currentProduct.shortStatus,
-          stockLabel: currentProduct.stockLabel,
-          icon: currentProduct.icon,
-          tags: currentProduct.tags,
-        });
+        this.qs.addItem(currentProduct);
       }
       this.showFeedback(
         `✓ Cantidad actualizada a ${newQty} unidades`,

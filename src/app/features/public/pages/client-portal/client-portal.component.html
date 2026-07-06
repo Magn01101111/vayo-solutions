@@ -102,10 +102,6 @@
                     <button class="btn btn-sm btn-light" (click)="openQuoteDetail(q)">Ver</button>
                     <button class="btn btn-sm btn-light" (click)="downloadPDF(q._id)">PDF</button>
                     <button class="btn btn-sm btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
-                    @if (q.metadata?.status === 'sent') {
-                      <button class="btn btn-sm btn-success" (click)="acceptQuote(q)">Aceptar</button>
-                      <button class="btn btn-sm btn-danger" (click)="rejectQuote(q)">Rechazar</button>
-                    }
                     @if (q.metadata?.status === 'accepted') {
                       @if (saleForQuote(q); as sale) {
                         @if (sale.status === 'pending') {
@@ -165,11 +161,6 @@
                   <td>{{ formatCLP(s.totals?.total) }}</td>
                   <td class="portal-actions">
                     <button class="btn btn-sm btn-light" (click)="openSaleDetail(s)">Ver</button>
-                    @if (s.status === 'pending') {
-                      <button class="btn btn-sm btn-success" [disabled]="payingSaleId() === s.id" (click)="paySale(s)">
-                        {{ payingSaleId() === s.id ? 'Redirigiendo...' : 'Pagar Webpay' }}
-                      </button>
-                    }
                   </td>
                 </tr>
               }
@@ -382,6 +373,20 @@
             </tbody>
           </table>
         }
+        <div class="portal-breakdown">
+          <p><strong>Pago:</strong> {{ paymentTermsLabel(q.paymentTerms) }}</p>
+          <p><strong>Entrega:</strong> {{ deliveryTermsLabel(q.deliveryTerms) }} @if (q.shipping?.methodLabel) { · {{ q.shipping?.methodLabel }} }</p>
+          <p><strong>Envio:</strong> {{ formatCLP(q.totals?.shipping ?? q.shipping?.cost) }}</p>
+          @if ((q.totals?.discount ?? 0) > 0) {
+            <p><strong>Descuento:</strong> -{{ formatCLP(q.totals?.discount) }}
+              @if (q.manualDiscount?.percent) { ({{ q.manualDiscount?.percent }}%) }
+              @if (q.coupon?.code) { · {{ q.coupon?.code }} }
+            </p>
+          }
+          @if (q.generalNotes) {
+            <p><strong>Nota:</strong> {{ q.generalNotes }}</p>
+          }
+        </div>
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(q.totals?.total) }}</p>
         <div class="modal-actions">
           <button class="btn btn-light" (click)="repeatQuote(q)">Volver a cotizar</button>
@@ -397,10 +402,6 @@
             } @else {
               <span class="portal-hint">El cotizador aun no ha habilitado el pago.</span>
             }
-          }
-          @if (q.metadata?.status === 'sent') {
-            <button class="btn btn-success" (click)="acceptQuote(q)">Aceptar cotización</button>
-            <button class="btn btn-danger" (click)="rejectQuote(q)">Rechazar cotización</button>
           }
         </div>
       </div>
@@ -438,13 +439,6 @@
           </table>
         }
         <p class="portal-total"><strong>Total:</strong> {{ formatCLP(s.totals?.total) }}</p>
-        @if (s.status === 'pending') {
-          <div class="modal-actions">
-            <button class="btn btn-success" [disabled]="payingSaleId() === s.id" (click)="paySale(s)">
-              {{ payingSaleId() === s.id ? 'Redirigiendo...' : 'Pagar con Webpay' }}
-            </button>
-          </div>
-        }
       </div>
     </div>
   </div>
