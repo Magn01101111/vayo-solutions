@@ -11,6 +11,16 @@ export interface WebpayInitResponse {
   paymentId: string;
 }
 
+export interface WebpayPaymentRecord {
+  _id: string;
+  saleId: string;
+  amount: number;
+  status: 'pending' | 'authorized' | 'failed' | 'cancelled';
+  authorizationCode?: string;
+  cardLast4?: string;
+  createdAt: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class PaymentService {
   private readonly api = inject(ApiService);
@@ -20,6 +30,13 @@ export class PaymentService {
     return this.api.post<ApiResponse<WebpayInitResponse>, { saleId: string }>(
       API_CONFIG.endpoints.paymentsWebpayInit,
       { saleId },
+    );
+  }
+
+  /** Historial de intentos de pago de una venta (ADMIN / COTIZADOR). */
+  getPaymentsBySale(saleId: string): Observable<ApiResponse<WebpayPaymentRecord[]>> {
+    return this.api.get<ApiResponse<WebpayPaymentRecord[]>>(
+      `${API_CONFIG.endpoints.paymentsBySale}/${saleId}`,
     );
   }
 
